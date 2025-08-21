@@ -1,0 +1,11 @@
+<div class="form-container">
+    <h2>Registrar nueva carrera</h2>
+
+    <form #formCarrera="ngForm" (ngSubmit)="guardarCarrera(formCarrera)">
+        <label for="nombre">Nombre de la carrera:</label>
+        <input id="nombre" type="text" name="nombreCarrera" [(ngModel)]="nombreCarrera" placeholder="Ej. Software"
+            class="input-field" required />
+
+        <button type="submit" class="save-button">Guardar</button>
+    </form>
+</div>

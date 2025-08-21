@@ -1,0 +1,75 @@
+<div>
+    <div class="container">
+        <div class="header">
+            <h1>Mi Portafolio Profesional</h1>
+            <p>Descubre mi trayectoria y experiencias</p>
+        </div>
+
+        <div class="views-grid">
+            <div class="view-card">
+                <h2>
+                    <div class="icon carrera-icon">🎯</div>
+                    CARRERA
+                </h2>
+                <p>En esta Seccion usted Podra Ingresar Nuevas Carreras a la Base de Datos.</p>
+                <button class="btn"  (click)="irACarrera()">Ingresar Carerras ITSQMET</button>
+            </div>
+            <div class="view-card">
+                <h2>
+                    <div class="icon estudios-icon">📚</div>
+                    Tipo de Carrera
+                </h2>
+                <p>En esta seccion usted podra ingresar el tiempo de Duracion en Palabras clave ya sea PVC o General</p>
+        
+                <button class="btn" (click)="irATipo()">Ingresar Tiempos</button>
+            </div>
+            <div class="view-card">
+                <h2>
+                    <div class="icon experiencia-icon">💼</div>
+                    Calculo de Nuevas Carreras
+                </h2>
+                <p>Aqui Usted puede calcular el tiempo de duracion de carreras eleguidas</p>
+                <button class="btn" (click)="irACalCareer()">Calcular Carreras </button>
+            </div>
+            <div class="view-card">
+                <h2>
+                    <div class="icon proyectos-icon">🚀</div>
+                    PROYECTOS
+                </h2>
+                <p>Trabajos destacados y contribuciones que demuestran mis habilidades técnicas y creativas.</p>
+                <div class="content-area">
+                    <h3>Proyectos Destacados</h3>
+                    <p>Aplicaciones web y móviles con enfoque en <span class="highlight">user experience</span> y <span class="highlight">performance</span>.</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>E-commerce Platform</li>
+                        <li>Mobile Banking App</li>
+                        <li>Social Media Dashboard</li>
+                    </ul>
+                </div>
+                <button class="btn" onclick="showMore('proyectos')">Ver demos</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMore(section) {
+            alert(`Mostrando más información sobre: ${section.toUpperCase()}`);
+            
+            
+            console.log(`Usuario interesado en la sección: ${section}`);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.view-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const header = document.querySelector('.header');
+            header.style.transform = `translateY(${scrolled * 0.5}px)`;
+        });
+    </script>
+</div>

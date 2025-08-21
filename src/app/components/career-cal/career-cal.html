@@ -1,0 +1,36 @@
+<div class="form-container">
+    <h2>Registrar CalCareer</h2>
+
+    <form (ngSubmit)="onSubmit()">
+        <label for="career">Carrera:</label>
+        <select id="career" [(ngModel)]="calCareer.careerId" name="careerId" required>
+            @for (career of careers; track career.id) {
+            <option [value]="career.id">
+                {{ career.nombre }}
+            </option>
+            }
+        </select>
+
+        <label for="typeCareer">Tipo de Carrera:</label>
+        <select id="typeCareer" [(ngModel)]="calCareer.typeCareerTipo" name="typeCareerTipo" required>
+            @for (type of typeCareers; track type.tipo) {
+            <option [value]="type.tipo">
+                {{ type.tipo }} ({{ type.duracion }} semanas)
+            </option>
+            }
+        </select>
+
+        <label for="fechaActual">Fecha Actual:</label>
+        <input type="date" id="fechaActual" [(ngModel)]="calCareer.fechaActual" name="fechaActual" required />
+
+        <button type="button" (click)="calcularFechaFin()">Calcular Fecha Fin</button>
+
+        @if (fechaFin) {
+        <div>
+            <strong>Fecha estimada de finalización:</strong> {{ fechaFin | date:'longDate' }}
+        </div>
+        }
+
+        <button type="submit">Guardar</button>
+    </form>
+</div>
