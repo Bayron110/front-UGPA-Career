@@ -1,16 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TypeCareerServices } from '../../services/type-career-services';
 import { TypeCareer } from '../../Interface/TypeCareer';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TypeCareerService } from '../../services/type-career-services';
 
 @Component({
   selector: 'app-tipo-carrera',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './tipo-carrera.html',
-  styleUrl: './tipo-carrera.css'
+  styleUrls: ['./tipo-carrera.css'] 
+  
 })
 export class TipoCarrera {
   carrera: TypeCareer = {
@@ -20,24 +21,30 @@ export class TipoCarrera {
 
   mensaje: string = '';
 
-  constructor(private typeCareerServices: TypeCareerServices) {}
+  constructor(private typeCareerServices: TypeCareerService) {}
 
   guardarCarrera(): void {
-    this.typeCareerServices.guardar(this.carrera).subscribe({
+    if (!this.carrera.tipo || this.carrera.duracion <= 0) {
+      this.mensaje = 'Todos los campos son obligatorios y deben ser válidos.';
+      alert(this.mensaje);
+      return;
+    }
+
+    this.typeCareerServices.guardarTipoCarrera(this.carrera).subscribe({
       next: () => {
-        this.mensaje = 'Tipo guardada exitosamente ✅';
+        this.mensaje = '✅ Tipo de carrera guardado exitosamente';
         alert(this.mensaje);
         this.carrera = { tipo: '', duracion: 0 };
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 0) {
-          this.mensaje = 'No se pudo conectar con el servidor. Verifica tu conexión 🔌';
+          this.mensaje = '🔌 No se pudo conectar con el servidor. Verifica tu conexión.';
         } else if (error.status === 400) {
-          this.mensaje = 'Datos inválidos. Revisa los campos del formulario ⚠️';
+          this.mensaje = '⚠️ Datos inválidos. Revisa los campos.';
         } else if (error.status === 500) {
-          this.mensaje = 'Ya tienes un tipo guardado porfavor edita o elimana ese dato';
+          this.mensaje = '❗ Ya existe este tipo de carrera. Por favor edita o elimina el existente.';
         } else {
-          this.mensaje = `Error inesperado (${error.status}). Intenta nuevamente ❌`;
+          this.mensaje = `❌ Error inesperado (${error.status}). Intenta nuevamente.`;
         }
 
         console.error('Error al guardar carrera:', {

@@ -1,8 +1,7 @@
 export interface CalCareer {
     id?: number;
-    typeCareerTipo?: string;
-    typeCareerDuracion?: number;
     careerId?: number;
+    typeCareerId?: number;
     fechaActual?: string;
-    fechaFinal?: string;
+    fechaFin?: string;
 }

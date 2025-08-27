@@ -11,23 +11,13 @@ export class CalCareerService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<CalCareer[]> {
-    return this.http.get<CalCareer[]>(this.apiUrl);
+  getAll(): Observable<CalCareer[]> { return this.http.get<CalCareer[]>(this.apiUrl); }
+  getById(id: number): Observable<CalCareer> { return this.http.get<CalCareer>(`${this.apiUrl}/${id}`); }
+  create(calCareer: any): Observable<CalCareer> {
+    return this.http.post<CalCareer>(this.apiUrl, calCareer, { headers: { 'Content-Type': 'application/json' } });
   }
-
-  getById(id: number): Observable<CalCareer> {
-    return this.http.get<CalCareer>(`${this.apiUrl}/${id}`);
-  }
-
-  create(calCareer: CalCareer): Observable<CalCareer> {
-    return this.http.post<CalCareer>(this.apiUrl, calCareer);
-  }
-
   update(id: number, calCareer: CalCareer): Observable<CalCareer> {
     return this.http.put<CalCareer>(`${this.apiUrl}/${id}`, calCareer);
   }
-
-  delete(id: number): Observable<boolean> {
-    return this.http.delete<boolean>(`${this.apiUrl}/${id}`);
-  }
+  delete(id: number): Observable<void> { return this.http.delete<void>(`${this.apiUrl}/${id}`); }
 }

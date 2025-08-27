@@ -1,36 +1,54 @@
 <div class="form-container">
     <h2>Registrar CalCareer</h2>
 
-    <form (ngSubmit)="onSubmit()">
+    <form (ngSubmit)="onSubmit()" #formCalCareer="ngForm">
+        <!-- Selección de carrera -->
         <label for="career">Carrera:</label>
-        <select id="career" [(ngModel)]="calCareer.careerId" name="careerId" required>
+        <select id="career" [(ngModel)]="calCareer.careerId" name="careerId" required #careerId="ngModel">
             @for (career of careers; track career.id) {
-            <option [value]="career.id">
+            <option [ngValue]="career.id">
                 {{ career.nombre }}
             </option>
             }
         </select>
+        @if (careerId.invalid && careerId.touched) {
+        <div class="error">Selecciona una carrera</div>
+        }
 
+        <!-- Selección de tipo de carrera -->
         <label for="typeCareer">Tipo de Carrera:</label>
-        <select id="typeCareer" [(ngModel)]="calCareer.typeCareerTipo" name="typeCareerTipo" required>
-            @for (type of typeCareers; track type.tipo) {
-            <option [value]="type.tipo">
+        <select id="typeCareer" [(ngModel)]="calCareer.typeCareerId" name="typeCareerId" required
+            #typeCareerId="ngModel" (change)="calcularFechaFin()">
+            @for (type of typeCareers; track type.id) {
+            <option [ngValue]="type.id">
                 {{ type.tipo }} ({{ type.duracion }} semanas)
             </option>
             }
         </select>
+        @if (typeCareerId.invalid && typeCareerId.touched) {
+        <div class="error">Selecciona un tipo de carrera</div>
+        }
 
+        <!-- Fecha actual -->
         <label for="fechaActual">Fecha Actual:</label>
-        <input type="date" id="fechaActual" [(ngModel)]="calCareer.fechaActual" name="fechaActual" required />
+        <input type="date" id="fechaActual" [(ngModel)]="calCareer.fechaActual" name="fechaActual" required
+            #fechaActual="ngModel" (change)="calcularFechaFin()" />
+        @if (fechaActual.invalid && fechaActual.touched) {
+        <div class="error">Selecciona una fecha válida</div>
+        }
 
+        <!-- Botón para calcular -->
         <button type="button" (click)="calcularFechaFin()">Calcular Fecha Fin</button>
 
+        <!-- Fecha final calculada -->
         @if (fechaFin) {
         <div>
-            <strong>Fecha estimada de finalización:</strong> {{ fechaFin | date:'longDate' }}
+            <strong>Fecha estimada de finalización:</strong>
+            {{ fechaFin | date : "longDate" }}
         </div>
         }
 
-        <button type="submit">Guardar</button>
+        <!-- Botón submit -->
+        <button type="submit" [disabled]="formCalCareer.invalid">Guardar</button>
     </form>
 </div>

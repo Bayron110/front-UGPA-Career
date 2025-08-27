@@ -19,7 +19,5 @@
         </button>
     </form>
 
-    @if (mensaje) {
-    <p class="mensaje">{{ mensaje }}</p>
-    }
+    <p class="mensaje" *ngIf="mensaje">{{ mensaje }}</p>
 </div>

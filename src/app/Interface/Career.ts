@@ -1,4 +1,4 @@
-export interface Career{
-    id?: number,
+export interface Career {
+    id?: number;
     nombre: string;
 }
