@@ -1,34 +1,292 @@
-/* career-cal.css */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/* Estilos para el formulario CalCareer - Angular */
 
 .form-container {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(15px);
-    border-radius: 25px;
-    padding: 40px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    width: 100%;
-    max-width: 600px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    animation: slideIn 0.6s ease-out;
+    max-width: 800px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    position: relative;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-@keyframes slideIn {
+.form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.form-container h2 {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 2.5rem 2rem 1.5rem;
+    text-align: center;
+    font-size: 2.2rem;
+    color: #2d3748;
+    margin: 0;
+    font-weight: 700;
+    position: relative;
+}
+
+.form-container h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 2px;
+}
+
+.form-container form {
+    padding: 2.5rem 2rem;
+    display: grid;
+    gap: 2rem;
+}
+
+/* Estilos para labels */
+.form-container label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    position: relative;
+}
+
+.form-container label::after {
+    content: '*';
+    color: #ef4444;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* Estilos para inputs y selects */
+.form-container select,
+.form-container input[type="date"] {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    font-family: inherit;
+}
+
+.form-container select:focus,
+.form-container input[type="date"]:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-container select:hover,
+.form-container input[type="date"]:hover {
+    border-color: #cbd5e1;
+}
+
+/* Estilos específicos para select */
+.form-container select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 1rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 3rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Estilos específicos para input date */
+.form-container input[type="date"] {
+    position: relative;
+    cursor: pointer;
+}
+
+.form-container input[type="date"]::-webkit-calendar-picker-indicator {
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e") no-repeat;
+    background-size: 1.2rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.form-container input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Estilos para mensajes de error */
+.form-container .error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+.form-container .error::before {
+    content: '⚠️';
+    font-size: 1rem;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para la fecha de finalización */
+.form-container div:has(strong) {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 2px solid #bbf7d0;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    text-align: center;
+    position: relative;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.form-container div:has(strong)::before {
+    content: '🎯';
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.form-container div:has(strong) strong {
+    display: block;
+    font-weight: 700;
+    color: #14532d;
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilos para el botón submit */
+.form-container button[type="submit"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 1.25rem 2.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 1.5rem;
+}
+
+.form-container button[type="submit"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.form-container button[type="submit"]:hover::before {
+    left: 100%;
+}
+
+.form-container button[type="submit"]:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+}
+
+.form-container button[type="submit"]:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.form-container button[type="submit"]:disabled::before {
+    display: none;
+}
+
+/* Estilos para la sección de app-axles */
+.form-container>div:last-child {
+    margin-top: 3rem;
+    padding: 2rem;
+    border-top: 2px dashed #e5e7eb;
+    position: relative;
+    background: #f9fafb;
+    border-radius: 0 0 20px 20px;
+}
+
+.form-container>div:last-child::before {
+    content: '📋 Configuración de Ejes Académicos';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 0 1.5rem;
+    font-weight: 600;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+/* Estados de validación visual */
+.form-container select.ng-valid.ng-touched,
+.form-container input.ng-valid.ng-touched {
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.form-container select.ng-invalid.ng-touched,
+.form-container input.ng-invalid.ng-touched {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* Animación de entrada del formulario */
+.form-container {
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
     from {
         opacity: 0;
         transform: translateY(30px);
@@ -40,222 +298,29 @@ body {
     }
 }
 
-h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 35px;
-    font-size: 2.2rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
-}
-
-h2::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 2px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-label {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 1rem;
-    margin-bottom: 8px;
-    display: block;
-    position: relative;
-}
-
-label::before {
-    content: '';
-    position: absolute;
-    left: -15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 2px;
-}
-
-select,
-input[type="date"] {
-    width: 100%;
-    padding: 16px 20px;
-    border: 2px solid #e1e8ed;
-    border-radius: 15px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-select:focus,
-input[type="date"]:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-    transform: translateY(-3px);
-}
-
-select:hover,
-input[type="date"]:hover {
-    border-color: #a8b3ea;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-}
-
-select {
-    cursor: pointer;
-}
-
-select option {
-    padding: 10px;
-    color: #2c3e50;
-}
-
-button {
-    padding: 16px 32px;
-    border: none;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
-}
-
-button:hover::before {
-    left: 100%;
-}
-
-button[type="button"] {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-    margin: 10px 0;
-}
-
-button[type="button"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(240, 147, 251, 0.4);
-}
-
-button[type="button"]:active {
-    transform: translateY(-1px);
-}
-
-button[type="submit"] {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    margin-top: 20px;
-}
-
-button[type="submit"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
-}
-
-button[type="submit"]:active {
-    transform: translateY(-1px);
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-/* Estilos para el resultado de fecha */
-div:has(strong) {
-    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-    padding: 20px;
-    border-radius: 15px;
-    margin: 20px 0;
-    border-left: 5px solid #4CAF50;
-    animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-strong {
-    color: #2c3e50;
-    font-size: 1.1rem;
-}
-
-/* Responsivo */
+/* Responsive Design */
 @media (max-width: 768px) {
     .form-container {
-        padding: 25px;
-        margin: 10px;
-        border-radius: 20px;
+        margin: 1rem;
+        border-radius: 16px;
     }
 
-    h2 {
+    .form-container h2 {
+        padding: 2rem 1.5rem 1rem;
         font-size: 1.8rem;
-        margin-bottom: 25px;
     }
 
-    button {
-        padding: 14px 28px;
+    .form-container form {
+        padding: 2rem 1.5rem;
+        gap: 1.5rem;
+    }
+
+    .form-container button[type="submit"] {
+        padding: 1rem 2rem;
         font-size: 1rem;
     }
 
-    select,
-    input[type="date"] {
-        padding: 14px 18px;
-    }
-}
-
-@media (max-width: 480px) {
-    .form-container {
-        padding: 20px;
-    }
-
-    h2 {
-        font-size: 1.6rem;
-    }
-
-    form {
-        gap: 20px;
-    }
-
-    button {
-        padding: 12px 24px;
+    .form-container>div:last-child {
+        padding: 1.5rem;
     }
 }

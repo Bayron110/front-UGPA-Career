@@ -7,13 +7,14 @@ import { TypeCareer } from '../../Interface/TypeCareer';
 import { CalCareerService } from '../../services/cal-career';
 import { CareerService } from '../../services/caeer-service';
 import { TypeCareerService } from '../../services/type-career-services';
+import { Axles } from "../axles/axles";
 
 @Component({
   selector: 'app-career-cal',
   templateUrl: './career-cal.html',
   styleUrls: ['./career-cal.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, Axles]
 })
 export class CareerCal implements OnInit {
 
@@ -38,6 +39,7 @@ export class CareerCal implements OnInit {
     this.loadCareers();
     this.loadTypeCareers();
   }
+  
 
   loadCareers(): void {
     this.careerService.obtenerCarreras().subscribe({
@@ -107,4 +109,5 @@ export class CareerCal implements OnInit {
     };
     this.fechaFin = null;
   }
+  ejesCompletos: boolean = false;
 }

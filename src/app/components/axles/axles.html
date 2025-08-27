@@ -1,0 +1,97 @@
+<div class="academic-levels-container">
+    <header class="header">
+        <h1>📚 Sistema de Niveles Académicos</h1>
+        <p class="subtitle">Organiza y gestiona la información educativa por niveles y ejes</p>
+    </header>
+
+    <div class="levels-grid">
+        <div *ngFor="let nivel of niveles; let i = index" class="nivel-card" [class.expanded]="nivel.abierto">
+
+            <!-- Header del Nivel -->
+            <div class="nivel-header" (click)="toggleNivel(i)">
+                <div class="nivel-info">
+                    <span class="nivel-icon">🎓</span>
+                    <div class="nivel-text">
+                        <h3>{{ nivel.nombre || 'Nivel ' + (i + 1) }}</h3>
+                        <span class="ejes-count">{{ getEjesActivos(nivel) }} ejes configurados</span>
+                    </div>
+                </div>
+                <div class="toggle-icon" [class.rotated]="nivel.abierto">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Contenido del Nivel -->
+            <div class="nivel-content" [class.show]="nivel.abierto">
+                <div class="ejes-container">
+                    <div *ngFor="let eje of nivel.ejes; let j = index" class="eje-card" [class.active]="eje.abierto">
+
+                        <!-- Header del Eje -->
+                        <div class="eje-header" (click)="toggleEje(i, j)">
+                            <div class="eje-info">
+                                <span class="eje-icon">📂</span>
+                                <span class="eje-title">{{ eje.nombre || 'Eje ' + (j + 1) }}</span>
+                                <span class="campos-badge" *ngIf="eje.campos.length > 0">
+                                    {{ eje.campos.length }} campos
+                                </span>
+                            </div>
+                            <div class="eje-toggle" [class.rotated]="eje.abierto">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Contenido del Eje -->
+                        <div class="eje-content" [class.show]="eje.abierto">
+                            <div class="campos-list">
+                                <div *ngFor="let campo of eje.campos; let k = index" class="campo-item">
+                                    <div class="campo-wrapper">
+                                        <label class="campo-label">Información {{ k + 1 }}</label>
+                                        <textarea [(ngModel)]="eje.campos[k]" class="campo-input"
+                                            [placeholder]="'Ingresa la información para el campo ' + (k + 1)" rows="2">
+                        </textarea>
+                                        <button class="remove-campo-btn" (click)="eliminarCampo(nivel, eje, k)"
+                                            title="Eliminar campo">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path
+                                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="eje-actions">
+                                <button class="add-campo-btn" (click)="agregarCampo(nivel, eje)"
+                                    [disabled]="eje.campos.length >= 4" title="Agregar nuevo campo">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                                    </svg>
+                                    Agregar Campo
+                                </button>
+                                <span class="campos-limit" *ngIf="eje.campos.length >= 4">
+                                    Límite máximo alcanzado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer con estadísticas -->
+    <div class="footer-stats">
+        <div class="stat-item">
+            <span class="stat-value">{{ getTotalCampos() }}</span>
+            <span class="stat-label">Campos totales</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">{{ getNivelesActivos() }}</span>
+            <span class="stat-label">Niveles activos</span>
+        </div>
+    </div>
+</div>

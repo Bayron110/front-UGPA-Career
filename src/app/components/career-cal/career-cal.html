@@ -37,8 +37,6 @@
         <div class="error">Selecciona una fecha válida</div>
         }
 
-        <!-- Botón para calcular -->
-        <button type="button" (click)="calcularFechaFin()">Calcular Fecha Fin</button>
 
         <!-- Fecha final calculada -->
         @if (fechaFin) {
@@ -47,8 +45,15 @@
             {{ fechaFin | date : "longDate" }}
         </div>
         }
-
+    
         <!-- Botón submit -->
-        <button type="submit" [disabled]="formCalCareer.invalid">Guardar</button>
+        <button type="submit" [disabled]="formCalCareer.invalid || !ejesCompletos">
+            Guardar
+        </button>
     </form>
+        <div>
+            <app-axles *ngIf="calCareer.careerId && calCareer.typeCareerId && calCareer.fechaActual"
+                (estadoCompleto)="ejesCompletos = $event">
+            </app-axles>
+        </div>
 </div>
