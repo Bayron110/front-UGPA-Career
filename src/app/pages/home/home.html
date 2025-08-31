@@ -1,75 +1,141 @@
 <div>
-    <div class="container">
-        <div class="header">
-            <h1>Mi Portafolio Profesional</h1>
-            <p>Descubre mi trayectoria y experiencias</p>
-        </div>
-
-        <div class="views-grid">
-            <div class="view-card">
-                <h2>
-                    <div class="icon carrera-icon">🎯</div>
-                    CARRERA
-                </h2>
-                <p>En esta Seccion usted Podra Ingresar Nuevas Carreras a la Base de Datos.</p>
-                <button class="btn"  (click)="irACarrera()">Ingresar Carerras ITSQMET</button>
-            </div>
-            <div class="view-card">
-                <h2>
-                    <div class="icon estudios-icon">📚</div>
-                    Tipo de Carrera
-                </h2>
-                <p>En esta seccion usted podra ingresar el tiempo de Duracion en Palabras clave ya sea PVC o General</p>
-        
-                <button class="btn" (click)="irATipo()">Ingresar Tiempos</button>
-            </div>
-            <div class="view-card">
-                <h2>
-                    <div class="icon experiencia-icon">💼</div>
-                    Calculo de Nuevas Carreras
-                </h2>
-                <p>Aqui Usted puede calcular el tiempo de duracion de carreras eleguidas</p>
-                <button class="btn" (click)="irACalCareer()">Calcular Carreras </button>
-            </div>
-            <div class="view-card">
-                <h2>
-                    <div class="icon proyectos-icon">🚀</div>
-                    PROYECTOS
-                </h2>
-                <p>Trabajos destacados y contribuciones que demuestran mis habilidades técnicas y creativas.</p>
-                <div class="content-area">
-                    <h3>Proyectos Destacados</h3>
-                    <p>Aplicaciones web y móviles con enfoque en <span class="highlight">user experience</span> y <span class="highlight">performance</span>.</p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>E-commerce Platform</li>
-                        <li>Mobile Banking App</li>
-                        <li>Social Media Dashboard</li>
-                    </ul>
-                </div>
-                <button class="btn" onclick="showMore('proyectos')">Ver demos</button>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>BIENVENIDO</h1>
     </div>
 
-    <script>
-        function showMore(section) {
-            alert(`Mostrando más información sobre: ${section.toUpperCase()}`);
-            
-            
-            console.log(`Usuario interesado en la sección: ${section}`);
-        }
+    <div class="views-grid">
+      <div class="card-container">
+        <div class="card-effect">
+          <div class="card-inner">
+            <div class="card__liquid"></div>
+            <div class="card__shine"></div>
+            <div class="card__glow"></div>
+            <div class="card__content">
+              <div class="card__badge">🎯 CARRERA</div>
+              <div class="card__image" style="background-image: url('https://induccin.wordpress.com/wp-content/uploads/2016/02/gestion-academica.jpg');">
+</div>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.view-card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.2}s`;
-            });
-        });
+              <div class="card__text">
+                <p class="card__title">Gestión Académica</p>
+                <p class="card__description">En esta sección usted podrá ingresar nuevas carreras a la base de datos.</p>
+              </div>
+              <div class="card__footer">
+                <div class="card__price"> Carrera</div>
+                <div class="card__button" (click)="irACarrera()">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor" stroke-width="2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        window.addEventListener('scroll', function() {
-            const scrolled = window.pageYOffset;
-            const header = document.querySelector('.header');
-            header.style.transform = `translateY(${scrolled * 0.5}px)`;
-        });
-    </script>
+      <!-- CARD: Tipo de Carrera -->
+      <div class="card-container">
+        <div class="card-effect">
+          <div class="card-inner">
+            <div class="card__liquid"></div>
+            <div class="card__shine"></div>
+            <div class="card__glow"></div>
+            <div class="card__content">
+              <div class="card__badge">📚 TIPO</div>
+<div class="card__image" style="background-image: url('https://thumbs.dreamstime.com/b/bandera-de-las-fechas-y-los-plazos-ordenador-port%C3%A1til-con-el-calendario-dise%C3%B1o-plano-ejemplo-del-vector-en-fondo-113011329.jpg');">
+</div>
+              <div class="card__text">
+                <p class="card__title">Duración de Carrera</p>
+                <p class="card__description">Ingrese el tiempo de duración en palabras clave como PVC o General.</p>
+              </div>
+              <div class="card__footer">
+                <div class="card__price">Clasificación</div>
+                <div class="card__button" (click)="irATipo()">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor" stroke-width="2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: Cálculo de Carreras -->
+      <div class="card-container">
+        <div class="card-effect">
+          <div class="card-inner">
+            <div class="card__liquid"></div>
+            <div class="card__shine"></div>
+            <div class="card__glow"></div>
+            <div class="card__content">
+              <div class="card__badge">💼 CÁLCULO</div>
+              <div class="card__image" style="background-image: url('https://img.freepik.com/fotos-premium/reloj-clasico-encuentra-calendario-papel-mes-dia_102583-6248.jpg');">
+</div>
+              <div class="card__text">
+                <p class="card__title">Simulación Académica</p>
+                <p class="card__description">Calcule el tiempo estimado de duración de carreras seleccionadas.</p>
+              </div>
+              <div class="card__footer">
+                <div class="card__price">Estimación</div>
+                <div class="card__button" (click)="irACalCareer()">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor" stroke-width="2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: Proyectos -->
+      <div class="card-container">
+        <div class="card-effect">
+          <div class="card-inner">
+            <div class="card__liquid"></div>
+            <div class="card__shine"></div>
+            <div class="card__glow"></div>
+            <div class="card__content">
+              <div class="card__badge">🚀 PROYECTOS</div>
+<div class="card__image" style="background-image: url('https://storage.googleapis.com/twg-content/original_images/ux_smartphone_small_thumb_1_2oNkiJg.jpg');">
+</div>
+    <div class="card__text">
+                <p class="card__title">Proyectos Destacados</p>
+                <p class="card__description">Aplicaciones web y móviles con enfoque en UX y performance.</p>
+              </div>
+              <div class="card__footer">
+                <div class="card__price">Demos</div>
+                <div class="card__button" onclick="showMore('proyectos')">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor" stroke-width="2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showMore(section) {
+      alert(`Mostrando más información sobre: ${section.toUpperCase()}`);
+      console.log(`Usuario interesado en la sección: ${section}`);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const cards = document.querySelectorAll('.card-container');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.2}s`;
+      });
+    });
+
+    window.addEventListener('scroll', function () {
+      const scrolled = window.pageYOffset;
+      const header = document.querySelector('.header');
+      header.style.transform = `translateY(${scrolled * 0.5}px)`;
+    });
+  </script>
 </div>
