@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CalCareer } from '../Interface/CalCareer';
+import { CalCareer } from '../../Interface/CalCareer';
 
 @Injectable({
   providedIn: 'root'

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Career } from '../../Interface/Career';
-import { CareerService } from '../../services/caeer-service';
+import { CareerService } from '../../services/Career/caeer-service';
 
 @Component({
   selector: 'app-carrera-i',

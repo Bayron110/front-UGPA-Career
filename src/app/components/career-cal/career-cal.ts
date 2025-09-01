@@ -1,20 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CalCareer } from '../../Interface/CalCareer';
-import { Career } from '../../Interface/Career';
+
 import { TypeCareer } from '../../Interface/TypeCareer';
-import { CalCareerService } from '../../services/cal-career';
-import { CareerService } from '../../services/caeer-service';
+import { CareerService } from '../../services/Career/caeer-service';
 import { TypeCareerService } from '../../services/type-career-services';
-import { Axles } from "../axles/axles";
+import { CalCareerService } from '../../services/CalCareer/cal-career';
+import { Career } from '../../Interface/Career';
 
 @Component({
   selector: 'app-career-cal',
   templateUrl: './career-cal.html',
   styleUrls: ['./career-cal.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, Axles]
+  imports: [CommonModule, FormsModule]
 })
 export class CareerCal implements OnInit {
 
@@ -22,14 +23,19 @@ export class CareerCal implements OnInit {
     careerId: 0,
     typeCareerId: 0,
     fechaActual: '',
-    fechaFin: ''
+    fechaFin: '',
+    
   };
 
   careers: Career[] = [];
   typeCareers: TypeCareer[] = [];
   fechaFin: Date | null = null;
 
+  // Variable que indica que ya se guardó la información
+  infoGuardada: boolean = false;
+
   constructor(
+    private router: Router,
     private calCareerService: CalCareerService,
     private careerService: CareerService,
     private typeCareerService: TypeCareerService
@@ -39,7 +45,6 @@ export class CareerCal implements OnInit {
     this.loadCareers();
     this.loadTypeCareers();
   }
-  
 
   loadCareers(): void {
     this.careerService.obtenerCarreras().subscribe({
@@ -56,16 +61,11 @@ export class CareerCal implements OnInit {
   }
 
   calcularFechaFin(): void {
-    const tipoSeleccionado = this.typeCareers.find(
-      (t) => t.id === this.calCareer.typeCareerId
-    );
-
-    const semanas = tipoSeleccionado?.duracion ?? 0;
-
-    if (this.calCareer.fechaActual && semanas > 0) {
+    const tipo = this.typeCareers.find(t => t.id === this.calCareer.typeCareerId);
+    if (this.calCareer.fechaActual && tipo) {
       const fechaInicio = new Date(this.calCareer.fechaActual);
       const fechaCalculada = new Date(fechaInicio);
-      fechaCalculada.setDate(fechaInicio.getDate() + semanas * 7);
+      fechaCalculada.setDate(fechaInicio.getDate() + tipo.duracion * 7);
 
       this.fechaFin = fechaCalculada;
       this.calCareer.fechaFin = fechaCalculada.toISOString().split('T')[0];
@@ -75,6 +75,7 @@ export class CareerCal implements OnInit {
     }
   }
 
+  
   onSubmit(): void {
     if (!this.calCareer.careerId || !this.calCareer.typeCareerId || !this.calCareer.fechaActual) {
       alert('⚠️ Todos los campos son obligatorios');
@@ -90,8 +91,8 @@ export class CareerCal implements OnInit {
 
     this.calCareerService.create(payload).subscribe({
       next: () => {
-        alert('✅ Registro guardado exitosamente');
-        this.resetForm();
+        alert('✅ Información guardada correctamente');
+        this.infoGuardada = true; // Marcamos que se guardó
       },
       error: (err) => {
         console.error('❌ Error al guardar:', err);
@@ -100,14 +101,8 @@ export class CareerCal implements OnInit {
     });
   }
 
-  resetForm(): void {
-    this.calCareer = {
-      careerId: 0,
-      typeCareerId: 0,
-      fechaActual: '',
-      fechaFin: ''
-    };
-    this.fechaFin = null;
-  }
-  ejesCompletos: boolean = false;
+  // Redirigir solo si ya se guardó la información
+  redirigir(): void {
+  this.router.navigate(['/vista']);
+}
 }

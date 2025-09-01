@@ -5,6 +5,7 @@ import { TypeCareer } from '../../Interface/TypeCareer';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TypeCareerService } from '../../services/type-career-services';
 
+
 @Component({
   selector: 'app-tipo-carrera',
   standalone: true,

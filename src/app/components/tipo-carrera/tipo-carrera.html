@@ -1,23 +1,40 @@
 <div class="form-container">
-    <h2>Registrar Tipo de Carrera</h2>
+  <div class="heading">REGISTRAR TIPO DE CARRERA </div>
 
-    <form (ngSubmit)="guardarCarrera()" #formCarrera="ngForm">
-        <div class="form-group">
-            <label for="tipo">Tipo de carrera:</label>
-            <input type="text" id="tipo" name="tipo" [(ngModel)]="carrera.tipo" required
-                placeholder="Ej. Ingeniería, Medicina" class="form-control" />
-        </div>
+  <form class="form" (ngSubmit)="guardarCarrera()" #formCarrera="ngForm">
+    <div class="form-group">
+      <label for="tipo">Tipo de carrera:</label>
+      <input
+        type="text"
+        id="tipo"
+        name="tipo"
+        [(ngModel)]="carrera.tipo"
+        required
+        placeholder="Ej. Ingeniería, Medicina"
+        class="input"
+      />
+    </div>
 
-        <div class="form-group">
-            <label for="duracion">Duración (semanas):</label>
-            <input type="number" id="duracion" name="duracion" [(ngModel)]="carrera.duracion" required min="1"
-                placeholder="Ej. 208" class="form-control" />
-        </div>
+    <div class="form-group">
+      <label for="duracion">Duración (semanas):</label>
+      <input
+        type="number"
+        id="duracion"
+        name="duracion"
+        [(ngModel)]="carrera.duracion"
+        required
+        min="1"
+        placeholder="Ej. 208"
+        class="input"
+      />
+    </div>
 
-        <button type="submit" [disabled]="formCarrera.invalid" class="btn btn-primary">
-            Guardar
-        </button>
-    </form>
+    <button type="submit" [disabled]="formCarrera.invalid" class="login-button">
+      Guardar
+    </button>
+  </form>
 
-    <p class="mensaje" *ngIf="mensaje">{{ mensaje }}</p>
+  @if (mensaje) {
+    <p class="mensaje">{{ mensaje }}</p>
+  }
 </div>

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CaeerService } from './caeer-service';
+import { AxlesSuoerior } from './axles-suoerior';
 
-describe('CaeerService', () => {
-  let service: CaeerService;
+describe('AxlesSuoerior', () => {
+  let service: AxlesSuoerior;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(CaeerService);
+    service = TestBed.inject(AxlesSuoerior);
   });
 
   it('should be created', () => {
