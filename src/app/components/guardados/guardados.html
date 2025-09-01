@@ -100,34 +100,25 @@
             <h5>📌 Ejes del Nivel (máximo 4)</h5>
             <div class="ejes-grid">
               <div *ngFor="let eje of niveles[currentStep].ejes; let ejeIndex = index" class="eje-card">
-                <!-- Nombre del eje -->
-                <div class="eje-header">
-                  <label [for]="'eje-' + currentStep + '-' + ejeIndex">
-                    Eje {{ ejeIndex + 1 }}:
-                  </label>
-                  <input type="text" [(ngModel)]="eje.nombre" name="eje_{{ currentStep }}_{{ ejeIndex }}" maxlength="80"
-                    [id]="'eje-' + currentStep + '-' + ejeIndex" placeholder="Nombre del eje {{ ejeIndex + 1 }}"
-                    class="form-input eje-input" required />
+  <!-- Nombre del eje -->
+  <div class="eje-header">
+    <label [for]="'eje-' + currentStep + '-' + ejeIndex">
+      Eje {{ ejeIndex + 1 }}:
+    </label>
+    <textarea [(ngModel)]="eje.nombre"
+              name="eje_{{ currentStep }}_{{ ejeIndex }}"
+              [id]="'eje-' + currentStep + '-' + ejeIndex"
+              placeholder="Temas Eje {{ ejeIndex + 1 }}"
+              class="form-textarea eje-input"
+              rows="2"
+              maxlength="300000"
+              required></textarea>
+  </div>
+</div>
+                </div>
+                </div>
                 </div>
 
-                <!-- Temas del eje -->
-                <div class="temas-section" *ngIf="eje.nombre.trim() !== ''">
-                  <label class="temas-label">
-                    <span class="label-icon">📝</span>
-                    Temas (máximo 4):
-                  </label>
-                  <div class="temas-list">
-                    <input *ngFor="let tema of eje.temas; let temaIndex = index" type="text"
-                      [(ngModel)]="eje.temas[temaIndex]"
-                      [attr.name]="'tema_' + currentStep + '_' + ejeIndex + '_' + temaIndex" maxlength="60"
-                      [placeholder]="'Tema ' + (temaIndex + 1)" class="form-input tema-input" />
-
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Navegación y acciones -->
         <div class="modal-buttons">
