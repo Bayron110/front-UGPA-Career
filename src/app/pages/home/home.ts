@@ -21,4 +21,8 @@ export class Home {
   irACalCareer(): void{
     this.router.navigate(['/Cal'])
   }
+
+  irAHistory(): void{
+    this.router.navigate(['/history'])
+  }
 }

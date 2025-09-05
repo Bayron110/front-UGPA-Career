@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Axles } from './axles';
+import { HistoryEjes } from './history-ejes';
 
-describe('Axles', () => {
-  let component: Axles;
-  let fixture: ComponentFixture<Axles>;
+describe('HistoryEjes', () => {
+  let component: HistoryEjes;
+  let fixture: ComponentFixture<HistoryEjes>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Axles]
+      imports: [HistoryEjes]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Axles);
+    fixture = TestBed.createComponent(HistoryEjes);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

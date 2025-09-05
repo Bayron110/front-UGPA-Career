@@ -3,9 +3,9 @@ import { CarreraI } from './components/carrera-i/carrera-i';
 import { Home } from './pages/home/home';
 import { TipoCarrera } from './components/tipo-carrera/tipo-carrera';
 import { CareerCal } from './components/career-cal/career-cal';
-import { Axles } from './components/axles/axles';
-import { AxlesTsu } from './components/axles-tsu/axles-tsu';
+
 import { Guardados } from './components/guardados/guardados';
+import { HistoryEjes } from './components/history-ejes/history-ejes';
 
 export const routes: Routes = [
 
@@ -13,9 +13,8 @@ export const routes: Routes = [
     {path:"Carrera", component:CarreraI},
     {path:"Tipo", component:TipoCarrera},
     {path:"Cal", component:CareerCal},
-    {path:"superior", component:Axles},
-    {path:"tsu", component:AxlesTsu},
     {path:"vista", component:Guardados},
+    {path:"history", component:HistoryEjes}
 
 
 ];
