@@ -2,7 +2,6 @@
     <h2 class="heading">Registrar CalCareer</h2>
 
     <form (ngSubmit)="onSubmit()" #formCalCareer="ngForm" class="form">
-        <!-- Selección de carrera -->
         <label for="career">Carrera:</label>
         <select id="career" [(ngModel)]="calCareer.careerId" name="careerId" required #careerId="ngModel" class="input">
             @for (career of careers; track career.id) {
@@ -13,7 +12,6 @@
         <div class="error">Selecciona una carrera</div>
         }
 
-        <!-- Selección de tipo de carrera -->
         <label for="typeCareer">Tipo de Carrera:</label>
         <select id="typeCareer" [(ngModel)]="calCareer.typeCareerId" name="typeCareerId" required
             #typeCareerId="ngModel" (change)="calcularFechaFin()" class="input">
@@ -25,7 +23,6 @@
         <div class="error">Selecciona un tipo de carrera</div>
         }
 
-        <!-- Fecha actual -->
         <label for="fechaActual">Fecha Actual:</label>
         <input type="date" id="fechaActual" [(ngModel)]="calCareer.fechaActual" name="fechaActual" required
             #fechaActual="ngModel" (change)="calcularFechaFin()" class="input" />
@@ -33,7 +30,6 @@
         <div class="error">Selecciona una fecha válida</div>
         }
 
-        <!-- Fecha final calculada -->
         @if (fechaFin) {
         <div class="fecha-fin">
             <strong>Fecha estimada de finalización:</strong>
@@ -41,12 +37,9 @@
         </div>
         }
 
-        <!-- Botones -->
         <div class="buttons" style="margin-top: 20px;">
-            <!-- Botón para guardar información -->
             <button type="submit" class="login-button">💾 Guardar</button>
 
-            <!-- Botón para redirigir según tipo de carrera -->
             <button type="button" class="login-button" (click)="redirigir()">📌 Asignar Ejes</button>
         </div>
     </form>

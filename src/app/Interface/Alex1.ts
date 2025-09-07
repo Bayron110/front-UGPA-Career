@@ -1,7 +1,7 @@
 export interface AxlesSuperior {
   id?: number;
   calCareer: {
-    id: number;   // <--- aquí debe ser id
+    id: string;  
   };
   eje1: string;
   eje2: string;

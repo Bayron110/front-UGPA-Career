@@ -1,5 +1,5 @@
 export interface TypeCareer {
-    id?: number;
+    id?: string;
     tipo: string;
     duracion: number;
 }

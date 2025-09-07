@@ -2,7 +2,7 @@ import { Career } from './Career';
 import { TypeCareer } from './TypeCareer';
 
 export interface CalCareerView {
-    id: number;
+    id: string;
     career: Career;
     typeCareer: TypeCareer;
     fechaActual: Date;

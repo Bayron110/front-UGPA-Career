@@ -19,11 +19,11 @@ export class CareerService {
     return this.http.get<Career[]>(this.apiUrl);
   }
 
-  actualizarCarrera(id: number, career: Career): Observable<Career> {
+  actualizarCarrera(id: string, career: Career): Observable<Career> {
     return this.http.put<Career>(`${this.apiUrl}/${id}`, career);
   }
 
-  eliminarCarrera(id: number): Observable<void> {
+  eliminarCarrera(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

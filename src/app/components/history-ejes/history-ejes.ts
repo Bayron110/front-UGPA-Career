@@ -4,13 +4,14 @@ import { CalCareer } from '../../Interface/CalCareer';
 import { AxlesSuperior } from '../../Interface/Alex1';
 import { CalCareerService } from '../../services/CalCareer/cal-career';
 import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
+import { EjePipePipe } from '../../pipes/eje-pipe-pipe';
 
 @Component({
   selector: 'app-history-ejes',
   standalone: true,
   templateUrl: './history-ejes.html',
   styleUrls: ['./history-ejes.css'],
-  imports: [CommonModule]
+  imports: [CommonModule , EjePipePipe]
 })
 export class HistoryEjes implements OnInit {
   carrerasConEjes: { carrera: CalCareer; ejes: AxlesSuperior[]; ejesVisibles: boolean }[] = [];

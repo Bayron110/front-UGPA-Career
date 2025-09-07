@@ -20,10 +20,10 @@ import { Career } from '../../Interface/Career';
 export class CareerCal implements OnInit {
 
   calCareer: CalCareer = {
-    careerId: 0,
-    typeCareerId: 0,
-    fechaActual: '',
-    fechaFin: '',
+    careerId: "",
+    typeCareerId: "",
+    fechaActual: "",
+    fechaFin: "",
     
   };
 
@@ -31,7 +31,6 @@ export class CareerCal implements OnInit {
   typeCareers: TypeCareer[] = [];
   fechaFin: Date | null = null;
 
-  // Variable que indica que ya se guardó la información
   infoGuardada: boolean = false;
 
   constructor(
@@ -92,7 +91,7 @@ export class CareerCal implements OnInit {
     this.calCareerService.create(payload).subscribe({
       next: () => {
         alert('✅ Información guardada correctamente');
-        this.infoGuardada = true; // Marcamos que se guardó
+        this.infoGuardada = true;
       },
       error: (err) => {
         console.error('❌ Error al guardar:', err);
@@ -101,7 +100,6 @@ export class CareerCal implements OnInit {
     });
   }
 
-  // Redirigir solo si ya se guardó la información
   redirigir(): void {
   this.router.navigate(['/vista']);
 }

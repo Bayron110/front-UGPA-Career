@@ -19,11 +19,11 @@ export class TypeCareerService {
     return this.http.get<TypeCareer[]>(this.apiUrl);
   }
 
-  actualizarTipo(id: number, tipo: TypeCareer): Observable<TypeCareer> {
+  actualizarTipo(id: string, tipo: TypeCareer): Observable<TypeCareer> {
     return this.http.put<TypeCareer>(`${this.apiUrl}/${id}`, tipo);
   }
 
-  eliminarTipo(id: number): Observable<void> {
+  eliminarTipo(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }
