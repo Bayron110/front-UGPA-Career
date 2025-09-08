@@ -1,10 +1,12 @@
 <div class="historial-container">
     <h2>📘 Historial de Carreras Calculadas</h2>
 
-    @if(carrerasConEjes.length > 0) {
-    @for(item of carrerasConEjes; track item.carrera.id; let i = $index) {
+    @if (carrerasConEjes.length > 0) {
+    @for (item of carrerasConEjes; track item.carrera.id; let i = $index) {
     <div class="carrera-block">
-        <h3>🎓 {{ item.carrera.career?.nombre || 'Carrera ID: ' + item.carrera.id }}</h3>
+        <h3>
+            🎓 {{ item.carrera.career?.nombre || 'Carrera ID: ' + item.carrera.id }}
+        </h3>
 
         <div class="carrera-info">
             <p><strong>📋 Nombre de la Carrera:</strong> <span>{{ item.carrera.career?.nombre || 'No especificado'
@@ -18,26 +20,30 @@
 
         <div class="expand-button" (click)="toggleEjesVisibles(i)" [attr.aria-expanded]="item.ejesVisibles">
             🧩 Ejes de la Carrera
-            <span class="toggle-icon" @if(!item.ejesVisibles)>Ver Ejes</span>
-            <span class="toggle-icon" @if(item.ejesVisibles)>Contraer Ejes</span>
+            @if (!item.ejesVisibles) {
+            <span class="toggle-icon">Ver Ejes</span>
+            }
+            @if (item.ejesVisibles) {
+            <span class="toggle-icon">Contraer Ejes</span>
+            }
         </div>
 
-        @if(item.ejesVisibles) {
-        @if(getEjesOrdenados(item.ejes).length > 0) {
+        @if (item.ejesVisibles) {
+        @if (getEjesOrdenados(item.ejes).length > 0) {
         <div class="ejes-container">
-            @for(eje of getEjesOrdenados(item.ejes); track eje.nivel) {
+            @for (eje of getEjesOrdenados(item.ejes); track eje.nivel) {
             <div class="nivel-block">
                 <div class="nivel-title">Nivel {{ eje.nivel }}</div>
 
                 <div class="ejes-grid">
-                    @if(eje.eje1 && eje.eje1 !== '-') {
+                    @if (eje.eje1 && eje.eje1 !== '-') {
                     <div class="eje-column">
                         <h5 class="eje-header">Eje 1</h5>
                         <div class="eje-content">
                             <div class="eje-description" [innerHTML]="eje.eje1 | ejePipe"></div>
-                            @if(procesarMaterias(eje.eje1).length > 1) {
+                            @if (procesarMaterias(eje.eje1).length > 1) {
                             <div class="eje-links">
-                                @for(materia of procesarMaterias(eje.eje1); track materia) {
+                                @for (materia of procesarMaterias(eje.eje1); track materia) {
                                 <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
                                 }
                             </div>
@@ -46,14 +52,14 @@
                     </div>
                     }
 
-                    @if(eje.eje2 && eje.eje2 !== '-') {
+                    @if (eje.eje2 && eje.eje2 !== '-') {
                     <div class="eje-column">
                         <h5 class="eje-header">Eje 2</h5>
                         <div class="eje-content">
                             <div class="eje-description" [innerHTML]="eje.eje2 | ejePipe"></div>
-                            @if(procesarMaterias(eje.eje2).length > 1) {
+                            @if (procesarMaterias(eje.eje2).length > 1) {
                             <div class="eje-links">
-                                @for(materia of procesarMaterias(eje.eje2); track materia) {
+                                @for (materia of procesarMaterias(eje.eje2); track materia) {
                                 <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
                                 }
                             </div>
@@ -62,14 +68,14 @@
                     </div>
                     }
 
-                    @if(eje.eje3 && eje.eje3 !== '-') {
+                    @if (eje.eje3 && eje.eje3 !== '-') {
                     <div class="eje-column">
                         <h5 class="eje-header">Eje 3</h5>
                         <div class="eje-content">
                             <div class="eje-description" [innerHTML]="eje.eje3 | ejePipe"></div>
-                            @if(procesarMaterias(eje.eje3).length > 1) {
+                            @if (procesarMaterias(eje.eje3).length > 1) {
                             <div class="eje-links">
-                                @for(materia of procesarMaterias(eje.eje3); track materia) {
+                                @for (materia of procesarMaterias(eje.eje3); track materia) {
                                 <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
                                 }
                             </div>
@@ -78,14 +84,14 @@
                     </div>
                     }
 
-                    @if(eje.eje4 && eje.eje4 !== '-') {
+                    @if (eje.eje4 && eje.eje4 !== '-') {
                     <div class="eje-column">
                         <h5 class="eje-header">Eje 4</h5>
                         <div class="eje-content">
                             <div class="eje-description" [innerHTML]="eje.eje4 | ejePipe"></div>
-                            @if(procesarMaterias(eje.eje4).length > 1) {
+                            @if (procesarMaterias(eje.eje4).length > 1) {
                             <div class="eje-links">
-                                @for(materia of procesarMaterias(eje.eje4); track materia) {
+                                @for (materia of procesarMaterias(eje.eje4); track materia) {
                                 <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
                                 }
                             </div>
@@ -103,7 +109,6 @@
         </div>
         }
         }
-
     </div>
     }
     } @else {

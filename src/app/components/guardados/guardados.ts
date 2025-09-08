@@ -1,5 +1,5 @@
 // src/app/components/guardados/guardados.component.ts
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CalCareerView } from '../../Interface/CalCareerView';
 import { Router } from '@angular/router';
@@ -34,7 +34,8 @@ export class Guardados implements OnInit {
   constructor(
     private calCareerService: CalCareerService,
     private axlesSuperiorService: AxlesSuperiorService,
-    private router: Router
+    private router: Router, 
+    private crd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -52,6 +53,7 @@ export class Guardados implements OnInit {
           fechaActual: new Date(item.fechaActual[0], item.fechaActual[1] - 1, item.fechaActual[2]),
           fechaFin: new Date(item.fechaFin[0], item.fechaFin[1] - 1, item.fechaFin[2])
         }));
+        this.crd.detectChanges();
       },
       error: (err) => {
         console.error('Error al obtener registros:', err);

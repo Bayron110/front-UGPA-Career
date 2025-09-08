@@ -1,15 +1,15 @@
 body {
-  background-color: #0e1624; /* Fondo general más suave */
+  background-color: #0e1624; 
   margin: 0;
   font-family: 'Poppins', 'Segoe UI', sans-serif;
 }
 
-/* Barra de navegación */
+
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(150deg, #4bb0df, #002fff); /* Celeste claro a azul brillante */
+  background: linear-gradient(150deg, #4bb0df, #002fff); 
   padding: 1rem 2rem;
   border-radius: 50px;
   margin: 1.5rem auto;
@@ -75,7 +75,6 @@ body {
   color: #000;
 }
 
-/* Posicionamiento de secciones */
 .navbar-left,
 .navbar-right {
   display: flex;

@@ -14,7 +14,9 @@ export const routes: Routes = [
     {path:"Tipo", component:TipoCarrera},
     {path:"Cal", component:CareerCal},
     {path:"vista", component:Guardados},
-    {path:"history", component:HistoryEjes}
+    {path:"history", component:HistoryEjes},
 
+
+{ path: '', redirectTo: 'Home', pathMatch: 'full' },
 
 ];
