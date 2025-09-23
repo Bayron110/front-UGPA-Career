@@ -82,33 +82,84 @@ generarPDFConFormato(i: number): void {
 
   const nombreCarrera = carrera.carrera.career?.nombre || 'Carrera';
   const tipoCarrera = carrera.carrera.typeCareer?.tipo || 'No especificado';
-const fechaCalculo = carrera.carrera.fechaActual
-  ? new Date(carrera.carrera.fechaActual).toLocaleDateString()
-  : 'No disponible';
+  const fechaCalculo = carrera.carrera.fechaActual
+    ? new Date(carrera.carrera.fechaActual).toLocaleDateString()
+    : 'No disponible';
+  const fechaFin = carrera.carrera.fechaFin
+    ? new Date(carrera.carrera.fechaFin).toLocaleDateString()
+    : 'No disponible';
+ const codigoFecha = new Date().toISOString().slice(0, 7); // yyyy-mm
 
-const fechaFin = carrera.carrera.fechaFin
-  ? new Date(carrera.carrera.fechaFin).toLocaleDateString()
-  : 'No disponible';
+// Seccion Portada
 
 
-  // 🔷 Encabezado institucional
-  doc.setFontSize(10);
-  doc.text('Instituto Tecnológico Superior de Misantla', 20, 20);
-  doc.text('Unidad de Gestión de Procesos Académicos', 20, 26);
-  doc.text('Código: UGPA-PRO-135/' + new Date().toISOString().slice(0, 10), 150, 20);
+doc.rect(15, 15, 180, 30); 
 
-  // 📘 Título
+
+doc.line(75, 15, 75, 45);  
+doc.line(135, 15, 135, 45); 
+doc.line(75, 30, 135, 30);
+// 📌 Texto columna izquierda
+doc.setFontSize(9);
+const centro = ['Unidad de Gestión de', 'Procesos Académicos'];
+
+centro.forEach((linea, i) => {
+  const textWidth = doc.getTextWidth(linea);
+  const x = 75 + (60 - textWidth) / 2; // Centrado dentro del cuadro central
+  const y = 20 + i * 6;
+  doc.text(linea, x, y);
+});
+
+// 📘 Texto columna centro
+doc.setFontSize(10);
+doc.text(`Ejes de la Carrera: ${nombreCarrera}`, 105, 40, { align: 'center' });
+
+// 🧾 Texto columna derecha (código)
+doc.setFontSize(8);
+const derecha = ['Código:', `UGPA-RG1-xx-PRO-135-${codigoFecha}`];
+derecha.forEach((linea, i) => {
+  doc.text(linea, 138, 20 + i * 6);
+});
+
+// 📘 Título principal centrado
+doc.setFontSize(14);
+doc.setFont('helvetica', 'bold');
+const titulo = [`Resumen de ejes de la carrera:`, `${nombreCarrera}`];
+titulo.forEach((linea, i) => {
+  doc.text(linea, 105, 90 + i * 8, { align: 'center' });
+});
+
+// 🖋️ Tabla de firmas institucionales
+autoTable(doc, {
+  startY: 230,
+  theme: 'grid',
+  head: [['ELABORADO POR', 'REVISADO POR', 'APROBADO POR']],
+  body: [
+    [
+      'NOMBRE: DR. CARLOS PÉREZ ULAC\nCARGO: COORDINADOR DE CARRERAS DE LA SALUD',
+      'NOMBRE: ING. MARINA GRANDE\nCARGO: COORDINADORA GENERAL DE CARRERAS',
+      'NOMBRE: ___________________________\nCARGO: ___________________________',
+    ],
+  ],
+  styles: { fontSize: 10, cellPadding: 3 },
+});
+
+  // --------------------------------
+  // 📑 Página 2 — Ejes
+  // --------------------------------
+  doc.addPage();
+
   doc.setFontSize(14);
-  doc.text(`Resumen de ejes de la carrera: ${nombreCarrera}`, 20, 40);
+doc.setFont('helvetica', 'bold');  doc.text(`Detalle de ejes de la carrera: ${nombreCarrera}`, 20, 20);
 
-  // 📋 Datos generales
+  // Datos generales
   doc.setFontSize(11);
-  doc.text(`Tipo de Carrera: ${tipoCarrera}`, 20, 50);
-  doc.text(`Fecha de cálculo: ${fechaCalculo}`, 20, 56);
-  doc.text(`Fecha de finalización: ${fechaFin}`, 20, 62);
+doc.setFont('helvetica', 'bold');
+  doc.text(`Tipo de Carrera: ${tipoCarrera}`, 20, 30);
+  doc.text(`Fecha de cálculo: ${fechaCalculo}`, 20, 36);
+  doc.text(`Fecha de finalización: ${fechaFin}`, 20, 42);
 
-  // 🧩 Ejes por nivel
-  let y = 70;
+  let y = 50;
   const ejesOrdenados = this.getEjesOrdenados(carrera.ejes);
 
   for (const eje of ejesOrdenados) {
@@ -116,39 +167,35 @@ const fechaFin = carrera.carrera.fechaFin
     doc.text(`Nivel ${eje.nivel}`, 20, y);
     y += 6;
 
+    const tablaBody: any[] = [];
     for (let j = 1; j <= 4; j++) {
       const ejeContent = (eje as any)[`eje${j}`];
       if (ejeContent && ejeContent !== '-') {
         const temas = this.procesarMaterias(ejeContent);
-        autoTable(doc, {
-          startY: y,
-          head: [[`Eje ${j}`, 'Temas']],
-          body: temas.map((t, idx) => [`Tema ${idx + 1}`, t]),
-          theme: 'grid',
-          styles: { fontSize: 10 },
-          headStyles: { fillColor: [41, 128, 185] },
-        });
-       // Justo antes de usar lastAutoTable
-const finalY = (doc as any).lastAutoTable.finalY;
-y = finalY + 10;
+        const temasTexto = temas.map((t, idx) => `- ${t}`).join('\n');
+        tablaBody.push([`Eje ${j}`, temasTexto]);
+      }
+    }
 
+    if (tablaBody.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Eje', 'Temas']],
+        body: tablaBody,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // Si se pasa del final de la página, añade nueva página
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
       }
     }
   }
-
-  // ✅ Sección de firmas
-  doc.setFontSize(11);
-  doc.text('ELABORADO POR:', 20, y + 10);
-  doc.text('NOMBRE: DR. CARLOS PÉREZ ULAC', 20, y + 16);
-  doc.text('CARGO: COORDINADOR DE CARRERAS DE LA SALUD', 20, y + 22);
-
-  doc.text('REVISADO POR:', 20, y + 32);
-  doc.text('NOMBRE: ING. MARINA GRANDE', 20, y + 38);
-  doc.text('CARGO: COORDINADORA GENERAL DE CARRERAS', 20, y + 44);
-
-  doc.text('APROBADO POR:', 20, y + 54);
-  doc.text('NOMBRE: ___________________________', 20, y + 60);
-  doc.text('CARGO: ___________________________', 20, y + 66);
 
   // 💾 Guardar PDF
   doc.save(`Resumen_${nombreCarrera}.pdf`);
