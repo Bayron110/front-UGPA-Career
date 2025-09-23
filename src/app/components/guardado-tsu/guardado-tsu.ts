@@ -1,39 +1,37 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CalCareerView } from '../../Interface/CalCareerView';
-import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CalCareerView } from '../../Interface/CalCareerView';
 import { CalCareerService } from '../../services/CalCareer/cal-career';
-import { AxlesSuperior } from '../../Interface/Alex1';
-import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
+import { AxlesTsu } from '../../Interface/Alex2';
+import { AxlesTsuService } from '../../services/TypeCaeerTsu/type-tsu';
 
 @Component({
-  selector: 'app-guardados',
+  selector: 'app-guardado-tsu',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './guardados.html',
-  styleUrls: ['./guardados.css']
+  templateUrl: './guardado-tsu.html',
+  styleUrls: ['./guardado-tsu.css']
 })
-export class Guardados implements OnInit {
+export class GuardadoTsu implements OnInit {
+
   calCareers: CalCareerView[] = [];
   carreraSeleccionada?: CalCareerView;
-  
+
   showModal: boolean = false;
-  
+
   niveles: {
     nombre: string;
-    ejes: {
-      nombre: string;
-      temas: string[];
-    }[];
+    ejes: { nombre: string; temas: string[] }[];
   }[] = [];
 
   currentStep: number = 0;
 
   constructor(
     private calCareerService: CalCareerService,
-    private axlesSuperiorService: AxlesSuperiorService,
-    private router: Router, 
+    private axlesTsuService: AxlesTsuService,
+    private router: Router,
     private crd: ChangeDetectorRef
   ) {}
 
@@ -42,11 +40,11 @@ export class Guardados implements OnInit {
     this.resetNiveles();
   }
 
-  obtenerGuardados(): void {
+ obtenerGuardados(): void {
   this.calCareerService.getAll().subscribe({
     next: (data) => {
       this.calCareers = data
-        .filter((item: any) => item.typeCareer.tipo.toLowerCase() === 'superior')
+        .filter((item: any) => item.typeCareer.tipo.toLowerCase() === 'tsu')
         .map((item: any) => ({
           id: item.id,
           career: item.career,
@@ -84,19 +82,15 @@ export class Guardados implements OnInit {
   }
 
   resetNiveles(): void {
+    // Cada nivel tendrá 6 ejes
     this.niveles = Array(4).fill(null).map(() => ({
       nombre: '',
-      ejes: [
-        { nombre: '', temas: ['', '', '', ''] },
-        { nombre: '', temas: ['', '', '', ''] },
-        { nombre: '', temas: ['', '', '', ''] },
-        { nombre: '', temas: ['', '', '', ''] }
-      ]
+      ejes: Array(6).fill(null).map(() => ({ nombre: '', temas: ['', '', '', '', '', ''] }))
     }));
   }
 
   nextStep(): void {
-    if (this.currentStep < 3) this.currentStep++;
+    if (this.currentStep < this.niveles.length - 1) this.currentStep++;
   }
 
   prevStep(): void {
@@ -115,24 +109,21 @@ export class Guardados implements OnInit {
 
     this.niveles.forEach((nivel, nivelIndex) => {
       const tieneEjes = nivel.ejes.some(eje => eje.nombre.trim() !== '');
-
       if (tieneEjes) {
-        const axle: AxlesSuperior = {
+        const axle: AxlesTsu = {
           calCareer: { id: this.carreraSeleccionada!.id },
           nivel: nivel.nombre || `Nivel ${nivelIndex + 1}`,
           eje1: nivel.ejes[0]?.nombre || '',
           eje2: nivel.ejes[1]?.nombre || '',
           eje3: nivel.ejes[2]?.nombre || '',
-          eje4: nivel.ejes[3]?.nombre || ''
+          eje4: nivel.ejes[3]?.nombre || '',
+          eje5: nivel.ejes[4]?.nombre || '',
+          eje6: nivel.ejes[5]?.nombre || ''
         };
 
-        this.axlesSuperiorService.save(axle).subscribe({
-          next: (resp) => {
-            console.log('Guardado en BD:', resp);
-          },
-          error: (err) => {
-            console.error('❌ Error al guardar:', err);
-          }
+        this.axlesTsuService.save(axle).subscribe({
+          next: (resp) => console.log('Guardado en BD:', resp),
+          error: (err) => console.error('❌ Error al guardar:', err)
         });
       }
     });
@@ -147,10 +138,10 @@ export class Guardados implements OnInit {
 
   irAAsignarEjes(tipoCarrera: string): void {
     const tipo = tipoCarrera.toLowerCase();
-    if (tipo === 'superior') {
-      this.router.navigate(['/superior']);
-    } else if (tipo === 'tsu') {
+    if (tipo === 'tsu') {
       this.router.navigate(['/tsu']);
+    } else if (tipo === 'superior') {
+      this.router.navigate(['/superior']);
     } else {
       this.router.navigate(['/']);
     }

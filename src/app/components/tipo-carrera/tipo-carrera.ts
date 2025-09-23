@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TypeCareer } from '../../Interface/TypeCareer';
 import { HttpErrorResponse } from '@angular/common/http';
-import { TypeCareerService } from '../../services/type-career-services';
+import { TypeCareerService } from '../../services/TypeCareer/type-career-services';
 
 
 @Component({

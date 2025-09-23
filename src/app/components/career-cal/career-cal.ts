@@ -6,7 +6,7 @@ import { CalCareer } from '../../Interface/CalCareer';
 
 import { TypeCareer } from '../../Interface/TypeCareer';
 import { CareerService } from '../../services/Career/caeer-service';
-import { TypeCareerService } from '../../services/type-career-services';
+import { TypeCareerService } from '../../services/TypeCareer/type-career-services';
 import { CalCareerService } from '../../services/CalCareer/cal-career';
 import { Career } from '../../Interface/Career';
 
@@ -102,5 +102,9 @@ export class CareerCal implements OnInit {
 
   redirigir(): void {
   this.router.navigate(['/vista']);
+}
+
+redirigirTsu(): void{
+  this.router.navigate(['/tsu']);
 }
 }
