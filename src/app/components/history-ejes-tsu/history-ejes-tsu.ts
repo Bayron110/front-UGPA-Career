@@ -3,54 +3,54 @@ import { CommonModule } from '@angular/common';
 import { CalCareer } from '../../Interface/CalCareer';
 import { AxlesSuperior } from '../../Interface/Alex1';
 import { CalCareerService } from '../../services/CalCareer/cal-career';
-import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
 import { EjePipePipe } from '../../pipes/eje-pipe-pipe';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { AxlesTsuService } from '../../services/TypeCaeerTsu/type-tsu';
 
 @Component({
-  selector: 'app-history-ejes',
+  selector: 'app-history-ejes-tsu',
   standalone: true,
-  templateUrl: './history-ejes.html',
-  styleUrls: ['./history-ejes.css'],
+  templateUrl: './history-ejes-tsu.html',
+  styleUrls: ['./history-ejes-tsu.css'],
   imports: [CommonModule, EjePipePipe]
 })
-export class HistoryEjes implements OnInit {
+export class HistoryEjesTsu implements OnInit {
   carrerasConEjes: { carrera: CalCareer; ejes: AxlesSuperior[]; ejesVisibles: boolean }[] = [];
 
   constructor(
     private calCareerService: CalCareerService,
-    private axlesSuperiorService: AxlesSuperiorService,
+    private axlesTSUService: AxlesTsuService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-  this.calCareerService.getAll().subscribe({
-    next: (carreras) => {
-      const carrerasSuperiores = carreras.filter(
-        carrera =>
-          carrera.id !== undefined &&
-          carrera.typeCareer?.tipo?.toLowerCase() === 'superior' 
-      );
+    this.calCareerService.getAll().subscribe({
+      next: (carreras) => {
+        // 🔍 Filtrar solo carreras de tipo TSU
+        const carrerasTSU = carreras.filter(
+          carrera =>
+            carrera.id !== undefined &&
+            carrera.typeCareer?.tipo?.toLowerCase() === 'tsu'
+        );
 
-      const observables = carrerasSuperiores.map(carrera =>
-        this.axlesSuperiorService.getByCalCareerId(carrera.id!).pipe(
-          map(ejes => ({ carrera, ejes, ejesVisibles: false }))
-        )
-      );
+        const observables = carrerasTSU.map(carrera =>
+          this.axlesTSUService.getByCalCareerId(carrera.id!).pipe(
+            map(ejes => ({ carrera, ejes, ejesVisibles: false }))
+          )
+        );
 
-      forkJoin(observables).subscribe({
-        next: (data) => {
-          this.carrerasConEjes = data;
-          this.cdr.detectChanges();
-        },
-        error: (err) => console.error('Error al obtener ejes de las carreras', err)
-      });
-    },
-    error: (err) => console.error('Error al obtener carreras', err)
-  });
-}
-
+        forkJoin(observables).subscribe({
+          next: (data) => {
+            this.carrerasConEjes = data;
+            this.cdr.detectChanges();
+          },
+          error: (err) => console.error('Error al obtener ejes de las carreras TSU', err)
+        });
+      },
+      error: (err) => console.error('Error al obtener carreras', err)
+    });
+  }
 
   getEjesOrdenados(ejes: AxlesSuperior[]): AxlesSuperior[] {
     return ejes

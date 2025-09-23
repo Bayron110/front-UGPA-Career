@@ -25,4 +25,8 @@ export class Home {
   irAHistory(): void{
     this.router.navigate(['/history'])
   }
+  irAHistorytsu(): void{
+    this.router.navigate(['/history-tsu'])
+  }
+
 }
