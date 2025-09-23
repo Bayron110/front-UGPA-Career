@@ -7,6 +7,9 @@ import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
 import { EjePipePipe } from '../../pipes/eje-pipe-pipe';
 import { forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 @Component({
   selector: 'app-history-ejes',
@@ -73,4 +76,83 @@ export class HistoryEjes implements OnInit {
       .map(materia => materia.trim())
       .filter(materia => materia.length > 0);
   }
+generarPDFConFormato(i: number): void {
+  const carrera = this.carrerasConEjes[i];
+  const doc = new jsPDF();
+
+  const nombreCarrera = carrera.carrera.career?.nombre || 'Carrera';
+  const tipoCarrera = carrera.carrera.typeCareer?.tipo || 'No especificado';
+const fechaCalculo = carrera.carrera.fechaActual
+  ? new Date(carrera.carrera.fechaActual).toLocaleDateString()
+  : 'No disponible';
+
+const fechaFin = carrera.carrera.fechaFin
+  ? new Date(carrera.carrera.fechaFin).toLocaleDateString()
+  : 'No disponible';
+
+
+  // 🔷 Encabezado institucional
+  doc.setFontSize(10);
+  doc.text('Instituto Tecnológico Superior de Misantla', 20, 20);
+  doc.text('Unidad de Gestión de Procesos Académicos', 20, 26);
+  doc.text('Código: UGPA-PRO-135/' + new Date().toISOString().slice(0, 10), 150, 20);
+
+  // 📘 Título
+  doc.setFontSize(14);
+  doc.text(`Resumen de ejes de la carrera: ${nombreCarrera}`, 20, 40);
+
+  // 📋 Datos generales
+  doc.setFontSize(11);
+  doc.text(`Tipo de Carrera: ${tipoCarrera}`, 20, 50);
+  doc.text(`Fecha de cálculo: ${fechaCalculo}`, 20, 56);
+  doc.text(`Fecha de finalización: ${fechaFin}`, 20, 62);
+
+  // 🧩 Ejes por nivel
+  let y = 70;
+  const ejesOrdenados = this.getEjesOrdenados(carrera.ejes);
+
+  for (const eje of ejesOrdenados) {
+    doc.setFontSize(12);
+    doc.text(`Nivel ${eje.nivel}`, 20, y);
+    y += 6;
+
+    for (let j = 1; j <= 4; j++) {
+      const ejeContent = (eje as any)[`eje${j}`];
+      if (ejeContent && ejeContent !== '-') {
+        const temas = this.procesarMaterias(ejeContent);
+        autoTable(doc, {
+          startY: y,
+          head: [[`Eje ${j}`, 'Temas']],
+          body: temas.map((t, idx) => [`Tema ${idx + 1}`, t]),
+          theme: 'grid',
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [41, 128, 185] },
+        });
+       // Justo antes de usar lastAutoTable
+const finalY = (doc as any).lastAutoTable.finalY;
+y = finalY + 10;
+
+      }
+    }
+  }
+
+  // ✅ Sección de firmas
+  doc.setFontSize(11);
+  doc.text('ELABORADO POR:', 20, y + 10);
+  doc.text('NOMBRE: DR. CARLOS PÉREZ ULAC', 20, y + 16);
+  doc.text('CARGO: COORDINADOR DE CARRERAS DE LA SALUD', 20, y + 22);
+
+  doc.text('REVISADO POR:', 20, y + 32);
+  doc.text('NOMBRE: ING. MARINA GRANDE', 20, y + 38);
+  doc.text('CARGO: COORDINADORA GENERAL DE CARRERAS', 20, y + 44);
+
+  doc.text('APROBADO POR:', 20, y + 54);
+  doc.text('NOMBRE: ___________________________', 20, y + 60);
+  doc.text('CARGO: ___________________________', 20, y + 66);
+
+  // 💾 Guardar PDF
+  doc.save(`Resumen_${nombreCarrera}.pdf`);
+}
+
+  
 }
