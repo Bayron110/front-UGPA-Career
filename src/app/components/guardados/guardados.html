@@ -19,7 +19,7 @@
         <td>{{ item.typeCareer.tipo }}</td>
         <td>{{ item.fechaActual | date:'shortDate' }}</td>
         <td>{{ item.fechaFin | date:'shortDate' }}</td>
-        <td [ngClass]="{'ejes-asignados': item.}">
+        <td>
           <button class="btn-go" (click)="seleccionar(item)">
             ➕ Asignar Ejes
           </button>
