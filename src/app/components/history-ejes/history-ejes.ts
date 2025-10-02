@@ -75,6 +75,10 @@ export class HistoryEjes implements OnInit {
       .filter(materia => materia.length > 0);
   }
 
+
+
+  
+
   generarPDFConFormato(i: number): void {
     const carrera = this.carrerasConEjes[i];
     const doc = new jsPDF();
@@ -192,7 +196,7 @@ export class HistoryEjes implements OnInit {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.text(`Tipo de Carrera: ${tipoCarrera}`, 20, 35);
-    doc.text(`Fecha de cálculo: ${fechaCalculo}`, 20, 42);
+    doc.text(`Fecha de cálculo: ${fechaCalculo}`, 20, 42); //Fecha de inicio de la carrera
     doc.text(`Fecha de finalización: ${fechaFin}`, 20, 49);
 
     let y = 65;
@@ -248,6 +252,6 @@ export class HistoryEjes implements OnInit {
       }
     }
 
-    doc.save(`Resumen_Ejes_${nombreCarrera.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`Resumen_Ejes_${nombreCarrera.replace(/\s+/g, '_')}.pdf`); // Imprime el nombre del pdf con el nombre de la carrera que pértence 
   }
 }

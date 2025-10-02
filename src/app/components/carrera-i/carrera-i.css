@@ -52,6 +52,7 @@
   box-shadow: rgba(133, 189, 215, 0.88) 0px 20px 10px -15px;
   border: none;
   transition: all 0.2s ease-in-out;
+  cursor: pointer;
 }
 
 .login-button:hover {
@@ -64,16 +65,324 @@
   box-shadow: rgba(133, 189, 215, 0.88) 0px 15px 10px -10px;
 }
 
-.social-account-container {
-  margin-top: 25px;
+/* Estilos para la sección desplegable */
+.careers-section {
+  margin-top: 30px;
 }
 
-.title {
-  display: block;
+.toggle-button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: rgba(133, 189, 215, 0.88) 0px 10px 10px -5px;
+}
+
+.toggle-button:hover {
+  transform: translateY(-2px);
+  box-shadow: rgba(133, 189, 215, 0.88) 0px 15px 15px -5px;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+  color: white;
+}
+
+.arrow-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.careers-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-in-out;
+  margin-top: 0;
+}
+
+.careers-list.expanded {
+  max-height: 1000px;
+  margin-top: 15px;
+}
+
+.career-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: rgba(133, 189, 215, 0.3) 0px 8px 15px -5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.career-card:hover {
+  transform: translateY(-3px);
+  box-shadow: rgba(133, 189, 215, 0.5) 0px 12px 20px -5px;
+}
+
+.career-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1089d3;
+  flex: 1;
+}
+
+.career-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  background: linear-gradient(45deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+
+.edit-btn:hover {
+  transform: scale(1.05);
+  box-shadow: rgba(76, 175, 80, 0.4) 0px 8px 15px -5px;
+}
+
+.delete-btn {
+  background: linear-gradient(45deg, #f44336 0%, #da190b 100%);
+  color: white;
+}
+
+.delete-btn:hover {
+  transform: scale(1.05);
+  box-shadow: rgba(244, 67, 54, 0.4) 0px 8px 15px -5px;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.empty-state {
   text-align: center;
-  font-size: 10px;
   color: #aaaaaa;
+  padding: 30px;
+  font-size: 16px;
+  font-style: italic;
+}
+/* Estilos del Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
+.modal-content {
+  background: white;
+  border-radius: 25px;
+  padding: 40px 35px;
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+  text-align: center;
+}
 
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-icon {
+  margin: 0 auto 20px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-success .modal-icon {
+  color: #4CAF50;
+}
+
+.modal-error .modal-icon {
+  color: #f44336;
+}
+
+.modal-warning .modal-icon {
+  color: #ff9800;
+}
+
+.modal-edit .modal-icon {
+  color: #2196F3;
+}
+
+.modal-delete .modal-icon {
+  color: #f44336;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.modal-message {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.modal-input {
+  width: 100%;
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #12b1d1;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(18, 177, 209, 0.1);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
+  color: white;
+  box-shadow: rgba(18, 177, 209, 0.4) 0px 8px 15px -5px;
+}
+
+.modal-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: rgba(18, 177, 209, 0.6) 0px 12px 20px -5px;
+}
+
+.modal-btn-secondary {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-btn-secondary:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+.modal-btn-danger {
+  background: linear-gradient(45deg, #f44336 0%, #da190b 100%);
+  color: white;
+  box-shadow: rgba(244, 67, 54, 0.4) 0px 8px 15px -5px;
+}
+
+.modal-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: rgba(244, 67, 54, 0.6) 0px 12px 20px -5px;
+}
+
+.modal-btn:active {
+  transform: scale(0.95);
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f5f5f5;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.modal-close:hover {
+  background: #e0e0e0;
+  transform: rotate(90deg);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+}

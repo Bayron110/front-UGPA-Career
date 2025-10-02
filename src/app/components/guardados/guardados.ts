@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CalCareerService } from '../../services/CalCareer/cal-career';
 import { AxlesSuperior } from '../../Interface/Alex1';
 import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
+import { map, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-guardados',
@@ -27,6 +28,8 @@ export class Guardados implements OnInit {
       temas: string[];
     }[];
   }[] = [];
+
+  calCareersConEjes: { carrera: CalCareerView, tieneEjes: boolean }[] = [];
 
   currentStep: number = 0;
 
@@ -61,6 +64,12 @@ export class Guardados implements OnInit {
     }
   });
 }
+tieneEjesAsignados(carrera: CalCareerView): Observable<boolean> {
+  return this.axlesSuperiorService.getByCalCareerId(carrera.id!).pipe(
+    map(ejes => ejes && ejes.length > 0)
+  );
+}
+
 
   trackById(index: number, item: CalCareerView) {
     return item.id;
@@ -155,4 +164,6 @@ export class Guardados implements OnInit {
       this.router.navigate(['/']);
     }
   }
+
+  
 }
