@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CalCareer } from '../../Interface/CalCareer';
-
 import { TypeCareer } from '../../Interface/TypeCareer';
 import { CareerService } from '../../services/Career/caeer-service';
 import { TypeCareerService } from '../../services/TypeCareer/type-career-services';
@@ -24,37 +23,46 @@ export class CareerCal implements OnInit {
     typeCareerId: "",
     fechaActual: "",
     fechaFin: "",
-    
   };
-
+  
+  calCareers: any[] = [];
   careers: Career[] = [];
   typeCareers: TypeCareer[] = [];
   fechaFin: Date | null = null;
-
   infoGuardada: boolean = false;
+  modoEdicion: boolean = false;
+  idEdicion: string = '';
 
   constructor(
     private router: Router,
     private calCareerService: CalCareerService,
     private careerService: CareerService,
-    private typeCareerService: TypeCareerService
+    private typeCareerService: TypeCareerService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadCareers();
     this.loadTypeCareers();
+    this.loadCalCareers();
   }
 
   loadCareers(): void {
     this.careerService.obtenerCarreras().subscribe({
-      next: (data) => (this.careers = data),
+      next: (data) => {
+        this.careers = data;
+        this.cdr.detectChanges();
+      },
       error: (err) => console.error('Error al cargar carreras:', err)
     });
   }
 
   loadTypeCareers(): void {
     this.typeCareerService.obtenerTipos().subscribe({
-      next: (data) => (this.typeCareers = data),
+      next: (data) => {
+        this.typeCareers = data;
+        this.cdr.detectChanges();
+      },
       error: (err) => console.error('Error al cargar tipos:', err)
     });
   }
@@ -74,7 +82,6 @@ export class CareerCal implements OnInit {
     }
   }
 
-  
   onSubmit(): void {
     if (!this.calCareer.careerId || !this.calCareer.typeCareerId || !this.calCareer.fechaActual) {
       alert('⚠️ Todos los campos son obligatorios');
@@ -88,23 +95,132 @@ export class CareerCal implements OnInit {
       fechaFin: this.calCareer.fechaFin
     };
 
-    this.calCareerService.create(payload).subscribe({
-      next: () => {
-        alert('✅ Información guardada correctamente');
-        this.infoGuardada = true;
+    if (this.modoEdicion) {
+      // Para update usamos el mismo formato que create
+      this.calCareerService.update(this.idEdicion, payload as any).subscribe({
+        next: () => {
+          alert('✅ Información actualizada correctamente');
+          this.cancelarEdicion();
+          this.loadCalCareers();
+        },
+        error: (err) => {
+          console.error('❌ Error al actualizar:', err);
+          alert('❌ Hubo un problema al actualizar');
+        }
+      });
+    } else {
+      this.calCareerService.create(payload).subscribe({
+        next: () => {
+          alert('✅ Información guardada correctamente');
+          this.infoGuardada = true;
+          this.limpiarFormulario();
+          this.loadCalCareers();
+        },
+        error: (err) => {
+          console.error('❌ Error al guardar:', err);
+          alert('❌ Hubo un problema al guardar');
+        }
+      });
+    }
+  }
+
+  loadCalCareers(): void {
+    this.calCareerService.getAll().subscribe({
+      next: (data) => {
+        this.calCareers = data.map((item: any) => ({
+          id: item.id,
+          career: item.career,
+          typeCareer: item.typeCareer,
+          careerId: item.career?.id || '',
+          typeCareerId: item.typeCareer?.id || '',
+          fechaActual: Array.isArray(item.fechaActual)
+            ? new Date(item.fechaActual[0], item.fechaActual[1] - 1, item.fechaActual[2])
+            : new Date(item.fechaActual),
+          fechaFin: Array.isArray(item.fechaFin)
+            ? new Date(item.fechaFin[0], item.fechaFin[1] - 1, item.fechaFin[2])
+            : new Date(item.fechaFin)
+        }));
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('❌ Error al guardar:', err);
-        alert('❌ Hubo un problema al guardar');
+        console.error('❌ Error al cargar calculadas:', err);
       }
     });
   }
 
-  redirigir(): void {
-  this.router.navigate(['/vista']);
-}
+  limpiarFormulario(): void {
+    this.calCareer = {
+      careerId: "",
+      typeCareerId: "",
+      fechaActual: "",
+      fechaFin: "",
+    };
+    this.fechaFin = null;
+    this.cdr.detectChanges();
+  }
 
-redirigirTsu(): void{
-  this.router.navigate(['/tsu']);
-}
+  editarCarrera(carrera: any): void {
+    this.modoEdicion = true;
+    this.idEdicion = carrera.id;
+    
+    const fechaActualStr = carrera.fechaActual instanceof Date 
+      ? carrera.fechaActual.toISOString().split('T')[0]
+      : carrera.fechaActual;
+    
+    const fechaFinStr = carrera.fechaFin instanceof Date 
+      ? carrera.fechaFin.toISOString().split('T')[0]
+      : carrera.fechaFin;
+
+    this.calCareer = {
+      careerId: carrera.career?.id || '',
+      typeCareerId: carrera.typeCareer?.id || '',
+      fechaActual: fechaActualStr,
+      fechaFin: fechaFinStr
+    };
+
+    this.fechaFin = carrera.fechaFin instanceof Date ? carrera.fechaFin : new Date(carrera.fechaFin);
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  eliminarCarrera(id: string): void {
+    if (confirm('¿Estás seguro de que deseas eliminar esta carrera calculada? Esta acción no se puede deshacer.')) {
+      this.calCareerService.delete(id).subscribe({
+        next: () => {
+          alert('✅ Carrera eliminada correctamente');
+          this.loadCalCareers();
+        },
+        error: (err) => {
+          console.error('❌ Error al eliminar:', err);
+          alert('❌ Hubo un problema al eliminar la carrera');
+        }
+      });
+    }
+  }
+
+  cancelarEdicion(): void {
+    this.modoEdicion = false;
+    this.idEdicion = '';
+    this.limpiarFormulario();
+  }
+
+  getTsuCareers(): any[] {
+    return this.calCareers.filter(c => 
+      c.typeCareer?.tipo?.toLowerCase() === 'tsu'
+    );
+  }
+
+  getSuperiorCareers(): any[] {
+    return this.calCareers.filter(c => 
+      c.typeCareer?.tipo?.toLowerCase() === 'superior'
+    );
+  }
+
+  redirigir(): void {
+    this.router.navigate(['/vista']);
+  }
+
+  redirigirTsu(): void {
+    this.router.navigate(['/tsu']);
+  }
 }

@@ -1,5 +1,7 @@
 <div class="form-container">
-    <h2 class="heading">Registrar CalCareer</h2>
+    <h2 class="heading">
+        {{ modoEdicion ? "✏️ Editar CalCareer" : "Registrar CalCareer" }}
+    </h2>
 
     <form (ngSubmit)="onSubmit()" #formCalCareer="ngForm" class="form">
         <label for="career">Carrera:</label>
@@ -16,7 +18,9 @@
         <select id="typeCareer" [(ngModel)]="calCareer.typeCareerId" name="typeCareerId" required
             #typeCareerId="ngModel" (change)="calcularFechaFin()" class="input">
             @for (type of typeCareers; track type.id) {
-            <option [ngValue]="type.id">{{ type.tipo }} ({{ type.duracion }} semanas)</option>
+            <option [ngValue]="type.id">
+                {{ type.tipo }} ({{ type.duracion }} semanas)
+            </option>
             }
         </select>
         @if (typeCareerId.invalid && typeCareerId.touched) {
@@ -28,21 +32,120 @@
             #fechaActual="ngModel" (change)="calcularFechaFin()" class="input" />
         @if (fechaActual.invalid && fechaActual.touched) {
         <div class="error">Selecciona una fecha válida</div>
-        }
-
-        @if (fechaFin) {
+        } @if (fechaFin) {
         <div class="fecha-fin">
             <strong>Fecha estimada de finalización:</strong>
-            {{ fechaFin | date: "longDate" }}
+            {{ fechaFin | date : "longDate" }}
         </div>
         }
 
-        <div class="buttons" style="margin-top: 20px;">
-            <button type="submit" class="login-button">💾 Guardar</button>
+        <div class="buttons" style="margin-top: 20px">
+            <button type="submit" class="login-button">
+                {{ modoEdicion ? "✏️ Actualizar" : "💾 Guardar" }}
+            </button>
 
-            <button type="button" class="login-button" (click)="redirigir()">📌 Asignar Ejes Carreras Superiores</button>
-            <button type="button" class="login-button" (click)="redirigirTsu()">📌 Asignar Ejes Carreras Tsu</button>
+            @if (modoEdicion) {
+            <button type="button" class="login-button cancel-button" (click)="cancelarEdicion()">
+                ❌ Cancelar
+            </button>
+            }
 
+            <button type="button" class="login-button" (click)="redirigir()">
+                📌 Asignar Ejes Carreras Superiores
+            </button>
+            <button type="button" class="login-button" (click)="redirigirTsu()">
+                📌 Asignar Ejes Carreras Tsu
+            </button>
         </div>
     </form>
+
+    <hr style="margin: 30px 0" />
+
+    <div class="carreras-section">
+        <h2 class="heading">📋 Carreras Calculadas</h2>
+
+        <!-- TSU -->
+        <details class="details-section">
+            <summary class="summary-button">🎓 Carreras TSU</summary>
+            <div class="details-content">
+                @if (getTsuCareers().length > 0) {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Carrera</th>
+                            <th>Tipo</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of getTsuCareers(); track item.id) {
+                        <tr>
+                            <td>{{ item.career?.nombre || "N/A" }}</td>
+                            <td>{{ item.typeCareer?.tipo || "N/A" }}</td>
+                            <td>{{ item.fechaActual | date : "dd/MM/yyyy" }}</td>
+                            <td>{{ item.fechaFin | date : "dd/MM/yyyy" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-edit" (click)="editarCarrera(item)">
+                                        ✏️ Editar
+                                    </button>
+                                    <button class="btn-delete" (click)="eliminarCarrera(item.id)">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                } @else {
+                <p class="empty-message">No hay carreras TSU registradas.</p>
+                }
+            </div>
+        </details>
+
+        <!-- Superiores -->
+        <details class="details-section">
+            <summary class="summary-button">🎯 Carreras Superiores</summary>
+            <div class="details-content">
+                @if (getSuperiorCareers().length > 0) {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Carrera</th>
+                            <th>Tipo</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of getSuperiorCareers(); track item.id) {
+                        <tr>
+                            <td>{{ item.career?.nombre || "N/A" }}</td>
+                            <td>{{ item.typeCareer?.tipo || "N/A" }}</td>
+                            <td>{{ item.fechaActual | date : "dd/MM/yyyy" }}</td>
+                            <td>{{ item.fechaFin | date : "dd/MM/yyyy" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-edit" (click)="editarCarrera(item)">
+                                        ✏️ Editar
+                                    </button>
+                                    <button class="btn-delete" (click)="eliminarCarrera(item.id)">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+                } @else {
+                <p class="empty-message">No hay carreras Superiores registradas.</p>
+                }
+            </div>
+        </details>
+    </div>
 </div>

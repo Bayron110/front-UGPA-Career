@@ -1,5 +1,5 @@
 .form-container {
-  max-width: 400px;
+  max-width: 900px;
   background: linear-gradient(0deg, #e8edfc 0%, #f4f7fb 100%);
   border-radius: 40px;
   padding: 30px 40px;
@@ -41,6 +41,13 @@
   border-inline: 2px solid #12b1d1;
 }
 
+.error {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+  padding-left: 5px;
+}
+
 .login-button {
   display: block;
   width: 100%;
@@ -54,6 +61,7 @@
   border: none;
   transition: all 0.2s ease-in-out;
   font-size: 15px;
+  cursor: pointer;
 }
 
 .login-button:hover {
@@ -74,4 +82,222 @@
   padding: 10px 15px;
   border-radius: 15px;
   box-shadow: rgba(133, 189, 215, 0.3) 0px 10px 10px -5px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.buttons .login-button {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Estilos para Carreras Calculadas */
+.carreras-section {
+  margin-top: 30px;
+}
+
+.details-section {
+  margin-top: 20px;
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: rgba(133, 189, 215, 0.4) 0px 15px 20px -10px;
+  border: 3px solid #e8edfc;
+}
+
+.summary-button {
+  cursor: pointer;
+  padding: 20px 25px;
+  font-weight: 700;
+  font-size: 18px;
+  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
+  color: white;
+  list-style: none;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.summary-button:hover {
+  background: linear-gradient(45deg, #0d7ab8 0%, #0f9db6 100%);
+  transform: translateY(-2px);
+  box-shadow: rgba(133, 189, 215, 0.6) 0px 20px 15px -10px;
+}
+
+.summary-button::-webkit-details-marker {
+  display: none;
+}
+
+details[open] .summary-button {
+  border-radius: 20px 20px 0 0;
+  margin-bottom: 0;
+}
+
+.details-content {
+  padding: 25px;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  margin-top: 15px;
+}
+
+.table thead tr {
+  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
+  color: white;
+}
+
+.table thead th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+}
+
+.table thead th:first-child {
+  border-radius: 15px 0 0 15px;
+}
+
+.table thead th:last-child {
+  border-radius: 0 15px 15px 0;
+}
+
+.table tbody tr {
+  background: white;
+  box-shadow: rgba(133, 189, 215, 0.2) 0px 8px 15px -8px;
+  transition: all 0.3s ease;
+  border-radius: 15px;
+}
+
+.table tbody tr:hover {
+  transform: translateY(-3px);
+  box-shadow: rgba(133, 189, 215, 0.4) 0px 12px 20px -8px;
+}
+
+.table tbody td {
+  padding: 18px 15px;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  vertical-align: middle;
+}
+
+.table tbody td:first-child {
+  border-radius: 15px 0 0 15px;
+  font-weight: 600;
+  color: #1089d3;
+}
+
+.table tbody td:last-child {
+  border-radius: 0 15px 15px 0;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+  font-size: 16px;
+  font-style: italic;
+}
+
+/* Botones de acción en tabla */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px -2px;
+}
+
+.btn-edit {
+  background: linear-gradient(45deg, #52c41a 0%, #73d13d 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(45deg, #3fa81a 0%, #5fb82d 100%);
+  transform: translateY(-2px);
+  box-shadow: rgba(82, 196, 26, 0.4) 0px 8px 12px -4px;
+}
+
+.btn-delete {
+  background: linear-gradient(45deg, #ff4d4f 0%, #ff7875 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(45deg, #d9363e 0%, #e65b5f 100%);
+  transform: translateY(-2px);
+  box-shadow: rgba(255, 77, 79, 0.4) 0px 8px 12px -4px;
+}
+
+.btn-edit:active,
+.btn-delete:active {
+  transform: translateY(0);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+}
+
+/* Botón de cancelar en modo edición */
+.cancel-button {
+  background: linear-gradient(45deg, #95a5a6 0%, #bdc3c7 100%);
+}
+
+.cancel-button:hover {
+  background: linear-gradient(45deg, #7f8c8d 0%, #95a5a6 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 20px 25px;
+    margin: 15px;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  .buttons .login-button {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 10px 8px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+  }
 }
