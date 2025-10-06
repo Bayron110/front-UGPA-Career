@@ -27,6 +27,10 @@
             <span class="toggle-icon">Contraer Ejes</span>
             }
         </div>
+        <div class="expand-button">
+            <button (click)="generarPDFConFormato(i)">Generar PDF</button>
+
+        </div>
 
         @if (item.ejesVisibles) {
         @if (getEjesOrdenados(item.ejes).length > 0) {
@@ -99,12 +103,11 @@
                         </div>
                     </div>
                     }
-                    
+
                 </div>
-                
+
             </div>
-        }
-        <button (click)="generarPDFConFormato(i)">Generar PDF</button>    
+            }
         </div>
         } @else {
         <div class="sin-ejes">
