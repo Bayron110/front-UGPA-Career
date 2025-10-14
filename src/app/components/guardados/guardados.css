@@ -685,4 +685,231 @@
   line-height: 1.5;
 }
 
+/* Grupo de botones de acción */
+.action-buttons-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Botón de editar */
+.btn-edit {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  white-space: nowrap;
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.btn-edit:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Botón de eliminar */
+.btn-delete {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(245, 87, 108, 0.3);
+  white-space: nowrap;
+}
+
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.5);
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+}
+
+.btn-delete:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(245, 87, 108, 0.3);
+}
+
+.mode-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+}
+
+.ejes-hint {
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+  margin: -8px 0 12px 0;
+  padding-left: 4px;
+}
+
+.eje-number {
+  font-weight: 600;
+  color: #333;
+}
+
+
+.btn-go {
+  transition: all 0.3s ease;
+}
+
+.btn-go:hover {
+  transform: translateY(-2px);
+}
+
+.btn-go:active {
+  transform: translateY(0);
+}
+
+.tabla td {
+  vertical-align: middle;
+}
+
+
+
+@media (max-width: 768px) {
+  .action-buttons-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+
+  .mode-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .ejes-hint {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-edit,
+  .btn-delete {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .action-buttons-group {
+    gap: 5px;
+  }
+}
+
+
+.btn-edit:disabled,
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-edit:disabled:hover,
+.btn-delete:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.action-buttons-group {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.btn-edit[title]:hover::after,
+.btn-delete[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 8px;
+  pointer-events: none;
+}
+
+.info-details {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.info-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.3);
+}
+
+.info-text {
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 }

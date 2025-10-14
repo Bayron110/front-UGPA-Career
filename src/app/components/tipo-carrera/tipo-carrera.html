@@ -51,143 +51,153 @@
     </button>
 
     <div class="careers-list" [class.expanded]="tiposDesplegados">
-      <div *ngFor="let tipo of tiposGuardados" class="career-card">
-        <div class="career-info">
-          <div class="career-name">{{ tipo.tipo }}</div>
-          <div class="career-duration">{{ tipo.duracion }} semanas</div>
-        </div>
-        <div class="career-actions">
-          <button class="action-btn edit-btn" (click)="editarTipo(tipo)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Editar
-          </button>
-          <button class="action-btn delete-btn" (click)="eliminarTipo(tipo)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Eliminar
-          </button>
-        </div>
-      </div>
 
-      <div *ngIf="tiposGuardados.length === 0" class="empty-state">
-        No hay tipos de carrera registrados aún
-      </div>
+      @if (tiposGuardados.length > 0) {
+        @for (tipo of tiposGuardados; track tipo) {
+          <div class="career-card">
+            <div class="career-info">
+              <div class="career-name">{{ tipo.tipo }}</div>
+              <div class="career-duration">{{ tipo.duracion }} semanas</div>
+            </div>
+            <div class="career-actions">
+              <button class="action-btn edit-btn" (click)="editarTipo(tipo)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Editar
+              </button>
+
+              <button class="action-btn delete-btn" (click)="eliminarTipo(tipo)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          No hay tipos de carrera registrados aún
+        </div>
+      }
+
     </div>
   </div>
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
-  <div class="modal-content" 
-       [ngClass]="{
-         'modal-success': tipoModal === 'success',
-         'modal-error': tipoModal === 'error',
-         'modal-warning': tipoModal === 'warning',
-         'modal-edit': tipoModal === 'edit',
-         'modal-delete': tipoModal === 'delete'
-       }"
-       (click)="$event.stopPropagation()">
-    
-    <!-- Icono según el tipo -->
-    <div class="modal-icon">
-      <svg *ngIf="tipoModal === 'success'" width="60" height="60" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-        <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      
-      <svg *ngIf="tipoModal === 'error'" width="60" height="60" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-        <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      
-      <svg *ngIf="tipoModal === 'warning'" width="60" height="60" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L2 20H22L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="12" cy="17" r="1" fill="currentColor"/>
-      </svg>
-      
-      <svg *ngIf="tipoModal === 'edit'" width="60" height="60" viewBox="0 0 24 24" fill="none">
-        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      
-      <svg *ngIf="tipoModal === 'delete'" width="60" height="60" viewBox="0 0 24 24" fill="none">
-        <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
+@if (mostrarModal) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-content" 
+         [ngClass]="{
+           'modal-success': tipoModal === 'success',
+           'modal-error': tipoModal === 'error',
+           'modal-warning': tipoModal === 'warning',
+           'modal-edit': tipoModal === 'edit',
+           'modal-delete': tipoModal === 'delete'
+         }"
+         (click)="$event.stopPropagation()">
 
-    <h2 class="modal-title">{{ tituloModal }}</h2>
-    <p class="modal-message">{{ mensajeModal }}</p>
-
-    <!-- Inputs para editar (solo visible en modo edición) -->
-    <div *ngIf="tipoModal === 'edit'" class="modal-form">
-      <div class="modal-form-group">
-        <label>Tipo de carrera:</label>
-        <input 
-          type="text" 
-          [(ngModel)]="tipoEditado"
-          class="modal-input"
-          placeholder="Tipo de carrera"
-        />
+      <!-- Icono según el tipo -->
+      <div class="modal-icon">
+        @switch (tipoModal) {
+          @case ('success') {
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M8 12L11 15L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+          @case ('error') {
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          }
+          @case ('warning') {
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 20H22L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="1" fill="currentColor"/>
+            </svg>
+          }
+          @case ('edit') {
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+              <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+          @case ('delete') {
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+        }
       </div>
-      <div class="modal-form-group">
-        <label>Duración (semanas):</label>
-        <input 
-          type="number" 
-          [(ngModel)]="duracionEditada"
-          class="modal-input"
-          placeholder="Duración"
-          min="1"
-        />
-      </div>
-    </div>
 
-    <!-- Botones -->
-    <div class="modal-buttons">
-      <!-- Botones para confirmación simple (success, error, warning) -->
-      <button 
-        *ngIf="tipoModal === 'success' || tipoModal === 'error' || tipoModal === 'warning'"
-        class="modal-btn modal-btn-primary" 
-        (click)="cerrarModal()">
-        Aceptar
+      <h2 class="modal-title">{{ tituloModal }}</h2>
+      <p class="modal-message">{{ mensajeModal }}</p>
+
+      @if (tipoModal === 'edit') {
+        <div class="modal-form">
+          <div class="modal-form-group">
+            <label>Tipo de carrera:</label>
+            <input 
+              type="text" 
+              [(ngModel)]="tipoEditado"
+              class="modal-input"
+              placeholder="Tipo de carrera"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label>Duración (semanas):</label>
+            <input 
+              type="number" 
+              [(ngModel)]="duracionEditada"
+              class="modal-input"
+              placeholder="Duración"
+              min="1"
+            />
+          </div>
+        </div>
+      }
+
+      <div class="modal-buttons">
+        @if (tipoModal === 'success' || tipoModal === 'error' || tipoModal === 'warning') {
+          <button class="modal-btn modal-btn-primary" (click)="cerrarModal()">
+            Aceptar
+          </button>
+        }
+
+        @if (tipoModal === 'edit') {
+          <button class="modal-btn modal-btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button class="modal-btn modal-btn-primary" 
+            [disabled]="isLoading"
+            (click)="confirmarEdicion()">
+            Guardar
+          </button>
+        }
+
+        @if (tipoModal === 'delete') {
+          <button class="modal-btn modal-btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button class="modal-btn modal-btn-danger" (click)="confirmarEliminacion()">
+            Eliminar
+          </button>
+        }
+      </div>
+
+      <button class="modal-close" (click)="cerrarModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
-
-      <!-- Botones para edición -->
-      <ng-container *ngIf="tipoModal === 'edit'">
-        <button class="modal-btn modal-btn-secondary" (click)="cerrarModal()">
-          Cancelar
-        </button>
-        <button class="modal-btn modal-btn-primary" 
-        *ngIf="tipoModal === 'edit'"
-        [disabled]="isLoading"
-        (click)="confirmarEdicion()">
-          Guardar
-        </button>
-      </ng-container>
-
-      <!-- Botones para eliminación -->
-      <ng-container *ngIf="tipoModal === 'delete'">
-        <button class="modal-btn modal-btn-secondary" (click)="cerrarModal()">
-          Cancelar
-        </button>
-        <button class="modal-btn modal-btn-danger" 
-        (click)="confirmarEliminacion()">
-          Eliminar
-        </button>
-      </ng-container>
     </div>
-
-    <!-- Botón cerrar (X) -->
-    <button class="modal-close" (click)="cerrarModal()">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
   </div>
-</div>
+}

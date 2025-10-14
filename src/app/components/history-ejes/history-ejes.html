@@ -1,125 +1,117 @@
 <div class="historial-container">
-    <h2>📘 Historial de Carreras Calculadas</h2>
+    <h2>📘 Historial de Carreras de Tipo Superior</h2>
 
     @if (carrerasConEjes.length > 0) {
-    @for (item of carrerasConEjes; track item.carrera.id; let i = $index) {
-    <div class="carrera-block">
-        <h3>
-            🎓 {{ item.carrera.career?.nombre || 'Carrera ID: ' + item.carrera.id }}
-        </h3>
+        <div class="carreras-grid">
+            @for (item of carrerasConEjes; track item.carrera.id; let i = $index) {
+                <div class="carrera-card">
+                    <!-- Header de la tarjeta -->
+                    <div class="card-header">
+                        <h3>🎓 {{ item.carrera.career?.nombre || "Carrera ID: " + item.carrera.id }}</h3>
+                    </div>
 
-        <div class="carrera-info">
-            <p><strong>📋 Nombre de la Carrera:</strong> <span>{{ item.carrera.career?.nombre || 'No especificado'
-                    }}</span></p>
-            <p><strong>🏷️ Tipo de Carrera:</strong> <span>{{ item.carrera.typeCareer?.tipo || 'No especificado'
-                    }}</span></p>
-            <p><strong>📅 Fecha de cálculo:</strong> <span>{{ item.carrera.fechaActual | date:'dd/MM/yyyy' }}</span></p>
-            <p><strong>⏰ Fecha de finalización:</strong> <span>{{ item.carrera.fechaFin | date:'dd/MM/yyyy' }}</span>
-            </p>
-        </div>
-
-        <div class="expand-button" (click)="toggleEjesVisibles(i)" [attr.aria-expanded]="item.ejesVisibles">
-            🧩 Ejes de la Carrera
-            @if (!item.ejesVisibles) {
-            <span class="toggle-icon">Ver Ejes</span>
-            }
-            @if (item.ejesVisibles) {
-            <span class="toggle-icon">Contraer Ejes</span>
-            }
-        </div>
-        <div class="expand-button">
-            <button (click)="generarPDFConFormato(i)">Generar PDF</button>
-
-        </div>
-
-        @if (item.ejesVisibles) {
-        @if (getEjesOrdenados(item.ejes).length > 0) {
-        <div class="ejes-container">
-            @for (eje of getEjesOrdenados(item.ejes); track eje.nivel) {
-            <div class="nivel-block">
-                <div class="nivel-title">Nivel {{ eje.nivel }}</div>
-
-                <div class="ejes-grid">
-                    @if (eje.eje1 && eje.eje1 !== '-') {
-                    <div class="eje-column">
-                        <h5 class="eje-header">Eje 1</h5>
-                        <div class="eje-content">
-                            <div class="eje-description" [innerHTML]="eje.eje1 | ejePipe"></div>
-                            @if (procesarMaterias(eje.eje1).length > 1) {
-                            <div class="eje-links">
-                                @for (materia of procesarMaterias(eje.eje1); track materia) {
-                                <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
-                                }
-                            </div>
-                            }
+                    <!-- Contenido de la tarjeta -->
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">📋 Carrera:</span>
+                            <span class="info-value">{{ item.carrera.career?.nombre || "No especificado" }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">🏷️ Tipo:</span>
+                            <span class="info-value">{{ item.carrera.typeCareer?.tipo || "No especificado" }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">📅 Inicio:</span>
+                            <span class="info-value">{{ item.carrera.fechaActual | date : "dd/MM/yyyy" }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">⏰ Fin:</span>
+                            <span class="info-value">{{ item.carrera.fechaFin | date : "dd/MM/yyyy" }}</span>
                         </div>
                     </div>
-                    }
 
-                    @if (eje.eje2 && eje.eje2 !== '-') {
-                    <div class="eje-column">
-                        <h5 class="eje-header">Eje 2</h5>
-                        <div class="eje-content">
-                            <div class="eje-description" [innerHTML]="eje.eje2 | ejePipe"></div>
-                            @if (procesarMaterias(eje.eje2).length > 1) {
-                            <div class="eje-links">
-                                @for (materia of procesarMaterias(eje.eje2); track materia) {
-                                <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
+                    <!-- Botones de acción -->
+                    <div class="card-actions">
+                        <button 
+                            class="btn-action btn-view" 
+                            (click)="toggleEjesVisibles(i)"
+                            [attr.aria-expanded]="item.ejesVisibles">
+                            @if (!item.ejesVisibles) {
+                                👁️ Ver Ejes
+                            } @else {
+                                🔽 Contraer
+                            }
+                        </button>
+                        
+                        <button 
+                            class="btn-action btn-pdf" 
+                            (click)="generarPDFConFormato(i)">
+                            📄 PDF
+                        </button>
+                    </div>
+
+                    @if (item.ejesVisibles) {
+                        @if (getEjesOrdenados(item.ejes).length > 0) {
+                            <div class="ejes-expandido">
+                                @for (eje of getEjesOrdenados(item.ejes); track eje.nivel) {
+                                    <div class="nivel-block">
+                                        <div class="nivel-title">📚 {{ eje.nivel }}</div>
+
+                                        <div class="ejes-grid">
+                                            @if (eje.eje1 && eje.eje1 !== '-') {
+                                                <div class="eje-column">
+                                                    <h5 class="eje-header">Eje 1</h5>
+                                                    <div class="eje-content">
+                                                        <div class="eje-description" [innerHTML]="eje.eje1 | ejePipe"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            
+                                            @if (eje.eje2 && eje.eje2 !== '-') {
+                                                <div class="eje-column">
+                                                    <h5 class="eje-header">Eje 2</h5>
+                                                    <div class="eje-content">
+                                                        <div class="eje-description" [innerHTML]="eje.eje2 | ejePipe"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            
+                                            @if (eje.eje3 && eje.eje3 !== '-') {
+                                                <div class="eje-column">
+                                                    <h5 class="eje-header">Eje 3</h5>
+                                                    <div class="eje-content">
+                                                        <div class="eje-description" [innerHTML]="eje.eje3 | ejePipe"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            
+                                            @if (eje.eje4 && eje.eje4 !== '-') {
+                                                <div class="eje-column">
+                                                    <h5 class="eje-header">Eje 4</h5>
+                                                    <div class="eje-content">
+                                                        <div class="eje-description" [innerHTML]="eje.eje4 | ejePipe"></div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
                                 }
                             </div>
-                            }
-                        </div>
-                    </div>
-                    }
-
-                    @if (eje.eje3 && eje.eje3 !== '-') {
-                    <div class="eje-column">
-                        <h5 class="eje-header">Eje 3</h5>
-                        <div class="eje-content">
-                            <div class="eje-description" [innerHTML]="eje.eje3 | ejePipe"></div>
-                            @if (procesarMaterias(eje.eje3).length > 1) {
-                            <div class="eje-links">
-                                @for (materia of procesarMaterias(eje.eje3); track materia) {
-                                <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
-                                }
+                        } @else {
+                            <div class="sin-ejes">
+                                <p>📝 Esta carrera no tiene ejes disponibles</p>
                             </div>
-                            }
-                        </div>
-                    </div>
+                        }
                     }
-
-                    @if (eje.eje4 && eje.eje4 !== '-') {
-                    <div class="eje-column">
-                        <h5 class="eje-header">Eje 4</h5>
-                        <div class="eje-content">
-                            <div class="eje-description" [innerHTML]="eje.eje4 | ejePipe"></div>
-                            @if (procesarMaterias(eje.eje4).length > 1) {
-                            <div class="eje-links">
-                                @for (materia of procesarMaterias(eje.eje4); track materia) {
-                                <a href="#" (click)="$event.preventDefault()">{{ materia }}</a>
-                                }
-                            </div>
-                            }
-                        </div>
-                    </div>
-                    }
-
                 </div>
-
-            </div>
             }
         </div>
-        } @else {
-        <div class="sin-ejes">
-            <p>Esta carrera no tiene ejes de datos disponibles</p>
-        </div>
-        }
-        }
-    </div>
-    }
     } @else {
-    <div class="no-carreras">
-        <p>No se ha encontrado información de carreras calculadas</p>
-    </div>
+        <div class="no-carreras">
+            <p>📋 No se ha encontrado información de carreras calculadas</p>
+        </div>
     }
 </div>

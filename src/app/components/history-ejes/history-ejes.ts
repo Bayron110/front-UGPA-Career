@@ -75,10 +75,6 @@ export class HistoryEjes implements OnInit {
       .filter(materia => materia.length > 0);
   }
 
-
-
-  
-
   generarPDFConFormato(i: number): void {
   const carrera = this.carrerasConEjes[i];
   const doc = new jsPDF();
@@ -149,7 +145,7 @@ const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAukAAAEMCAYAAA
   doc.setFontSize(23);
   doc.setFont('helvetica', 'bold');
   doc.text('Resumen de contenidos de la carrera:', centerX, 145, { align: 'center' });
-  doc.setFontSize(14);
+  doc.setFontSize(23);
   doc.text(nombreCarrera, centerX, 155, { align: 'center' });
 
   // TABLA DE FIRMAS

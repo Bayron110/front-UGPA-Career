@@ -1,130 +1,208 @@
 <div class="form-container">
     <h2 class="heading">📋 CalCareers Guardados - Solo TSU</h2>
 
-    <table *ngIf="calCareers.length > 0" class="tabla">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Carrera</th>
-                <th>Tipo de Carrera</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let item of calCareers; trackBy: trackById">
-                <td>{{ item.id }}</td>
-                <td>{{ item.career.nombre }}</td>
-                <td>{{ item.typeCareer.tipo }}</td>
-                <td>{{ item.fechaActual | date:'shortDate' }}</td>
-                <td>{{ item.fechaFin | date:'shortDate' }}</td>
-                <td>
-                    <button class="btn-go" (click)="seleccionar(item)">
-                        ➕ Asignar Ejes
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div *ngIf="calCareers.length === 0" class="no-data">
-        <p>📝 No hay registros de tipo TSU guardados todavía.</p>
-    </div>
+    @if (calCareers.length > 0) {
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Carrera</th>
+                    <th>Tipo de Carrera</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (item of calCareers; track item.id) {
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.career.nombre }}</td>
+                        <td>{{ item.typeCareer.tipo }}</td>
+                        <td>{{ item.fechaActual | date:'shortDate' }}</td>
+                        <td>{{ item.fechaFin | date:'shortDate' }}</td>
+                        <td>
+                            @if (!tieneEjes(item)) {
+                                <button 
+                                    class="btn-go"
+                                    (click)="seleccionar(item)"
+                                    title="Asignar ejes a esta carrera">
+                                    ➕ Asignar Ejes
+                                </button>
+                            } @else {
+                                <div class="action-buttons-group">
+                                    <button 
+                                        class="btn-edit" 
+                                        (click)="editarEjes(item)" 
+                                        title="Editar ejes existentes">
+                                        ✏️ Editar Ejes
+                                    </button>
+                                    <button 
+                                        class="btn-delete" 
+                                        (click)="eliminarEjes(item)" 
+                                        title="Eliminar todos los ejes">
+                                        🗑️ Eliminar Ejes
+                                    </button>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    } @else {
+        <div class="no-data">
+            <p>📝 No hay registros de tipo TSU guardados todavía.</p>
+        </div>
+    }
 </div>
 
-<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h3>🎯 Configurar Estructura de la Carrera</h3>
-            <button type="button" class="close-btn" (click)="cerrarModal()">✖</button>
-        </div>
-
-        <div *ngIf="carreraSeleccionada" class="carrera-info">
-            <div class="info-card">
-                <h4>📚 {{ carreraSeleccionada.career.nombre }}</h4>
-                <div class="info-details">
-                    <span class="info-badge">{{ carreraSeleccionada.typeCareer.tipo }}</span>
-                    <span class="info-text">ID: {{ carreraSeleccionada.id }}</span>
-                </div>
-                <div class="info-dates">
-                    <small>
-                        📅 {{ carreraSeleccionada.fechaActual | date:'shortDate' }} -
-                        {{ carreraSeleccionada.fechaFin | date:'shortDate' }}
-                    </small>
-                </div>
+<!-- MODAL PARA ASIGNAR/EDITAR EJES -->
+@if (showModal) {
+    <div class="modal-overlay" (click)="cerrarModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h3>🎯 {{ modoEdicion ? 'Editar' : 'Configurar' }} Estructura de la Carrera TSU</h3>
+                <button type="button" class="close-btn" (click)="cerrarModal()" title="Cerrar">✖</button>
             </div>
-        </div>
 
-        <div class="progress-indicator">
-            <div class="step-counter">
-                Configurando: Nivel {{ currentStep + 1 }} de {{ niveles.length }}
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="((currentStep + 1) / niveles.length) * 100"></div>
-            </div>
-            <div class="step-indicators">
-                <button *ngFor="let nivel of niveles; let i = index" class="step-btn" [class.active]="i === currentStep"
-                    [class.completed]="nivel.nombre.trim() !== ''" (click)="goToStep(i)">
-                    {{ i + 1 }}
-                </button>
-            </div>
-        </div>
-
-        <div class="modal-body">
-            <form (ngSubmit)="onSubmit()" #estructuraForm="ngForm">
-                <div class="nivel-section">
-                    <div class="nivel-header">
-                        <h4>🏗️ Nivel {{ currentStep + 1 }}</h4>
-                    </div>
-
-                    <div class="input-group">
-                        <label [for]="'nivel-' + currentStep">
-                            <span class="label-icon">🎓</span>
-                            Nombre del Nivel {{ currentStep + 1 }}:
-                        </label>
-                        <input [id]="'nivel-' + currentStep" type="text" [(ngModel)]="niveles[currentStep].nombre"
-                            name="nivel_{{ currentStep }}" maxlength="100"
-                            placeholder="Ej: Primer Semestre, Nivel Básico, etc." class="form-input nivel-input"
-                            required />
-                    </div>
-
-                    <div class="ejes-section">
-                        <h5>📌 Ejes del Nivel (máximo 6)</h5>
-                        <div class="ejes-grid">
-                            <div *ngFor="let eje of niveles[currentStep].ejes; let ejeIndex = index" class="eje-card">
-                                <div class="eje-header">
-                                    <label [for]="'eje-' + currentStep + '-' + ejeIndex">
-                                        Eje {{ ejeIndex + 1 }}:
-                                    </label>
-                                    <input type="text" [(ngModel)]="eje.nombre"
-                                        name="eje_{{ currentStep }}_{{ ejeIndex }}"
-                                        [id]="'eje-' + currentStep + '-' + ejeIndex"
-                                        placeholder="Nombre del eje {{ ejeIndex + 1 }}" class="form-input eje-input" />
-                                </div>
-                            </div>
+            @if (carreraSeleccionada) {
+                <div class="carrera-info">
+                    <div class="info-card">
+                        <h4>📚 {{ carreraSeleccionada.career.nombre }}</h4>
+                        <div class="info-details">
+                            <span class="info-badge">{{ carreraSeleccionada.typeCareer.tipo }}</span>
+                            <span class="info-text">ID: {{ carreraSeleccionada.id }}</span>
+                            @if (modoEdicion) {
+                                <span class="info-badge mode-badge">✏️ MODO EDICIÓN</span>
+                            }
+                        </div>
+                        <div class="info-dates">
+                            <small>
+                                📅 {{ carreraSeleccionada.fechaActual | date:'shortDate' }} -
+                                {{ carreraSeleccionada.fechaFin | date:'shortDate' }}
+                            </small>
                         </div>
                     </div>
                 </div>
+            }
 
-                <div class="modal-buttons">
-                    <div class="navigation-buttons">
-                        <button type="button" class="btn-nav btn-prev" (click)="prevStep()"
-                            [disabled]="currentStep === 0">
-                            ⬅️ Anterior
-                        </button>
-                        <button type="button" class="btn-nav btn-next" (click)="nextStep()"
-                            [disabled]="currentStep === niveles.length - 1">
-                            Siguiente ➡️
-                        </button>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button type="submit" class="btn-save">💾 Guardar Estructura Completa</button>
-                        <button type="button" class="btn-cancel" (click)="cerrarModal()">❌ Cancelar</button>
-                    </div>
+            <!-- Indicador de progreso -->
+            <div class="progress-indicator">
+                <div class="step-counter">
+                    Configurando: Nivel {{ currentStep + 1 }} de {{ niveles.length }}
                 </div>
-            </form>
+                <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="((currentStep + 1) / niveles.length) * 100"></div>
+                </div>
+                <div class="step-indicators">
+                    @for (nivel of niveles; track $index; let i = $index) {
+                        <button 
+                            type="button"
+                            class="step-btn" 
+                            [class.active]="i === currentStep"
+                            [class.completed]="nivel.nombre.trim() !== ''" 
+                            (click)="goToStep(i)"
+                            [title]="'Ir al nivel ' + (i + 1)">
+                            {{ i + 1 }}
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Formulario de configuración -->
+            <div class="modal-body">
+                <form (ngSubmit)="onSubmit()" #estructuraForm="ngForm">
+                    <div class="nivel-section">
+                        <div class="nivel-header">
+                            <h4>🏗️ Nivel {{ currentStep + 1 }}</h4>
+                        </div>
+
+                        <!-- Nombre del nivel -->
+                        <div class="input-group">
+                            <label [for]="'nivel-' + currentStep">
+                                <span class="label-icon">🎓</span>
+                                Nombre del Nivel {{ currentStep + 1 }}:
+                            </label>
+                            <textarea 
+                                [id]="'nivel-' + currentStep" 
+                                [(ngModel)]="niveles[currentStep].nombre"
+                                name="nivel_{{ currentStep }}" 
+                                maxlength="100" 
+                                placeholder="Ej: Primer Semestre, Nivel Básico, Año 1, etc."
+                                class="form-textarea nivel-textarea" 
+                                rows="2"
+                                required></textarea>
+                        </div>
+
+                        <!-- Ejes del nivel -->
+                        <div class="ejes-section">
+                            <h5>📌 Ejes del Nivel (máximo 6)</h5>
+                            <p class="ejes-hint">Complete al menos un eje para este nivel (use Enter para nueva línea)</p>
+                            <div class="ejes-grid-tsu">
+                                @for (eje of niveles[currentStep].ejes; track $index; let ejeIndex = $index) {
+                                    <div class="eje-card-tsu">
+                                        <div class="eje-content">
+                                            <label [for]="'eje-' + currentStep + '-' + ejeIndex" class="eje-label">
+                                                <span class="eje-number-badge">{{ ejeIndex + 1 }}</span>
+                                            </label>
+                                            <textarea 
+                                                [(ngModel)]="eje.nombre" 
+                                                name="eje_{{ currentStep }}_{{ ejeIndex }}"
+                                                [id]="'eje-' + currentStep + '-' + ejeIndex" 
+                                                placeholder="Escriba el nombre del eje {{ ejeIndex + 1 }}..."
+                                                maxlength="200"
+                                                rows="3"
+                                                class="form-textarea eje-textarea"></textarea>
+                                            <div class="char-counter">
+                                                {{ eje.nombre.length || 0 }}/200
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de navegación y acción -->
+                    <div class="modal-buttons">
+                        <div class="navigation-buttons">
+                            <button 
+                                type="button" 
+                                class="btn-nav btn-prev" 
+                                (click)="prevStep()" 
+                                [disabled]="currentStep === 0"
+                                title="Ir al nivel anterior">
+                                ⬅️ Anterior
+                            </button>
+                            <button 
+                                type="button" 
+                                class="btn-nav btn-next" 
+                                (click)="nextStep()"
+                                [disabled]="currentStep === niveles.length - 1"
+                                title="Ir al siguiente nivel">
+                                Siguiente ➡️
+                            </button>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button 
+                                type="submit" 
+                                class="btn-save"
+                                title="{{ modoEdicion ? 'Actualizar la estructura completa' : 'Guardar la estructura completa' }}">
+                                {{ modoEdicion ? '💾 Actualizar Estructura' : '💾 Guardar Estructura Completa' }}
+                            </button>
+                            <button 
+                                type="button" 
+                                class="btn-cancel" 
+                                (click)="cerrarModal()"
+                                title="Cancelar y cerrar">
+                                ❌ Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
+}
