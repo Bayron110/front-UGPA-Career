@@ -1,0 +1,116 @@
+
+:host {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e6f3ff 0%, #4a90e2 50%, #2563eb 100%);
+    background-size: 400% 400%;
+    animation: gradientFlow 12s ease infinite;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animación del degradado de fondo */
+@keyframes gradientFlow {
+    0% { 
+        background-position: 0% 50%; 
+    }
+    50% { 
+        background-position: 100% 50%; 
+    }
+    100% { 
+        background-position: 0% 50%; 
+    }
+}
+
+:host::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(74, 144, 226, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: particleFloat 20s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+    0%, 100% { 
+        opacity: 0.3;
+        transform: translateY(0) scale(1);
+    }
+    50% { 
+        opacity: 0.6;
+        transform: translateY(-20px) scale(1.1);
+    }
+}
+
+app-nav-bar {
+    position: relative;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+}
+
+router-outlet {
+    position: relative;
+    z-index: 1;
+}
+
+router-outlet + * {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+app-footer {
+    position: relative;
+    z-index: 10;
+    margin-top: auto;
+    box-shadow: 0 -4px 20px rgba(37, 99, 235, 0.15);
+}
+
+
+:host::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+@media (max-width: 768px) {
+    :host {
+        background-size: 600% 600%;
+    }
+}
+@keyframes waveEffect {
+    0% {
+        transform: translateX(0) translateY(0);
+    }
+    50% {
+        transform: translateX(-25px) translateY(-25px);
+    }
+    100% {
+        transform: translateX(0) translateY(0);
+    }
+}
+:host {
+    background-attachment: fixed;
+}
+
+router-outlet + * {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+}

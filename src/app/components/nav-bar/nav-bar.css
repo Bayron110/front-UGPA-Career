@@ -1,88 +1,254 @@
-body {
-  background-color: #0e1624; 
-  margin: 0;
-  font-family: 'Poppins', 'Segoe UI', sans-serif;
-}
-
+/* Estilos para nav-bar.component.css */
 
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(150deg, #4bb0df, #002fff); 
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  margin: 1.5rem auto;
-  max-width: 1300px;
-  box-shadow: 0 0 25px rgba(90, 200, 250, 0.4);
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(37, 99, 235, 0.15);
+    border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
 }
 
-/* Enlaces */
-.navbar a {
-  color: #ffffff;
-  text-decoration: none;
-  margin: 0 1rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
+.navbar:hover {
+    box-shadow: 0 6px 40px rgba(37, 99, 235, 0.25);
+    border-bottom-color: rgba(74, 144, 226, 0.4);
 }
 
-.navbar a:hover {
-  color: #0011ff;
-  transform: translateY(-2px);
-}
-
-/* Logo central */
-.logo {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #ffffff;
-  text-shadow: 0 0 10px rgba(90, 200, 250, 0.6);
-}
-
-/* Botones */
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-/* Botón de login */
-.login-btn {
-  background-color: transparent;
-  border: 1px solid #ffffff;
-  color: #ffffff;
-}
-
-.login-btn:hover {
-  background-color: #ffffff;
-  color: #007aff;
-}
-
-/* Botón de registro */
-.join-btn {
-  background-color: #ffffff;
-  color: #007aff;
-  box-shadow: 0 0 10px rgba(90, 200, 250, 0.4);
-  margin-left: 0.5rem;
-}
-
-.join-btn:hover {
-  transform: scale(1.05);
-  background-color: #0066ff;
-  color: #000;
-}
-
+/* Secciones del navbar */
 .navbar-left,
+.navbar-center,
 .navbar-right {
-  display: flex;
-  align-items: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-left {
+    justify-content: flex-start;
 }
 
 .navbar-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+    justify-content: center;
+}
+
+.navbar-right {
+    justify-content: flex-end;
+}
+
+/* Logo */
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4a90e2 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 10px rgba(37, 99, 235, 0.2);
+    transition: all 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+
+/* Estilos base de botones */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn svg {
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.btn span {
+    position: relative;
+    z-index: 1;
+}
+
+/* Botón de Atrás */
+.back-btn {
+    background: linear-gradient(135deg, #4a90e2 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.back-btn:hover {
+    transform: translateX(-5px) scale(1.05);
+    box-shadow: 0 6px 25px rgba(74, 144, 226, 0.6);
+}
+
+.back-btn:hover svg {
+    transform: translateX(-3px);
+}
+
+.back-btn:active {
+    transform: translateX(-3px) scale(0.98);
+}
+
+/* Botón de Home */
+.login-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6);
+}
+
+.login-btn:hover svg {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.login-btn:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* Efecto de pulso en hover */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.btn:hover {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 12px 20px;
+        flex-wrap: wrap;
+    }
+
+    .navbar-left,
+    .navbar-right {
+        flex: 0 0 auto;
+    }
+
+    .navbar-center {
+        flex: 1;
+        order: -1;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+
+    .btn span {
+        display: none;
+    }
+
+    .btn svg {
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 10px 15px;
+    }
+
+    .logo {
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+    }
+}
+
+/* Animación de entrada */
+.navbar {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efecto de brillo en el borde inferior */
+.navbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        #4a90e2 25%, 
+        #2563eb 50%, 
+        #4a90e2 75%, 
+        transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.navbar:hover::after {
+    opacity: 1;
 }
