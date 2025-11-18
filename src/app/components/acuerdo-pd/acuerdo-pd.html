@@ -1,0 +1,120 @@
+<!-- acuerdo-pd.component.html -->
+<div class="contenedor">
+    <div class="header">
+        <h2>Subir archivo Excel</h2>
+        <p class="subtitle">Carga un archivo Excel para generar archivos individuales</p>
+    </div>
+
+    <div class="upload-area">
+        <input type="file" id="fileInput" (change)="onFileChange($event)" accept=".xlsx, .xls"
+            [disabled]="cargando()" />
+        <label for="fileInput" class="upload-label">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <polyline points="17 8 12 3 7 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <line x1="12" y1="3" x2="12" y2="15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>{{ nombreArchivo() || 'Seleccionar archivo Excel' }}</span>
+        </label>
+    </div>
+
+    @if (cargando()) {
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>Procesando archivo...</p>
+    </div>
+    }
+
+    @if (datosExcel().length > 0 && !cargando()) {
+    <div class="preview-section">
+        <div class="preview-header">
+            <h3>Previsualización de datos</h3>
+            <span class="badge">{{ datosExcel().length }} registros</span>
+        </div>
+
+        <div class="table-container" [innerHTML]="htmlPreview()"></div>
+
+        <div class="actions">
+            <button class="btn-secondary" (click)="limpiarDatos()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="3 6 5 6 21 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Limpiar
+            </button>
+            <button class="btn-primary" (click)="abrirModalPlantilla()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <polyline points="14 2 14 8 20 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <line x1="12" y1="18" x2="12" y2="12" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <line x1="9" y1="15" x2="15" y2="15" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                Generar PDF con Plantilla
+            </button>
+        </div>
+    </div>
+    }
+</div>
+
+<!-- Modal para subir plantilla Word -->
+@if (mostrarModalPlantilla()) {
+<div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Subir Plantilla Word</h3>
+            <button class="btn-close" (click)="cerrarModal()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <line x1="18" y1="6" x2="6" y2="18" stroke-width="2" stroke-linecap="round" />
+                    <line x1="6" y1="6" x2="18" y2="18" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="info-box">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                    <line x1="12" y1="16" x2="12" y2="12" stroke-width="2" stroke-linecap="round" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <div>
+                    <strong>Instrucciones:</strong>
+                    <p>En tu documento Word, usa placeholders con doble llave <code>{{'{{'}}nombre{{'}}'}}</code></p>
+                    <p><strong>Ejemplo:</strong> Si tu Excel tiene "Nombres Completos", escribe
+                        <code>{{'{{'}}Nombres Completos{{'}}'}}</code></p>
+                    <p class="warning">⚠️ Los placeholders deben coincidir EXACTAMENTE con los nombres de columnas del
+                        Excel (mayúsculas, espacios, etc.)</p>
+                </div>
+            </div>
+
+            <div class="columnas-disponibles">
+                <strong>Columnas disponibles en tu Excel:</strong>
+                <div class="columnas-list">
+                    @for (columna of columnas(); track columna) {
+                    <span class="columna-tag">{{'{{'}}{{ columna }}{{'}}'}}</span>
+                    }
+                </div>
+            </div>
+
+            <div class="upload-area-modal">
+                <input type="file" id="plantillaInput" (change)="onPlantillaChange($event)" accept=".docx" />
+                <label for="plantillaInput" class="upload-label-modal">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2" />
+                        <polyline points="14 2 14 8 20 8" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <span>{{ nombrePlantilla() || 'Seleccionar archivo Word (.docx)' }}</span>
+                </label>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+}
