@@ -8,6 +8,7 @@ import { Guardados } from './components/guardados/guardados';
 import { HistoryEjes } from './components/history-ejes/history-ejes';
 import { GuardadoTsu } from './components/guardado-tsu/guardado-tsu';
 import { HistoryEjesTsu } from './components/history-ejes-tsu/history-ejes-tsu';
+import { AcuerdoPD } from './components/acuerdo-pd/acuerdo-pd';
 
 export const routes: Routes = [
 
@@ -19,6 +20,7 @@ export const routes: Routes = [
     {path:"history", component:HistoryEjes},
     {path:"tsu", component:GuardadoTsu},
     {path:"history-tsu", component:HistoryEjesTsu},
+    {path:"generar", component:AcuerdoPD},
 
 
 { path: '', redirectTo: 'Home', pathMatch: 'full' },

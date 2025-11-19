@@ -29,4 +29,8 @@ export class Home {
     this.router.navigate(['/history-tsu'])
   }
 
+  irAGenerar(): void{
+    this.router.navigate(['/generar'])
+  }
+
 }

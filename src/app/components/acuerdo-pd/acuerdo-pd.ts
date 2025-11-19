@@ -127,10 +127,14 @@ export class AcuerdoPD {
       const columnas = this.columnas();
       
       for (const columna of columnas) {
-        const key = columna.trim();
-        const valor = persona[columna];
-        datos[key] = valor !== null && valor !== undefined ? String(valor) : '';
-      }
+  const key = columna.trim();
+  const valor = persona[columna];
+
+  // ✅ Si el valor está vacío, se pasa como undefined para que Docxtemplater lo oculte
+  datos[key] = valor !== null && valor !== undefined && String(valor).trim() !== ''
+    ? String(valor)
+    : undefined;
+}
 
       doc.render(datos);
 
