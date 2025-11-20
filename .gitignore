@@ -19,7 +19,8 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
-
+# Electron build
+/dist_electron/
 # Visual Studio Code
 .vscode/*
 !.vscode/settings.json

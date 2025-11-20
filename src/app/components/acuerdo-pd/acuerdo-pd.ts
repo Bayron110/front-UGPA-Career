@@ -39,6 +39,7 @@ export class AcuerdoPD {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows: any[] = XLSX.utils.sheet_to_json(sheet);
         const html = XLSX.utils.sheet_to_html(sheet, { id: 'excel-preview' });
+
         this.htmlPreview.set(html);
         this.datosExcel.set(rows);
         this.columnas.set(rows.length > 0 ? Object.keys(rows[0]) : []);
@@ -105,7 +106,10 @@ export class AcuerdoPD {
 
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       saveAs(zipBlob, 'documentos_word.zip');
-      alert(`✓ Se generaron ${datos.length} documentos WORD correctamente\n\n💡 Los archivos mantienen TODO el formato original.\nPuedes abrirlos en Word y exportar a PDF si lo necesitas.`);
+      alert(`✓ Se generaron ${datos.length} documentos WORD correctamente
+
+💡 Los archivos mantienen TODO el formato original.
+Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     } catch (error) {
       console.error('Error al generar documentos:', error);
       alert('Error al generar los documentos: ' + (error as any).message);
@@ -135,6 +139,12 @@ export class AcuerdoPD {
     ? String(valor)
     : undefined;
 }
+const capacitacionesRaw = persona['Capacitaciones'];
+const listaCapacitaciones = typeof capacitacionesRaw === 'string'
+  ? capacitacionesRaw.split('-').map(c => c.trim()).filter(c => c !== '')
+  : [];
+
+datos['capacitaciones'] = listaCapacitaciones;
 
       doc.render(datos);
 
