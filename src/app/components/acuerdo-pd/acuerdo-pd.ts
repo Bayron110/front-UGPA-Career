@@ -24,34 +24,59 @@ export class AcuerdoPD {
   htmlPreview = signal<string>('');
 
   onFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
 
-    this.nombreArchivo.set(file.name);
-    this.cargando.set(true);
+  this.nombreArchivo.set(file.name);
+  this.cargando.set(true);
 
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-        const html = XLSX.utils.sheet_to_html(sheet, { id: 'excel-preview' });
-
-        this.htmlPreview.set(html);
-        this.datosExcel.set(rows);
-        this.columnas.set(rows.length > 0 ? Object.keys(rows[0]) : []);
-      } catch (error) {
-        console.error('Error al procesar Excel:', error);
-        alert('Error al procesar el archivo Excel');
-      } finally {
-        this.cargando.set(false);
+  const reader = new FileReader();
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    try {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      
+      // 🔍 DEPURACIÓN: Ver los datos crudos
+      console.log('Datos crudos de Excel:', sheet);
+      
+      const rows: any[] = XLSX.utils.sheet_to_json(sheet);
+      
+      // 🔍 DEPURACIÓN: Ver qué llega después de la conversión
+      console.log('Datos procesados:', rows);
+      
+      // ✅ VALIDACIÓN: Verificar estructura de datos
+      if (rows.length > 0) {
+        const primeraFila = rows[0];
+        console.log('Estructura de la primera fila:', primeraFila);
+        
+        // Verificar campos específicos
+        if (primeraFila['Capacitaciones']) {
+          console.log('Campo Capacitaciones:', primeraFila['Capacitaciones'], typeof primeraFila['Capacitaciones']);
+        }
+        if (primeraFila['Horas']) {
+          console.log('Campo Horas:', primeraFila['Horas'], typeof primeraFila['Horas']);
+        }
+        if (primeraFila['Fecha']) {
+          console.log('Campo Fecha:', primeraFila['Fecha'], typeof primeraFila['Fecha']);
+        }
       }
-    };
-    reader.readAsArrayBuffer(file);
-  }
+
+      const html = XLSX.utils.sheet_to_html(sheet, { id: 'excel-preview' });
+      this.htmlPreview.set(html);
+      this.datosExcel.set(rows);
+      this.columnas.set(rows.length > 0 ? Object.keys(rows[0]) : []);
+      
+    } catch (error) {
+      console.error('Error al procesar Excel:', error);
+      alert('Error al procesar el archivo Excel');
+    } finally {
+      this.cargando.set(false);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
 
   onPlantillaChange(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -94,7 +119,7 @@ export class AcuerdoPD {
 
       for (let i = 0; i < datos.length; i++) {
         const persona = datos[i];
-        
+
         const docxBlob = await this.generarDOCX(plantilla, persona);
         const codigo = persona['Codigo'] || '0000';
         const nombre = persona['NombresC'] || 'SinNombre';
@@ -119,55 +144,148 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
   }
 
   async generarDOCX(plantillaBuffer: ArrayBuffer, persona: any): Promise<Blob> {
-    try {
-      const zip = new PizZip(plantillaBuffer);
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        delimiters: { start: '{{', end: '}}' }
-      });
+  try {
+    const zip = new PizZip(plantillaBuffer);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: { start: '{{', end: '}}' }
+    });
 
-      const datos: any = {};
-      const columnas = this.columnas();
-      
-      for (const columna of columnas) {
-  const key = columna.trim();
-  const valor = persona[columna];
+    const datos: any = {};
+    const columnas = this.columnas();
 
-  // ✅ Si el valor está vacío, se pasa como undefined para que Docxtemplater lo oculte
-  datos[key] = valor !== null && valor !== undefined && String(valor).trim() !== ''
-    ? String(valor)
-    : undefined;
-}
-const capacitacionesRaw = persona['Capacitaciones'];
-const listaCapacitaciones = typeof capacitacionesRaw === 'string'
-  ? capacitacionesRaw.split('-').map(c => c.trim()).filter(c => c !== '')
-  : [];
+    // 🔍 DEPURACIÓN: Ver qué datos llegan para esta persona
+    console.log('Procesando persona:', persona);
 
-datos['capacitaciones'] = listaCapacitaciones;
-
-      doc.render(datos);
-
-      const docxBuffer = doc.getZip().generate({ 
-        type: 'arraybuffer',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 9 }
-      });
-
-      return new Blob([docxBuffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-      });
-    } catch (error) {
-      console.error('Error al generar DOCX:', error);
-      
-      if ((error as any).properties?.errors) {
-        const errores = (error as any).properties.errors;
-        throw new Error(`Error en la plantilla:\n${JSON.stringify(errores, null, 2)}`);
-      }
-      
-      throw new Error('Error al generar documento Word. Verifica que:\n1. La plantilla use variables como {{NombreVariable}}\n2. Los nombres coincidan con las columnas del Excel');
+    // Cargar variables individuales
+    for (const columna of columnas) {
+      const key = columna.trim();
+      const valor = persona[columna];
+      datos[key] = valor !== null && valor !== undefined && String(valor).trim() !== ''
+        ? String(valor)
+        : undefined;
     }
+
+    // 📦 Procesar listas - CON MEJOR MANEJO DE ERRORES
+    const capacitacionesRaw = persona['Capacitaciones'];
+    const horasRaw = persona['Horas'];
+    const fechasRaw = persona['Fecha'];
+
+    console.log('Datos crudos - Capacitaciones:', capacitacionesRaw);
+    console.log('Datos crudos - Horas:', horasRaw);
+    console.log('Datos crudos - Fechas:', fechasRaw);
+
+    // Validar y procesar cada campo individualmente
+    const nombres = this.procesarCampoLista(capacitacionesRaw, 'Capacitaciones');
+    const horas = this.procesarCampoLista(horasRaw, 'Horas');
+    const fechas = this.procesarCampoLista(fechasRaw, 'Fechas');
+
+    console.log('Nombres procesados:', nombres);
+    console.log('Horas procesadas:', horas);
+    console.log('Fechas procesadas:', fechas);
+
+    // 🔍 Si hay discrepancias, mostrar advertencia
+    if (nombres.length !== horas.length || nombres.length !== fechas.length) {
+      console.warn(`⚠️ Discrepancia en longitudes: 
+        Capacitaciones: ${nombres.length} 
+        Horas: ${horas.length} 
+        Fechas: ${fechas.length}`);
+      
+      // Ajustar a la longitud mínima para evitar errores
+      const minLength = Math.min(nombres.length, horas.length, fechas.length);
+      console.log(`Usando longitud mínima: ${minLength}`);
+    }
+
+    const tiposRaw = persona.hasOwnProperty('Tipo') ? persona['Tipo'] : null;
+    const tipos = tiposRaw ? this.procesarCampoLista(tiposRaw, 'Tipos') : nombres.map(() => 'APROBACIÓN');
+
+    // Construir arreglo de objetos usando la longitud mínima
+    const minLength = Math.min(nombres.length, horas.length, fechas.length, tipos.length);
+    let contador = 1;
+    const listaCapacitaciones = [];
+    
+    for (let i = 0; i < minLength; i++) {
+      listaCapacitaciones.push({
+        contador: contador++,
+        nombre: nombres[i] || '',
+        horas: horas[i] || '',
+        fecha: fechas[i] || '',
+        tipo: tipos[i] || 'APROBACIÓN'
+      });
+    }
+
+    datos['capacitaciones'] = listaCapacitaciones;
+
+    // 🆕 NUEVO: Procesar ACTIVIDADES (Teoría y Práctica)
+    const teoriasRaw = persona['Teoria'];
+    const practicasRaw = persona['Practica'];
+
+    console.log('Datos crudos - Teoria:', teoriasRaw);
+    console.log('Datos crudos - Practica:', practicasRaw);
+
+    const teorias = this.procesarCampoLista(teoriasRaw, 'Teorias');
+    const practicas = this.procesarCampoLista(practicasRaw, 'Practicas');
+
+    console.log('Teorias procesadas:', teorias);
+    console.log('Practicas procesadas:', practicas);
+
+    // Crear listas para la plantilla
+    datos['Teoria'] = teorias;
+    datos['Practica'] = practicas;
+
+    // 🔍 DEPURACIÓN FINAL
+    console.log('📋 DATOS FINALES PARA PLANTILLA:', {
+      capacitaciones: datos['capacitaciones'],
+      teorias: datos['Teoria'],
+      practicas: datos['Practica']
+    });
+
+    // Renderizar documento
+    doc.render(datos);
+
+    const docxBuffer = doc.getZip().generate({
+      type: 'arraybuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 9 }
+    });
+
+    return new Blob([docxBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+  } catch (error) {
+    console.error('Error al generar DOCX:', error);
+    
+    if ((error as any).properties?.errors) {
+      const errores = (error as any).properties.errors;
+      throw new Error(`Error en la plantilla:\n${JSON.stringify(errores, null, 2)}`);
+    }
+
+    throw new Error('Error al generar documento Word. Verifica la consola para más detalles.');
   }
+}
+
+
+// 🔧 NUEVA FUNCIÓN AUXILIAR para procesar campos de lista
+private procesarCampoLista(campo: any, nombreCampo: string): string[] {
+  if (!campo) {
+    console.warn(`Campo ${nombreCampo} está vacío o undefined`);
+    return [];
+  }
+  
+  const tipo = typeof campo;
+  console.log(`Procesando ${nombreCampo}:`, campo, `Tipo: ${tipo}`);
+  
+  if (tipo === 'string') {
+    return campo.split('-').map((item: string) => item.trim()).filter((item: string) => item !== '');
+  } else if (Array.isArray(campo)) {
+    return campo.map(item => String(item).trim()).filter(item => item !== '');
+  } else {
+    console.warn(`Tipo inesperado para ${nombreCampo}: ${tipo}`);
+    return [String(campo).trim()];
+  }
+}
 
   limpiarDatos(): void {
     this.datosExcel.set([]);
