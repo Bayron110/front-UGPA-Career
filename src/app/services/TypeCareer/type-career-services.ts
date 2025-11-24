@@ -7,7 +7,7 @@ import { TypeCareer } from '../../Interface/TypeCareer';
   providedIn: 'root'
 })
 export class TypeCareerService {
-  private apiUrl = 'http://localhost:8080/api/type-career';
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/type-career';
 
   constructor(private http: HttpClient) {}
 

@@ -8,7 +8,7 @@ import { AxlesSuperior } from '../../Interface/Alex1';
 })
 export class AxlesSuperiorService {
 
-  private apiUrl = 'http://localhost:8080/api/axles-superior';
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/axles-superior';
 
   constructor(private http: HttpClient) {}
 

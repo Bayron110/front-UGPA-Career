@@ -33,4 +33,7 @@ export class Home {
     this.router.navigate(['/generar'])
   }
 
+  irAReporteR():void{
+    this.router.navigate(['/ReporteR'])
+  }
 }

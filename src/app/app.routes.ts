@@ -9,6 +9,8 @@ import { HistoryEjes } from './components/history-ejes/history-ejes';
 import { GuardadoTsu } from './components/guardado-tsu/guardado-tsu';
 import { HistoryEjesTsu } from './components/history-ejes-tsu/history-ejes-tsu';
 import { AcuerdoPD } from './components/acuerdo-pd/acuerdo-pd';
+import { Component } from '@angular/core';
+import { ReporteResultados } from './components/reporte-resultados/reporte-resultados';
 
 export const routes: Routes = [
 
@@ -21,8 +23,7 @@ export const routes: Routes = [
     {path:"tsu", component:GuardadoTsu},
     {path:"history-tsu", component:HistoryEjesTsu},
     {path:"generar", component:AcuerdoPD},
-
-
+    {path: "ReporteR", component:ReporteResultados},
 { path: '', redirectTo: 'Home', pathMatch: 'full' },
 
 ];

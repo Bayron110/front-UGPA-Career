@@ -18,7 +18,7 @@
       </svg>
     </button>
 
-    <div class="careers-list" [class.expanded]="carrerasDesplegadas">
+    <div class="careers-list" [class.expanded]="carrerasDesplegadas" style="max-height: 400px; overflow-y: auto;">
       <div *ngFor="let carrera of carrerasGuardadas" class="career-card">
         <div class="career-name">{{ carrera.nombre }}</div>
         <div class="career-actions">
