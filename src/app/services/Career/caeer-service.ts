@@ -7,7 +7,7 @@ import { Career } from '../../Interface/Career';
   providedIn: 'root'
 })
 export class CareerService {
-  private apiUrl = 'http://localhost:8080/api/carreras';
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/carreras';
 
   constructor(private http: HttpClient) {}
 

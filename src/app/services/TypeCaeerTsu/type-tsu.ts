@@ -8,7 +8,7 @@ import { AxlesTsu } from '../../Interface/Alex2';
 })
 export class AxlesTsuService {
 
-  private apiUrl = 'http://localhost:8080/api/axles-tsu';
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/axles-tsu';
 
   constructor(private http: HttpClient) {}
 

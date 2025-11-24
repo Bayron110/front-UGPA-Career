@@ -7,7 +7,7 @@ import { CalCareer } from '../../Interface/CalCareer';
   providedIn: 'root'
 })
 export class CalCareerService {
-  private apiUrl = 'http://localhost:8080/api/cal-career';
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/cal-career';
 
   constructor(private http: HttpClient) {}
 
