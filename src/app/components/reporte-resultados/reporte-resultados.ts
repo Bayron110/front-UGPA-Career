@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CareerService } from '../../services/Career/caeer-service';
@@ -23,7 +23,7 @@ export class ReporteResultados implements OnInit {
   formacion = '';
   universidad = '';
 
-  constructor(private careerService: CareerService) {}
+  constructor(private careerService: CareerService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.obtenerCarreras();
@@ -35,6 +35,7 @@ export class ReporteResultados implements OnInit {
       next: (data) => {
         this.carrerasGuardadas = data;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('❌ Error al obtener carreras:', err);

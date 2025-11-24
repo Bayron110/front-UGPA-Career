@@ -38,20 +38,16 @@ export class AcuerdoPD {
       const workbook = XLSX.read(data, { type: 'array' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       
-      // 🔍 DEPURACIÓN: Ver los datos crudos
       console.log('Datos crudos de Excel:', sheet);
       
       const rows: any[] = XLSX.utils.sheet_to_json(sheet);
       
-      // 🔍 DEPURACIÓN: Ver qué llega después de la conversión
       console.log('Datos procesados:', rows);
       
-      // ✅ VALIDACIÓN: Verificar estructura de datos
       if (rows.length > 0) {
         const primeraFila = rows[0];
         console.log('Estructura de la primera fila:', primeraFila);
         
-        // Verificar campos específicos
         if (primeraFila['Capacitaciones']) {
           console.log('Campo Capacitaciones:', primeraFila['Capacitaciones'], typeof primeraFila['Capacitaciones']);
         }
@@ -122,10 +118,11 @@ export class AcuerdoPD {
 
         const docxBlob = await this.generarDOCX(plantilla, persona);
         const codigo = persona['Codigo'] || '0000';
-        const nombre = persona['NombresC'] || 'SinNombre';
+        let nombre = persona['NombresC'] || 'SinNombre';
+        nombre = String(nombre).replace(/_/g, "");
+        nombre = nombre.replace(/\s+/g, ' ').trim();
         const nombreArchivo = `${codigo}-${nombre}.docx`;
         zip.file(nombreArchivo, docxBlob);
-
         console.log(`✓ Procesado ${i + 1}/${datos.length}: ${nombreArchivo}`);
       }
 
@@ -155,10 +152,8 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     const datos: any = {};
     const columnas = this.columnas();
 
-    // 🔍 DEPURACIÓN: Ver qué datos llegan para esta persona
     console.log('Procesando persona:', persona);
 
-    // Cargar variables individuales
     for (const columna of columnas) {
       const key = columna.trim();
       const valor = persona[columna];
@@ -167,7 +162,6 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
         : undefined;
     }
 
-    // 📦 Procesar listas - CON MEJOR MANEJO DE ERRORES
     const capacitacionesRaw = persona['Capacitaciones'];
     const horasRaw = persona['Horas'];
     const fechasRaw = persona['Fecha'];
@@ -176,7 +170,6 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     console.log('Datos crudos - Horas:', horasRaw);
     console.log('Datos crudos - Fechas:', fechasRaw);
 
-    // Validar y procesar cada campo individualmente
     const nombres = this.procesarCampoLista(capacitacionesRaw, 'Capacitaciones');
     const horas = this.procesarCampoLista(horasRaw, 'Horas');
     const fechas = this.procesarCampoLista(fechasRaw, 'Fechas');
@@ -185,14 +178,12 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     console.log('Horas procesadas:', horas);
     console.log('Fechas procesadas:', fechas);
 
-    // 🔍 Si hay discrepancias, mostrar advertencia
     if (nombres.length !== horas.length || nombres.length !== fechas.length) {
       console.warn(`⚠️ Discrepancia en longitudes: 
         Capacitaciones: ${nombres.length} 
         Horas: ${horas.length} 
         Fechas: ${fechas.length}`);
       
-      // Ajustar a la longitud mínima para evitar errores
       const minLength = Math.min(nombres.length, horas.length, fechas.length);
       console.log(`Usando longitud mínima: ${minLength}`);
     }
@@ -200,7 +191,6 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     const tiposRaw = persona.hasOwnProperty('Tipo') ? persona['Tipo'] : null;
     const tipos = tiposRaw ? this.procesarCampoLista(tiposRaw, 'Tipos') : nombres.map(() => 'APROBACIÓN');
 
-    // Construir arreglo de objetos usando la longitud mínima
     const minLength = Math.min(nombres.length, horas.length, fechas.length, tipos.length);
     let contador = 1;
     const listaCapacitaciones = [];
@@ -217,7 +207,6 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
 
     datos['capacitaciones'] = listaCapacitaciones;
 
-    // 🆕 NUEVO: Procesar ACTIVIDADES (Teoría y Práctica)
     const teoriasRaw = persona['Teoria'];
     const practicasRaw = persona['Practica'];
 
@@ -230,18 +219,15 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
     console.log('Teorias procesadas:', teorias);
     console.log('Practicas procesadas:', practicas);
 
-    // Crear listas para la plantilla
     datos['Teoria'] = teorias;
     datos['Practica'] = practicas;
 
-    // 🔍 DEPURACIÓN FINAL
     console.log('📋 DATOS FINALES PARA PLANTILLA:', {
       capacitaciones: datos['capacitaciones'],
       teorias: datos['Teoria'],
       practicas: datos['Practica']
     });
 
-    // Renderizar documento
     doc.render(datos);
 
     const docxBuffer = doc.getZip().generate({
@@ -266,8 +252,6 @@ Puedes abrirlos en Word y exportar a PDF si lo necesitas.`);
   }
 }
 
-
-// 🔧 NUEVA FUNCIÓN AUXILIAR para procesar campos de lista
 private procesarCampoLista(campo: any, nombreCampo: string): string[] {
   if (!campo) {
     console.warn(`Campo ${nombreCampo} está vacío o undefined`);
@@ -295,4 +279,45 @@ private procesarCampoLista(campo: any, nombreCampo: string): string[] {
     this.nombrePlantilla.set('');
     this.htmlPreview.set('');
   }
+  exportarExcel(): void {
+  const datos = this.datosExcel();
+
+  if (!datos || datos.length === 0) {
+    alert('No hay datos para exportar');
+    return;
+  }
+
+  const filas: any[] = [];
+
+  for (const persona of datos) {
+
+    // Limpiar nombre (Naranjo Armijo Paulina Cumandá)
+    let nombreLimpio = String(persona['NombresC'] || 'SinNombre')
+      .replace(/_/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Nombre del archivo Word igual que en la exportación
+    let nombreArchivoWord = `${persona['Codigo']}-${nombreLimpio}`;
+
+    // Agregar fila al Excel
+    filas.push({
+      NombreArchivoWord: nombreArchivoWord,
+      Codigo: persona['Codigo'] || '',
+      NombresC: nombreLimpio,
+      Carrera: persona['Carrera1'] || '',
+      Cedula: persona['Cedula1'] || '',
+      NombreCA: persona['NombreCA'] || '',
+      Fecha: persona['Fecha1'] || ''
+    });
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(filas);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
+
+  XLSX.writeFile(workbook, 'datos_exportados.xlsx');
+}
+
+
 }

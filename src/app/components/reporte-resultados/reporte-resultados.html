@@ -4,107 +4,137 @@
   <h2>📋 Carreras Guardadas</h2>
 
   <!-- Cargando -->
-  <div *ngIf="cargando" class="loading">
-    <div class="spinner"></div>
-    Cargando carreras...
-  </div>
+  @if (cargando) {
+    <div class="loading">
+      <div class="spinner"></div>
+      Cargando carreras...
+    </div>
+  }
 
   <!-- Sin carreras -->
-  <div *ngIf="!cargando && carrerasGuardadas.length === 0" class="sin-carreras">
-    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-      <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <p>No hay carreras registradas.</p>
-  </div>
+  @if (!cargando && carrerasGuardadas.length === 0) {
+    <div class="sin-carreras">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p>No hay carreras registradas.</p>
+    </div>
+  }
 
   <!-- Lista de carreras -->
-  <div *ngIf="!cargando && carrerasGuardadas.length > 0" class="lista-carreras">
-    <div *ngFor="let carrera of carrerasGuardadas" class="carrera-card" (click)="abrirModal(carrera)">
-      <div class="carrera-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M12 14L21 9L12 4L3 9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="carrera-info">
-        <h3>{{ carrera.nombre }}</h3>
-        <p>Click para ver detalles</p>
-      </div>
-      <div class="carrera-arrow">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
+  @if (!cargando && carrerasGuardadas.length > 0) {
+    <div class="lista-carreras">
+      @for (carrera of carrerasGuardadas; track carrera.nombre) {
+        <div class="carrera-card" (click)="abrirModal(carrera)">
+          <div class="carrera-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 14L21 9L12 4L3 9L12 14Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="carrera-info">
+            <h3>{{ carrera.nombre }}</h3>
+            <p>Click para ver detalles</p>
+          </div>
+
+          <div class="carrera-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      }
     </div>
-  </div>
+  }
 
 </div>
 
 <!-- Modal -->
-<div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>📝 Registrar Docente</h2>
-      <button class="btn-cerrar" (click)="cerrarModal()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </div>
+@if (modalAbierto) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
 
-    <div class="modal-body">
-      <div class="carrera-seleccionada">
-        <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
+      <div class="modal-header">
+        <h2>📝 Registrar Docente</h2>
+        <button class="btn-cerrar" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
 
-      <form class="formulario-docente">
-        <div class="form-group">
-          <label for="nombreCompleto">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Nombre Completo del Docente
-          </label>
-          <input type="text" id="nombreCompleto" placeholder="Ej. Juan Pérez García" />
+      <div class="modal-body">
+        <div class="carrera-seleccionada">
+          <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
         </div>
 
-        <div class="form-group">
-          <label for="formacion">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M22 10H18C15 10 14 9 14 6V2L22 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Formación
-          </label>
-          <input type="text" id="formacion" placeholder="Ej. Maestría en Educación" />
-        </div>
+        <form class="formulario-docente">
 
-        <div class="form-group">
-          <label for="universidad">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 14L21 9L12 4L3 9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Universidad
-          </label>
-          <input type="text" id="universidad" placeholder="Ej. Universidad Central" />
-        </div>
+          <div class="form-group">
+            <label for="nombreCompleto">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Nombre Completo del Docente
+            </label>
+            <input type="text" id="nombreCompleto" placeholder="Ej. Juan Pérez García" />
+          </div>
 
-        <div class="modal-buttons">
-          <button type="button" class="btn-cancelar" (click)="cerrarModal()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-guardar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M17 21V13H7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M7 3V8H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Guardar Docente
-          </button>
-        </div>
-      </form>
+          <div class="form-group">
+            <label for="formacion">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Formación
+            </label>
+            <input type="text" id="formacion" placeholder="Ej. Maestría en Educación" />
+          </div>
+
+          <div class="form-group">
+            <label for="universidad">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 14L21 9L12 4L3 9L12 14Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Universidad
+            </label>
+            <input type="text" id="universidad" placeholder="Ej. Universidad Central" />
+          </div>
+
+          <div class="modal-buttons">
+            <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+              Cancelar
+            </button>
+
+            <button type="submit" class="btn-guardar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17 21V13H7V21"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 3V8H15"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Guardar DocenteS
+            </button>
+          </div>
+
+        </form>
+      </div>
     </div>
   </div>
-</div>
+}
