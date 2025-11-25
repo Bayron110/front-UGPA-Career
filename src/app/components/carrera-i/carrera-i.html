@@ -17,7 +17,7 @@
   <div *ngIf="carreraActual" class="capacitaciones-form">
     <div class="carrera-actual-info">
       <h3>📚 Carrera: <strong>{{ carreraActual.nombre }}</strong></h3>
-      <p>Capacitaciones agregadas: {{ carreraActual.capacitacion.length }}</p>
+      <p>Capacitaciones agregadas: {{ carreraActual.capacitaciones.length }}</p>
     </div>
 
     <form class="form" #formCapacitacion="ngForm" (ngSubmit)="agregarCapacitacion()">
@@ -74,9 +74,9 @@
     </form>
 
     <!-- Lista de capacitaciones temporales (antes de guardar) -->
-    <div class="capacitaciones-temporales" *ngIf="carreraActual.capacitacion.length > 0">
+    <div class="capacitaciones-temporales" *ngIf="carreraActual.capacitaciones.length > 0">
       <h4>Capacitaciones en esta carrera:</h4>
-      <div class="capacitacion-temp-card" *ngFor="let cap of carreraActual.capacitacion; let i = index">
+      <div class="capacitacion-temp-card" *ngFor="let cap of carreraActual.capacitaciones; let i = index">
         <div class="cap-temp-header">
           <strong>{{ cap.nombre }}</strong>
           <button type="button" (click)="eliminarCapacitacionTemporal(i)" class="btn-eliminar-temp">×</button>
@@ -146,7 +146,7 @@
 
           <!-- Lista de capacitaciones de esta carrera -->
           <div class="capacitaciones-list-carrera">
-            <div *ngFor="let cap of carrera.capacitacion; let i = index" class="capacitacion-item">
+            <div *ngFor="let cap of carrera.capacitaciones; let i = index" class="capacitacion-item">
               <div class="capacitacion-content">
                 <div class="capacitacion-nombre">{{ cap.nombre }}</div>
                 <div class="capacitacion-detalles">
@@ -172,7 +172,7 @@
               </div>
             </div>
 
-            <div *ngIf="carrera.capacitacion.length === 0" class="empty-capacitaciones">
+            <div *ngIf="carrera.capacitaciones.length === 0" class="empty-capacitaciones">
               No hay capacitaciones en esta carrera
             </div>
           </div>

@@ -66,7 +66,7 @@ export class CarreraI implements OnInit {
     // Crear carrera vacía (sin capacitaciones aún)
     this.carreraActual = {
       nombre: this.nombreCarrera.trim(),
-      capacitacion: []
+      capacitaciones: []
     };
 
     this.abrirModal('Éxito', `✅ Carrera "${this.nombreCarrera}" creada. Ahora agrega capacitaciones.`, 'success');
@@ -116,7 +116,7 @@ export class CarreraI implements OnInit {
     };
 
     // Agregar a la carrera actual
-    this.carreraActual.capacitacion.push(nuevaCapacitacion);
+    this.carreraActual.capacitaciones.push(nuevaCapacitacion);
 
     // Limpiar campos de capacitación
     this.limpiarFormularioCapacitacion();
@@ -125,9 +125,9 @@ export class CarreraI implements OnInit {
   }
 
   eliminarCapacitacionTemporal(index: number): void {
-    if (this.carreraActual && index >= 0 && index < this.carreraActual.capacitacion.length) {
-      const nombreCap = this.carreraActual.capacitacion[index].nombre;
-      this.carreraActual.capacitacion.splice(index, 1);
+    if (this.carreraActual && index >= 0 && index < this.carreraActual.capacitaciones.length) {
+      const nombreCap = this.carreraActual.capacitaciones[index].nombre;
+      this.carreraActual.capacitaciones.splice(index, 1);
       this.abrirModal('Éxito', `✅ Capacitación "${nombreCap}" eliminada`, 'success');
     }
   }
@@ -138,7 +138,7 @@ export class CarreraI implements OnInit {
       return;
     }
 
-    if (this.carreraActual.capacitacion.length === 0) {
+    if (this.carreraActual.capacitaciones.length === 0) {
       this.abrirModal('Advertencia', '⚠️ Debes agregar al menos una capacitación', 'warning');
       return;
     }
@@ -155,6 +155,7 @@ export class CarreraI implements OnInit {
         const mensajeError = err.error?.message || 
           (err.status === 500 ? 'No se puede guardar dos veces la misma carrera.' : 'Ocurrió un error inesperado.');
         this.abrirModal('Error', `❌ ${mensajeError}`, 'error');
+        
       }
     });
   }
@@ -249,7 +250,7 @@ export class CarreraI implements OnInit {
 
     // Actualizar la capacitación en el array
     const carreraActualizada = { ...this.carreraEnEdicion };
-    carreraActualizada.capacitacion[this.indiceCapacitacionEdicion] = {
+    carreraActualizada.capacitaciones[this.indiceCapacitacionEdicion] = {
       nombre: this.nombreCapacitacionEditada.trim(),
       horas: this.horasCapacitacionEditada,
       duracion: this.duracionCapacitacionEditada.trim(),
@@ -274,9 +275,9 @@ export class CarreraI implements OnInit {
   eliminarCapacitacion(carrera: Career, index: number): void {
     if (!carrera.id) return;
 
-    const nombreCap = carrera.capacitacion[index].nombre;
+    const nombreCap = carrera.capacitaciones[index].nombre;
     const carreraActualizada = { ...carrera };
-    carreraActualizada.capacitacion.splice(index, 1);
+    carreraActualizada.capacitaciones.splice(index, 1);
 
     this.careerService.actualizarCarrera(carrera.id, carreraActualizada).subscribe({
       next: (response) => {
@@ -359,7 +360,7 @@ export class CarreraI implements OnInit {
   }
 
   cancelarCreacion(): void {
-    if (this.carreraActual && this.carreraActual.capacitacion.length > 0) {
+    if (this.carreraActual && this.carreraActual.capacitaciones.length > 0) {
       if (confirm('¿Estás seguro de cancelar? Se perderán todas las capacitaciones agregadas.')) {
         this.resetFormularioCompleto();
       }
