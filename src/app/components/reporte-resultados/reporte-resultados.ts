@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CareerService } from '../../services/Career/caeer-service';
 import { Career } from '../../Interface/Career';
+import { Docente } from '../../Interface/Docente';
+import { DocenteService } from '../../services/docentes/docente';
 
 @Component({
   selector: 'app-reporte-resultados',
@@ -20,10 +22,15 @@ export class ReporteResultados implements OnInit {
 
   // Datos del formulario
   nombreCompleto = '';
-  formacion = '';
-  universidad = '';
 
-  constructor(private careerService: CareerService, private cdr: ChangeDetectorRef) {}
+  // Lista de docentes cargados
+  docentes: Docente[] = [];
+
+  constructor(
+    private careerService: CareerService,
+    private docenteService: DocenteService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.obtenerCarreras();
@@ -47,25 +54,54 @@ export class ReporteResultados implements OnInit {
   abrirModal(carrera: Career) {
     this.carreraSeleccionada = carrera;
     this.modalAbierto = true;
-    // Limpiar formulario
     this.nombreCompleto = '';
-    this.formacion = '';
-    this.universidad = '';
+
+    // Cargar docentes de esa carrera
+    this.docenteService.obtenerPorCarrera(carrera.id!).subscribe({
+      next: (data) => {
+        this.docentes = data;
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener docentes:', err);
+      }
+    });
   }
 
   cerrarModal() {
     this.modalAbierto = false;
     this.carreraSeleccionada = null;
+    this.docentes = [];
   }
 
   guardarDocente() {
-    // Aquí iría la lógica para guardar el docente
-    console.log('Guardar docente:', {
-      carrera: this.carreraSeleccionada?.nombre,
-      nombreCompleto: this.nombreCompleto,
-      formacion: this.formacion,
-      universidad: this.universidad
+    if (!this.carreraSeleccionada) return;
+
+    const nuevoDocente: Docente = {
+      nombre: this.nombreCompleto,
+      carreraId: this.carreraSeleccionada.id!,
+      participacionCapacitacion: false
+    };
+
+    this.docenteService.crearDocente(nuevoDocente).subscribe({
+      next: (docenteGuardado) => {
+        console.log('✅ Docente guardado:', docenteGuardado);
+        this.docentes.push(docenteGuardado); // actualizar lista en el modal
+        this.nombreCompleto = ''; // limpiar campo
+      },
+      error: (err) => {
+        console.error('❌ Error al guardar docente:', err);
+      }
     });
-    this.cerrarModal();
+  }
+
+  toggleParticipacion(docente: Docente) {
+    this.docenteService.cambiarParticipacion(docente.id!).subscribe({
+      next: (actualizado) => {
+        docente.participacionCapacitacion = actualizado.participacionCapacitacion;
+      },
+      error: (err) => {
+        console.error('❌ Error al cambiar participación:', err);
+      }
+    });
   }
 }

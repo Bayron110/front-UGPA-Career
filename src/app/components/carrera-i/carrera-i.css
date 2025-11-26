@@ -939,3 +939,39 @@
     width: 100%;
   }
 }
+.btn-agregar-capacitacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+}
+
+.btn-agregar-capacitacion:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-agregar-capacitacion:active {
+  transform: translateY(0);
+}
+
+.btn-agregar-capacitacion svg {
+  width: 20px;
+  height: 20px;
+}
+
+.modal-add-capacitacion {
+  border-top: 4px solid #667eea;
+}

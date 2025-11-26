@@ -32,11 +32,14 @@ export class CarreraI implements OnInit {
   mostrarModal: boolean = false;
   tituloModal: string = '';
   mensajeModal: string = '';
-  tipoModal: 'success' | 'error' | 'warning' | 'edit' | 'delete' | 'edit-capacitacion' = 'success';
+  tipoModal: 'success' | 'error' | 'warning' | 'edit' | 'delete' | 'edit-capacitacion' | 'add-capacitacion' = 'success';
   
   // Datos de edición
   carreraEnEdicion: Career | null = null;
   nombreEditado: string = '';
+  
+  // Para agregar nueva capacitación a carrera existente
+  carreraParaAgregar: Career | null = null;
   
   capacitacionEnEdicion: Capacitacion | null = null;
   indiceCapacitacionEdicion: number = -1;
@@ -156,6 +159,82 @@ export class CarreraI implements OnInit {
           (err.status === 500 ? 'No se puede guardar dos veces la misma carrera.' : 'Ocurrió un error inesperado.');
         this.abrirModal('Error', `❌ ${mensajeError}`, 'error');
         
+      }
+    });
+  }
+
+  // ========== AGREGAR NUEVA CAPACITACIÓN A CARRERA EXISTENTE ==========
+
+  agregarNuevaCapacitacion(carrera: Career): void {
+    this.carreraParaAgregar = { ...carrera };
+    this.nombreCapacitacionEditada = '';
+    this.horasCapacitacionEditada = null;
+    this.duracionCapacitacionEditada = '';
+    this.periodoCapacitacionEditado = '';
+    this.tipoCapacitacionEditado = '';
+    
+    this.tituloModal = 'Agregar Nueva Capacitación';
+    this.mensajeModal = `Ingresa los datos de la nueva capacitación para la carrera "${carrera.nombre}"`;
+    this.tipoModal = 'add-capacitacion';
+    this.mostrarModal = true;
+  }
+
+  confirmarAgregarCapacitacion(): void {
+    // Validar campos
+    if (!this.nombreCapacitacionEditada.trim()) {
+      this.abrirModal('Advertencia', '⚠️ El nombre no puede estar vacío', 'warning');
+      return;
+    }
+
+    if (!this.horasCapacitacionEditada || this.horasCapacitacionEditada < 30) {
+      this.abrirModal('Advertencia', '⚠️ Las horas deben ser mínimo 30', 'warning');
+      return;
+    }
+
+    if (!this.duracionCapacitacionEditada.trim()) {
+      this.abrirModal('Advertencia', '⚠️ La duración no puede estar vacía', 'warning');
+      return;
+    }
+
+    if (!this.periodoCapacitacionEditado.trim()) {
+      this.abrirModal('Advertencia', '⚠️ El periodo no puede estar vacío', 'warning');
+      return;
+    }
+
+    if (!this.tipoCapacitacionEditado.trim()) {
+      this.abrirModal('Advertencia', '⚠️ El tipo no puede estar vacío', 'warning');
+      return;
+    }
+
+    if (!this.carreraParaAgregar || !this.carreraParaAgregar.id) {
+      this.abrirModal('Error', '❌ Error: No se encontró la carrera', 'error');
+      return;
+    }
+
+    // Crear nueva capacitación
+    const nuevaCapacitacion: Capacitacion = {
+      nombre: this.nombreCapacitacionEditada.trim(),
+      horas: this.horasCapacitacionEditada,
+      duracion: this.duracionCapacitacionEditada.trim(),
+      periodo: this.periodoCapacitacionEditado.trim(),
+      tipo: this.tipoCapacitacionEditado.trim()
+    };
+
+    // Crear carrera actualizada con la nueva capacitación
+    const carreraActualizada = { ...this.carreraParaAgregar };
+    carreraActualizada.capacitaciones.push(nuevaCapacitacion);
+
+    // Actualizar en el backend
+    this.careerService.actualizarCarrera(this.carreraParaAgregar.id, carreraActualizada).subscribe({
+      next: (response) => {
+        this.cerrarModal();
+        this.abrirModal('Éxito', '✅ Capacitación agregada exitosamente', 'success');
+        this.obtenerCarreras();
+      },
+      error: (err) => {
+        console.error('❌ Error al agregar capacitación:', err);
+        this.cerrarModal();
+        this.abrirModal('Error', '❌ Error al agregar la capacitación', 'error');
       }
     });
   }
@@ -325,7 +404,7 @@ export class CarreraI implements OnInit {
     this.carrerasDesplegadas = !this.carrerasDesplegadas;
   }
 
-  abrirModal(titulo: string, mensaje: string, tipo: 'success' | 'error' | 'warning' | 'edit' | 'delete' | 'edit-capacitacion'): void {
+  abrirModal(titulo: string, mensaje: string, tipo: 'success' | 'error' | 'warning' | 'edit' | 'delete' | 'edit-capacitacion' | 'add-capacitacion'): void {
     this.tituloModal = titulo;
     this.mensajeModal = mensaje;
     this.tipoModal = tipo;
@@ -335,6 +414,7 @@ export class CarreraI implements OnInit {
   cerrarModal(): void {
     this.mostrarModal = false;
     this.carreraEnEdicion = null;
+    this.carreraParaAgregar = null;
     this.capacitacionEnEdicion = null;
     this.nombreEditado = '';
     this.nombreCapacitacionEditada = '';
@@ -368,4 +448,5 @@ export class CarreraI implements OnInit {
       this.resetFormularioCompleto();
     }
   }
+  
 }

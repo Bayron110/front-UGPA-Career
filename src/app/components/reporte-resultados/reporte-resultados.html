@@ -55,6 +55,7 @@
 </div>
 
 <!-- Modal -->
+<!-- Modal -->
 @if (modalAbierto) {
   <div class="modal-overlay" (click)="cerrarModal()">
     <div class="modal-container" (click)="$event.stopPropagation()">
@@ -74,7 +75,7 @@
           <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
         </div>
 
-        <form class="formulario-docente">
+        <form class="formulario-docente" (ngSubmit)="guardarDocente()">
 
           <div class="form-group">
             <label for="nombreCompleto">
@@ -86,20 +87,12 @@
               </svg>
               Nombre Completo del Docente
             </label>
-            <input type="text" id="nombreCompleto" placeholder="Ej. Juan Pérez García" />
-          </div>
-
-          <div class="form-group">
-            <label for="formacion">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M22 10V15C22 20 20 22 15 22H9C4 22 2 20 2 15V9C2 4 4 2 9 2H14"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M22 10H18C15 10 14 9 14 6V2L22 10Z"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Cedula
-            </label>
-            <input type="text" id="formacion" placeholder="Ej. Maestría en Educación" />
+            <input type="text"
+                   id="nombreCompleto"
+                   [(ngModel)]="nombreCompleto"
+                   name="nombreCompleto"
+                   placeholder="Ej. Juan Pérez García"
+                   required />
           </div>
 
           <div class="modal-buttons">
@@ -116,7 +109,7 @@
                 <path d="M7 3V8H15"
                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              Guardar DocenteS
+              Guardar Docente
             </button>
           </div>
 
@@ -124,4 +117,5 @@
       </div>
     </div>
   </div>
+
 }
