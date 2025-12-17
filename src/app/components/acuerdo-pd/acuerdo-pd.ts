@@ -319,5 +319,4 @@ private procesarCampoLista(campo: any, nombreCampo: string): string[] {
   XLSX.writeFile(workbook, 'datos_exportados.xlsx');
 }
 
-
 }

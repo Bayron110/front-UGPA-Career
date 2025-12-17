@@ -20,10 +20,8 @@ export class ReporteResultados implements OnInit {
   modalAbierto = false;
   carreraSeleccionada: Career | null = null;
 
-  // Datos del formulario
   nombreCompleto = '';
 
-  // Lista de docentes cargados
   docentes: Docente[] = [];
 
   constructor(
