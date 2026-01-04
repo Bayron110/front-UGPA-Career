@@ -1,4 +1,3 @@
-<!-- HTML Template -->
 <div class="contenedor-carreras">
 
   <h2>📋 Carreras Guardadas</h2>
@@ -55,7 +54,6 @@
 </div>
 
 <!-- Modal -->
-<!-- Modal -->
 @if (modalAbierto) {
   <div class="modal-overlay" (click)="cerrarModal()">
     <div class="modal-container" (click)="$event.stopPropagation()">
@@ -75,6 +73,7 @@
           <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
         </div>
 
+        <!-- Formulario para registrar docente -->
         <form class="formulario-docente" (ngSubmit)="guardarDocente()">
 
           <div class="form-group">
@@ -114,8 +113,40 @@
           </div>
 
         </form>
+
+        <!-- Lista de docentes guardados -->
+        <div class="lista-docentes">
+          <h3>👨‍🏫 Docentes Registrados</h3>
+          @if (docentes.length === 0) {
+            <p>No hay docentes registrados aún.</p>
+          }
+          @for (docente of docentes; track docente.id) {
+            <div class="docente-card-tabla">
+              <div class="docente-nombre">{{ docente.nombre }}</div>
+              <button class="btn-tabla" type="button">patrocinio</button>
+              <button class="btn-tabla" type="button">plan individual</button>
+              <button class="btn-tabla" type="button">reporte anual</button>
+              <button class="btn-tabla btn-editar-tabla" type="button">editar</button>
+              <button class="btn-tabla btn-eliminar-tabla" (click)="eliminarDocente(docente.id!)">eliminar</button>
+            </div>
+          }
+        </div>
+        
+        <!-- Lista de capacitaciones -->
+        <div class="lista-capacitaciones">
+          <h3>📚 Capacitaciones de esta carrera</h3>
+          @if (capacitaciones.length === 0) {
+            <p>No hay capacitaciones registradas para esta carrera.</p>
+          }
+          @for (cap of capacitaciones; track cap.nombre) {
+            <div class="capacitacion-card">
+              <strong>{{ cap.nombre }}</strong>  
+              <p>Horas: {{ cap.horas }} | Duración: {{ cap.duracion }} | Periodo: {{ cap.periodo }} | Tipo: {{ cap.tipo }}</p>
+            </div>
+          }
+        </div>
+
       </div>
     </div>
   </div>
-
 }

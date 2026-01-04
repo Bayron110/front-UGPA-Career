@@ -7,23 +7,38 @@ import { Docente } from '../../Interface/Docente';
   providedIn: 'root'
 })
 export class DocenteService {
-  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/docentes'; 
+  private apiUrl = 'https://baken-ugpa-career.onrender.com/api/docentes';
 
   constructor(private http: HttpClient) {}
 
-  // Crear docente
+  // Crear docente (solo nombre)
   crearDocente(docente: Docente): Observable<Docente> {
-    return this.http.post<Docente>(`${this.apiUrl}`, docente);
-  }
-
-  // Obtener docentes por carrera
-  obtenerPorCarrera(carreraId: string): Observable<Docente[]> {
-  return this.http.get<Docente[]>(`${this.apiUrl}/${carreraId}`);
+  return this.http.post<Docente>(this.apiUrl, docente);
 }
 
 
-  // Toggle participación
-  cambiarParticipacion(id: string): Observable<Docente> {
-    return this.http.put<Docente>(`${this.apiUrl}/${id}/participacion`, {});
+
+  // Obtener todos los docentes
+  obtenerDocentes(): Observable<Docente[]> {
+    return this.http.get<Docente[]>(this.apiUrl);
   }
+
+  // Obtener docente por ID
+  obtenerDocentePorId(id: string): Observable<Docente> {
+    return this.http.get<Docente>(`${this.apiUrl}/${id}`);
+  }
+
+  // Actualizar docente
+  actualizarDocente(id: string, docente: Docente): Observable<Docente> {
+    return this.http.put<Docente>(`${this.apiUrl}/${id}`, docente);
+  }
+
+  // Eliminar docente
+  eliminarDocente(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  obtenerPorCarrera(carreraId: string): Observable<Docente[]> {
+  return this.http.get<Docente[]>(`${this.apiUrl}/carrera/${carreraId}`);
+}
+
 }

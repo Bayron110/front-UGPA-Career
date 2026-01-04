@@ -1,6 +1,5 @@
 export interface Docente {
-    id?: string; 
-    nombre: string;
-    carreraId: string;
-    participacionCapacitacion: boolean;
+  id?: string;   // opcional, lo genera MongoDB
+  nombre: string; // único campo obligatorio
+  carreraId?: string
 }
