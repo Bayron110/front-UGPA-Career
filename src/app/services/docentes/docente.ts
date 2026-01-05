@@ -16,8 +16,6 @@ export class DocenteService {
   return this.http.post<Docente>(this.apiUrl, docente);
 }
 
-
-
   // Obtener todos los docentes
   obtenerDocentes(): Observable<Docente[]> {
     return this.http.get<Docente[]>(this.apiUrl);

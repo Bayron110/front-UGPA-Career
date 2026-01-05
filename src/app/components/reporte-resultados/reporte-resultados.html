@@ -1,152 +1,258 @@
 <div class="contenedor-carreras">
-
   <h2>📋 Carreras Guardadas</h2>
 
   <!-- Cargando -->
   @if (cargando) {
-    <div class="loading">
-      <div class="spinner"></div>
-      Cargando carreras...
-    </div>
+  <div class="loading">
+    <div class="spinner"></div>
+    Cargando carreras...
+  </div>
   }
 
   <!-- Sin carreras -->
   @if (!cargando && carrerasGuardadas.length === 0) {
-    <div class="sin-carreras">
-      <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-        <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <p>No hay carreras registradas.</p>
-    </div>
+  <div class="sin-carreras">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <p>No hay carreras registradas.</p>
+  </div>
   }
 
   <!-- Lista de carreras -->
   @if (!cargando && carrerasGuardadas.length > 0) {
-    <div class="lista-carreras">
-      @for (carrera of carrerasGuardadas; track carrera.nombre) {
-        <div class="carrera-card" (click)="abrirModal(carrera)">
-          <div class="carrera-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 14L21 9L12 4L3 9L12 14Z"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
+  <div class="lista-carreras">
+    @for (carrera of carrerasGuardadas; track carrera.nombre) {
+    <div class="carrera-card" (click)="abrirModal(carrera)">
+      <div class="carrera-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 14L21 9L12 4L3 9L12 14Z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M12 14L21 9V15C21 15 19 17 12 17C5 17 3 15 3 15V9L12 14Z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
 
-          <div class="carrera-info">
-            <h3>{{ carrera.nombre }}</h3>
-            <p>Click para ver detalles</p>
-          </div>
+      <div class="carrera-info">
+        <h3>{{ carrera.nombre }}</h3>
+        <p>Click para ver detalles</p>
+      </div>
 
-          <div class="carrera-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18L15 12L9 6"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-      }
+      <div class="carrera-arrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 18L15 12L9 6"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
     </div>
+    }
+  </div>
   }
-
 </div>
 
 <!-- Modal -->
 @if (modalAbierto) {
-  <div class="modal-overlay" (click)="cerrarModal()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
+<div class="modal-overlay" (click)="cerrarModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📝 Registrar Docente</h2>
+      <button class="btn-cerrar" (click)="cerrarModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M18 6L6 18M6 6L18 18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
 
-      <div class="modal-header">
-        <h2>📝 Registrar Docente</h2>
-        <button class="btn-cerrar" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6L18 18"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
+    <div class="modal-body">
+      <div class="carrera-seleccionada">
+        <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
       </div>
 
-      <div class="modal-body">
-        <div class="carrera-seleccionada">
-          <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
-        </div>
+      <!-- Formulario para registrar docente -->
+      <!-- Formulario para registrar docente -->
+     <!-- Botón para mostrar/ocultar el formulario -->
+<div class="toggle-formulario">
+  <button type="button" class="btn-toggle" (click)="toggleFormularioDocente()">
+    {{ mostrarFormularioDocente ? '➖ Ocultar Formulario' : '➕ Agregar Docente' }}
+  </button>
+</div>
 
-        <!-- Formulario para registrar docente -->
-        <form class="formulario-docente" (ngSubmit)="guardarDocente()">
+<!-- Formulario para registrar docente -->
+@if (mostrarFormularioDocente) {
+  <form class="formulario-docente" (ngSubmit)="guardarDocente()">
 
-          <div class="form-group">
-            <label for="nombreCompleto">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Nombre Completo del Docente
-            </label>
-            <input type="text"
-                   id="nombreCompleto"
-                   [(ngModel)]="nombreCompleto"
-                   name="nombreCompleto"
-                   placeholder="Ej. Juan Pérez García"
-                   required />
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="nombreCompleto">Nombre Completo del Docente</label>
+      <input type="text"
+             id="nombreCompleto"
+             [(ngModel)]="nombreCompleto"
+             name="nombreCompleto"
+             placeholder="Ej. Juan Pérez García"
+             required />
+    </div>
+
+    <!-- Cédula -->
+    <div class="form-group">
+      <label for="cedula">Cédula</label>
+      <input type="text"
+             id="cedula"
+             [(ngModel)]="cedula"
+             name="cedula"
+             placeholder="Ej. 0102030405"
+             required />
+    </div>
+
+    <!-- Formación -->
+    <div class="form-group">
+      <label for="formacion">Formación</label>
+      <input type="text"
+             id="formacion"
+             [(ngModel)]="formacion"
+             name="formacion"
+             placeholder="Ej. Ingeniería, Licenciatura"
+             required />
+    </div>
+
+    <!-- Programa -->
+    <div class="form-group">
+      <label for="programa">Programa</label>
+      <input type="text"
+             id="programa"
+             [(ngModel)]="programa"
+             name="programa"
+             placeholder="Ej. Maestría en Educación, Doctorado"
+             required />
+    </div>
+
+    <!-- Estado -->
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado"
+              [(ngModel)]="estado"
+              name="estado"
+              required>
+        <option value="" disabled selected>Seleccione estado</option>
+        <option value="Cursando">Cursando</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
+    </div>
+
+    <!-- Periodo -->
+    <div class="form-group">
+      <label for="periodo">Periodo</label>
+      <input type="text"
+             id="periodo"
+             [(ngModel)]="periodo"
+             name="periodo"
+             placeholder="Ej. 2022-2024, 2021-I"
+             required />
+    </div>
+
+    <!-- Botones -->
+    <div class="modal-buttons">
+      <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn-guardar">
+        Guardar Docente
+      </button>
+    </div>
+
+  </form>
+}
+
+      <!-- Lista de docentes guardados -->
+      <div class="lista-docentes">
+  <h3>👨‍🏫 Docentes Registrados</h3>
+
+  @if (cargando) {
+    <p>Cargando docentes...</p>
+  }
+
+  @if (!cargando && docentes.length === 0) {
+    <p>No hay docentes registrados aún.</p>
+  }
+
+  @for (docente of docentes; track docente.id) {
+    <div class="docente-card-tabla">
+      <div class="docente-nombre">
+        <strong>{{ docente.nombre }}</strong>
+        <span class="docente-formacion"> | Formación: {{ docente.formacion }}</span>
+      </div>
+
+      <div class="docente-capacitaciones">
+        <p><em>Capacitaciones asignadas:</em></p>
+        @for (cap of capacitaciones; track cap.nombre) {
+          <div class="capacitacion-mini">
+            • {{ cap.nombre }} ({{ cap.horas }} horas)
           </div>
+        }
+      </div>
 
-          <div class="modal-buttons">
-            <button type="button" class="btn-cancelar" (click)="cerrarModal()">
-              Cancelar
-            </button>
-
-            <button type="submit" class="btn-guardar">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M17 21V13H7V21"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7 3V8H15"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Guardar Docente
-            </button>
-          </div>
-
-        </form>
-
-        <!-- Lista de docentes guardados -->
-        <div class="lista-docentes">
-          <h3>👨‍🏫 Docentes Registrados</h3>
-          @if (docentes.length === 0) {
-            <p>No hay docentes registrados aún.</p>
-          }
-          @for (docente of docentes; track docente.id) {
-            <div class="docente-card-tabla">
-              <div class="docente-nombre">{{ docente.nombre }}</div>
-              <button class="btn-tabla" type="button">patrocinio</button>
-              <button class="btn-tabla" type="button">plan individual</button>
-              <button class="btn-tabla" type="button">reporte anual</button>
-              <button class="btn-tabla btn-editar-tabla" type="button">editar</button>
-              <button class="btn-tabla btn-eliminar-tabla" (click)="eliminarDocente(docente.id!)">eliminar</button>
-            </div>
-          }
-        </div>
-        
-        <!-- Lista de capacitaciones -->
-        <div class="lista-capacitaciones">
-          <h3>📚 Capacitaciones de esta carrera</h3>
-          @if (capacitaciones.length === 0) {
-            <p>No hay capacitaciones registradas para esta carrera.</p>
-          }
-          @for (cap of capacitaciones; track cap.nombre) {
-            <div class="capacitacion-card">
-              <strong>{{ cap.nombre }}</strong>  
-              <p>Horas: {{ cap.horas }} | Duración: {{ cap.duracion }} | Periodo: {{ cap.periodo }} | Tipo: {{ cap.tipo }}</p>
-            </div>
-          }
-        </div>
-
+      <div class="docente-acciones">
+        <button class="btn-tabla" type="button" (click)="abrirModalPatrocinio(docente)">patrocinio</button>
+        <button class="btn-tabla" type="button">plan individual</button>
+        <button class="btn-tabla" type="button">reporte anual</button>
+        <button class="btn-tabla btn-editar-tabla" type="button" (click)="editarDocente(docente)">editar</button>
+        <button class="btn-tabla btn-eliminar-tabla" (click)="eliminarDocente(docente.id!)">eliminar</button>
       </div>
     </div>
+  }
+</div>
+    
+    </div>
   </div>
+</div>
+}
+@if (modalPatrocinioAbierto) {
+<div class="modal-overlay" (click)="cerrarModalPatrocinio()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+
+    <h2>Generar Patrocinio</h2>
+
+    <p><strong>Docente:</strong> {{ docenteSeleccionado?.nombre }}</p>
+
+    <select [(ngModel)]="capacitacionSeleccionada">
+      <option [ngValue]="null">Seleccione capacitación</option>
+      @for (cap of capacitaciones; track cap.nombre) {
+        <option [ngValue]="cap">{{ cap.nombre }}</option>
+      }
+    </select>
+
+    <input [(ngModel)]="codigoPatrocinio" placeholder="Código" />
+
+    <input type="file" accept=".docx" (change)="onArchivoWordSeleccionado($event)" />
+
+    <button (click)="generarPatrocinio()">Generar Word</button>
+    <button (click)="cerrarModalPatrocinio()">Cancelar</button>
+
+  </div>
+</div>
 }

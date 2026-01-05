@@ -272,6 +272,30 @@
   border-left: 4px solid #3b82f6;
 }
 
+/* Toggle formulario */
+.toggle-formulario {
+  margin-bottom: 1.5rem;
+}
+
+.btn-toggle {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.btn-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
 /* Formulario */
 .formulario-docente {
   display: flex;
@@ -316,6 +340,24 @@
 
 .form-group input::placeholder {
   color: #94a3b8;
+}
+
+/* Select styles */
+.form-group select {
+  padding: 0.875rem 1rem;
+  border: 2px solid #bfdbfe;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Botones del modal */
@@ -379,18 +421,19 @@
   font-weight: 600;
 }
 
-.lista-docentes p {
+.lista-docentes > p {
   color: #64748b;
   margin: 0;
   font-size: 0.95rem;
+  text-align: center;
+  padding: 2rem;
 }
 
 .docente-card-tabla {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr 0.8fr;
-  gap: 0.875rem;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
   background: white;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
@@ -410,22 +453,76 @@
 }
 
 .docente-nombre {
-  color: #1e293b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.docente-nombre strong {
+  color: #1e3a8a;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.2rem;
   letter-spacing: -0.01em;
+}
+
+.docente-formacion {
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* ======================
+   CAPACITACIONES DEL DOCENTE
+   ====================== */
+.docente-capacitaciones {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 2px solid #fde047;
+}
+
+.docente-capacitaciones p {
+  color: #854d0e;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.capacitacion-mini {
+  color: #713f12;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid #facc15;
+  line-height: 1.5;
+}
+
+.capacitacion-mini:last-child {
+  margin-bottom: 0;
+}
+
+/* Botones de acción */
+.docente-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
 }
 
 /* Botones base */
 .btn-tabla {
-  padding: 0.65rem 1.1rem;
+  padding: 0.7rem 1.3rem;
   color: #ffffff;
   border: 2px solid transparent;
   border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   white-space: nowrap;
   text-transform: lowercase;
@@ -433,6 +530,8 @@
   position: relative;
   overflow: hidden;
   letter-spacing: 0.02em;
+  flex: 1;
+  min-width: 120px;
 }
 
 .btn-tabla::before {
@@ -443,9 +542,9 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
-  transition: width 0.6s ease, height 0.6s ease;
+  transition: width 0.5s ease, height 0.5s ease;
 }
 
 .btn-tabla:hover::before {
@@ -454,73 +553,73 @@
 }
 
 .btn-tabla:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .btn-tabla:active {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(0px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Botón Patrocinio - Dorado/Amarillo */
-.btn-tabla:nth-child(2) {
+.btn-tabla:nth-of-type(1) {
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-color: #f59e0b;
 }
 
-.btn-tabla:nth-child(2):hover {
+.btn-tabla:nth-of-type(1):hover {
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   border-color: #fbbf24;
-  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
 }
 
 /* Botón Plan Individual - Púrpura */
-.btn-tabla:nth-child(3) {
+.btn-tabla:nth-of-type(2) {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   border-color: #8b5cf6;
 }
 
-.btn-tabla:nth-child(3):hover {
+.btn-tabla:nth-of-type(2):hover {
   background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
   border-color: #a78bfa;
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
 }
 
 /* Botón Reporte Anual - Verde */
-.btn-tabla:nth-child(4) {
+.btn-tabla:nth-of-type(3) {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-color: #10b981;
 }
 
-.btn-tabla:nth-child(4):hover {
+.btn-tabla:nth-of-type(3):hover {
   background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
   border-color: #34d399;
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
 }
 
 .btn-editar-tabla {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  color: #1e40af;
-  border-color: #93c5fd;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  border-color: #3b82f6;
 }
 
 .btn-editar-tabla:hover {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
   border-color: #60a5fa;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .btn-eliminar-tabla {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  color: #b91c1c;
-  border-color: #fca5a5;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-color: #ef4444;
 }
 
 .btn-eliminar-tabla:hover {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
   border-color: #f87171;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
 }
 
 /* ======================
@@ -581,14 +680,14 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .docente-card-tabla {
-    grid-template-columns: 1.5fr 1fr 1fr 1fr 0.8fr 0.8fr;
-    gap: 0.5rem;
+  .docente-acciones {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .btn-tabla {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
   }
 }
 
@@ -623,20 +722,17 @@
     flex-direction: column;
   }
 
-  .docente-card-tabla {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+  .docente-nombre strong {
+    font-size: 1.1rem;
   }
 
-  .docente-nombre {
-    font-size: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e2e8f0;
+  .docente-acciones {
+    grid-template-columns: 1fr;
   }
 
   .btn-tabla {
     width: 100%;
-    text-align: center;
+    min-width: auto;
   }
 }
 
@@ -656,5 +752,18 @@
 
   .carrera-info h3 {
     font-size: 1rem;
+  }
+
+  .docente-nombre strong {
+    font-size: 1rem;
+  }
+
+  .docente-formacion {
+    font-size: 0.85rem;
+  }
+
+  .btn-tabla {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.8rem;
   }
 }

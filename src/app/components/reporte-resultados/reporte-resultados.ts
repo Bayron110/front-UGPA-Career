@@ -6,13 +6,16 @@ import { Career } from '../../Interface/Career';
 import { Docente } from '../../Interface/Docente';
 import { DocenteService } from '../../services/docentes/docente';
 import { Capacitacion } from '../../Interface/Capacitacion';
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-reporte-resultados',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './reporte-resultados.html',
-  styleUrls: ['./reporte-resultados.css'] // ✅ corregido plural
+  styleUrls: ['./reporte-resultados.css']
 })
 export class ReporteResultados implements OnInit {
 
@@ -23,21 +26,35 @@ export class ReporteResultados implements OnInit {
   carreraSeleccionada: Career | null = null;
 
   nombreCompleto = '';
+  cedula = '';
+  formacion = '';
+  programa = '';
+  estado = '';
+  periodo = '';
 
   docentes: Docente[] = [];
+
+  mostrarFormularioDocente = false;
+  docenteEditando: Docente | null = null;
+
+  // ===== MODAL PATROCINIO =====
+  modalPatrocinioAbierto = false;
+  docenteSeleccionado: Docente | null = null;
+  capacitacionSeleccionada: Capacitacion | null = null;
+  codigoPatrocinio = '';
+  archivoWord: File | null = null;
 
   constructor(
     private careerService: CareerService,
     private docenteService: DocenteService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.obtenerCarreras();
-    this.obtenerDocentes(); // 🔹 cargar docentes al inicio
+    this.obtenerDocentes();
   }
 
-  // Obtener todas las carreras
   obtenerCarreras(): void {
     this.cargando = true;
     this.careerService.obtenerCarreras().subscribe({
@@ -53,7 +70,6 @@ export class ReporteResultados implements OnInit {
     });
   }
 
-  // Obtener todos los docentes (solo por nombre)
   obtenerDocentes(): void {
     this.docenteService.obtenerDocentes().subscribe({
       next: (data) => {
@@ -66,57 +82,90 @@ export class ReporteResultados implements OnInit {
     });
   }
 
-  // Abrir modal (solo para registrar docente)
-abrirModal(carrera: Career): void {
-  this.carreraSeleccionada = carrera;
-  this.modalAbierto = true;
-  this.nombreCompleto = '';
+  abrirModal(carrera: Career): void {
+    this.carreraSeleccionada = carrera;
+    this.modalAbierto = true;
+    this.nombreCompleto = '';
 
-  // 🔹 Docentes de la carrera
-  this.docenteService.obtenerPorCarrera(carrera.id!).subscribe({
-    next: (data) => {
-      this.docentes = data;
-    },
-    error: (err) => {
-      console.error('❌ Error al obtener docentes:', err);
-    }
-  });
+    // Limpio antes de cargar
+    this.docentes = [];
+    this.cargando = true;
 
-  // 🔹 Capacitaciones de la carrera (ya vienen embebidas en Career)
-  this.capacitaciones = carrera.capacitaciones || [];
-}
+    this.docenteService.obtenerPorCarrera(carrera.id!).subscribe({
+      next: (data) => {
+        this.docentes = data;
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener docentes:', err);
+        this.cargando = false;
+      }
+    });
 
-  // Cerrar modal
+    this.capacitaciones = carrera.capacitaciones || [];
+  }
+
   cerrarModal(): void {
     this.modalAbierto = false;
     this.carreraSeleccionada = null;
     this.nombreCompleto = '';
   }
 
-  // Guardar un nuevo docente (solo nombre)
-guardarDocente(): void {
-  if (!this.carreraSeleccionada || !this.nombreCompleto.trim()) return;
+  guardarDocente(): void {
+    if (!this.carreraSeleccionada || !this.nombreCompleto.trim()) return;
 
-  const nuevoDocente: Docente = {
-    nombre: this.nombreCompleto.trim(),
-    carreraId: this.carreraSeleccionada.id!,   // 🔹 vínculo con la carrera
-    
-  };
+    const docenteData: Docente = {
+      nombre: this.nombreCompleto.trim(),
+      carreraId: this.carreraSeleccionada.id!,
+      cedula: this.cedula.trim(),
+      formacion: this.formacion.trim(),
+      programa: this.programa.trim(),
+      estado: this.estado.trim(),
+      periodo: this.periodo.trim()
+    };
 
-  this.docenteService.crearDocente(nuevoDocente).subscribe({
-    next: (docenteGuardado) => {
-      console.log('✅ Docente guardado:', docenteGuardado);
-      this.docentes.push(docenteGuardado); // actualizar lista en el modal
-      this.nombreCompleto = ''; // limpiar campo
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error('❌ Error al guardar docente:', err);
+    if (this.docenteEditando) {
+      // 🔹 Actualizar docente existente
+      this.docenteService.actualizarDocente(this.docenteEditando.id!, docenteData).subscribe({
+        next: (docenteActualizado) => {
+          console.log('✏️ Docente actualizado:', docenteActualizado);
+
+          // Reemplazar en la lista
+          const index = this.docentes.findIndex(d => d.id === this.docenteEditando!.id);
+          if (index !== -1) {
+            this.docentes[index] = docenteActualizado;
+          }
+
+          this.docenteEditando = null;
+          this.limpiarFormulario();
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('❌ Error al actualizar docente:', err)
+      });
+    } else {
+      // 🔹 Crear nuevo docente
+      this.docenteService.crearDocente(docenteData).subscribe({
+        next: (docenteGuardado) => {
+          console.log('✅ Docente guardado:', docenteGuardado);
+          this.docentes.push(docenteGuardado);
+          this.limpiarFormulario();
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('❌ Error al guardar docente:', err)
+      });
     }
-  });
-}
+  }
 
-  // Eliminar docente
+  limpiarFormulario(): void {
+    this.nombreCompleto = '';
+    this.cedula = '';
+    this.formacion = '';
+    this.programa = '';
+    this.estado = '';
+    this.periodo = '';
+  }
+
   eliminarDocente(id: string): void {
     this.docenteService.eliminarDocente(id).subscribe({
       next: () => {
@@ -128,4 +177,87 @@ guardarDocente(): void {
       }
     });
   }
+
+  toggleFormularioDocente(): void {
+    this.mostrarFormularioDocente = !this.mostrarFormularioDocente;
+  }
+
+  editarDocente(docente: Docente): void {
+    this.docenteEditando = docente;
+
+    // Cargar datos en el formulario
+    this.nombreCompleto = docente.nombre;
+    this.cedula = docente.cedula || '';
+    this.formacion = docente.formacion || '';
+    this.programa = docente.programa || '';
+    this.estado = docente.estado || '';
+    this.periodo = docente.periodo || '';
+
+    this.mostrarFormularioDocente = true; // abrir el formulario
+  }
+
+  // ===========================
+  // FUNCIONES MODAL PATROCINIO
+  // ===========================
+
+  abrirModalPatrocinio(docente: Docente): void {
+    this.docenteSeleccionado = docente;
+    this.capacitacionSeleccionada = null;
+    this.codigoPatrocinio = '';
+    this.archivoWord = null;
+    this.modalPatrocinioAbierto = true;
+  }
+
+  cerrarModalPatrocinio(): void {
+    this.modalPatrocinioAbierto = false;
+    this.docenteSeleccionado = null;
+  }
+
+  onArchivoWordSeleccionado(event: any): void {
+    this.archivoWord = event.target.files[0];
+  }
+
+ generarPatrocinio(): void {
+  if (!this.docenteSeleccionado ||
+      !this.capacitacionSeleccionada ||
+      !this.archivoWord ||
+      !this.carreraSeleccionada) {
+    alert('Completa todos los campos');
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (event: any) => {
+  try {
+    const content = new Uint8Array(event.target.result);
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+
+    doc.setData({
+      NombresC: this.docenteSeleccionado!.nombre,
+      Cedula1: this.docenteSeleccionado!.cedula,
+      Carrera1: this.carreraSeleccionada!.nombre,
+      NombreCA: this.capacitacionSeleccionada!.nombre,
+      Codigo: this.codigoPatrocinio
+    });
+
+    doc.render();
+
+    const output = doc.getZip().generate({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+saveAs(output, `${this.codigoPatrocinio}-${this.docenteSeleccionado!.nombre}.docx`);    this.cerrarModalPatrocinio();
+
+  } catch (error) {
+    console.error('❌ Error al generar Word:', error);
+    alert('Error al procesar el documento Word. Revisa que los campos estén escritos sin formato.');
+  }
+};
+
+reader.readAsArrayBuffer(this.archivoWord);
+
+}
 }
