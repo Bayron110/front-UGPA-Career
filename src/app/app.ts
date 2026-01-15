@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavBar } from "./components/nav-bar/nav-bar";
 import { Footer } from "./components/footer/footer";
+import { DocumentosComponent } from "./components/documentos/documentos";
 
 @Component({
   selector: 'app-root',

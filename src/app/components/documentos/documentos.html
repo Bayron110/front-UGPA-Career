@@ -1,0 +1,70 @@
+<div class="container">
+  <h2>📤 Subir nueva plantilla</h2>
+
+  <form (ngSubmit)="onUpload()" #form="ngForm" class="upload-form">
+    <!-- Selección de archivo -->
+    <div class="form-group">
+      <label for="file">Archivo Word/PDF:</label>
+      <input id="file" type="file" (change)="onFileSelected($event)" required />
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="nombre">Nombre:</label>
+      <input id="nombre" type="text" [(ngModel)]="nombre" name="nombre" placeholder="Ej: Informe Académico" required />
+    </div>
+
+    <!-- Descripción -->
+    <div class="form-group">
+      <label for="descripcion">Descripción:</label>
+      <input id="descripcion" type="text" [(ngModel)]="descripcion" name="descripcion" placeholder="Ej: Plantilla oficial" required />
+    </div>
+
+    <!-- Botón -->
+    <button type="submit" [disabled]="!form.valid">Subir</button>
+  </form>
+
+  <hr />
+
+  <h2>📑 Plantillas disponibles</h2>
+  <ul class="document-list">
+    <li *ngFor="let doc of documentos">
+      <strong>{{ doc.nombre }}</strong> - {{ doc.descripcion }}
+      <br>
+      <button (click)="abrirModal(doc)">Ver Vista Previa</button>
+    </li>
+  </ul>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ documentoSeleccionado?.nombre }}</h3>
+      <button class="close-btn" (click)="cerrarModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <iframe 
+        *ngIf="documentoUrl && !errorVisualizacion" 
+        [src]="documentoUrl" 
+        frameborder="0">
+      </iframe>
+      
+      <div *ngIf="errorVisualizacion" class="error-message">
+        <span class="icon">⚠️</span>
+        <p>{{ errorVisualizacion }}</p>
+        <button class="btn-download-alt" (click)="descargar(documentoSeleccionado?.fileId)">
+          📥 Descargar Documento
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModal()">Cerrar</button>
+      <button class="btn-download" (click)="descargar(documentoSeleccionado?.fileId)">
+        Descargar
+      </button>
+    </div>
+  </div>
+</div>

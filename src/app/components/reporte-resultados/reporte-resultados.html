@@ -94,165 +94,207 @@
         <strong>Carrera:</strong> {{ carreraSeleccionada?.nombre }}
       </div>
 
-      <!-- Formulario para registrar docente -->
-      <!-- Formulario para registrar docente -->
-     <!-- Botón para mostrar/ocultar el formulario -->
-<div class="toggle-formulario">
-  <button type="button" class="btn-toggle" (click)="toggleFormularioDocente()">
-    {{ mostrarFormularioDocente ? '➖ Ocultar Formulario' : '➕ Agregar Docente' }}
-  </button>
-</div>
-
-<!-- Formulario para registrar docente -->
-@if (mostrarFormularioDocente) {
-  <form class="formulario-docente" (ngSubmit)="guardarDocente()">
-
-    <!-- Nombre -->
-    <div class="form-group">
-      <label for="nombreCompleto">Nombre Completo del Docente</label>
-      <input type="text"
-             id="nombreCompleto"
-             [(ngModel)]="nombreCompleto"
-             name="nombreCompleto"
-             placeholder="Ej. Juan Pérez García"
-             required />
-    </div>
-
-    <!-- Cédula -->
-    <div class="form-group">
-      <label for="cedula">Cédula</label>
-      <input type="text"
-             id="cedula"
-             [(ngModel)]="cedula"
-             name="cedula"
-             placeholder="Ej. 0102030405"
-             required />
-    </div>
-
-    <!-- Formación -->
-    <div class="form-group">
-      <label for="formacion">Formación</label>
-      <input type="text"
-             id="formacion"
-             [(ngModel)]="formacion"
-             name="formacion"
-             placeholder="Ej. Ingeniería, Licenciatura"
-             required />
-    </div>
-
-    <!-- Programa -->
-    <div class="form-group">
-      <label for="programa">Programa</label>
-      <input type="text"
-             id="programa"
-             [(ngModel)]="programa"
-             name="programa"
-             placeholder="Ej. Maestría en Educación, Doctorado"
-             required />
-    </div>
-
-    <!-- Estado -->
-    <div class="form-group">
-      <label for="estado">Estado</label>
-      <select id="estado"
-              [(ngModel)]="estado"
-              name="estado"
-              required>
-        <option value="" disabled selected>Seleccione estado</option>
-        <option value="Cursando">Cursando</option>
-        <option value="Finalizado">Finalizado</option>
-      </select>
-    </div>
-
-    <!-- Periodo -->
-    <div class="form-group">
-      <label for="periodo">Periodo</label>
-      <input type="text"
-             id="periodo"
-             [(ngModel)]="periodo"
-             name="periodo"
-             placeholder="Ej. 2022-2024, 2021-I"
-             required />
-    </div>
-
-    <!-- Botones -->
-    <div class="modal-buttons">
-      <button type="button" class="btn-cancelar" (click)="cerrarModal()">
-        Cancelar
-      </button>
-      <button type="submit" class="btn-guardar">
-        Guardar Docente
-      </button>
-    </div>
-
-  </form>
-}
-
-      <!-- Lista de docentes guardados -->
-      <div class="lista-docentes">
-  <h3>👨‍🏫 Docentes Registrados</h3>
-
-  @if (cargando) {
-    <p>Cargando docentes...</p>
-  }
-
-  @if (!cargando && docentes.length === 0) {
-    <p>No hay docentes registrados aún.</p>
-  }
-
-  @for (docente of docentes; track docente.id) {
-    <div class="docente-card-tabla">
-      <div class="docente-nombre">
-        <strong>{{ docente.nombre }}</strong>
-        <span class="docente-formacion"> | Formación: {{ docente.formacion }}</span>
+      <div class="toggle-formulario">
+        <button type="button" class="btn-toggle" (click)="toggleFormularioDocente()">
+          {{ mostrarFormularioDocente ? '➖ Ocultar Formulario' : '➕ Agregar Docente' }}
+        </button>
       </div>
 
-      <div class="docente-capacitaciones">
-        <p><em>Capacitaciones asignadas:</em></p>
-        @for (cap of capacitaciones; track cap.nombre) {
-          <div class="capacitacion-mini">
-            • {{ cap.nombre }} ({{ cap.horas }} horas)
+      @if (mostrarFormularioDocente) {
+      <form class="formulario-docente" (ngSubmit)="guardarDocente()">
+        <div class="form-group">
+          <label for="nombreCompleto">Nombre Completo del Docente</label>
+          <input type="text" id="nombreCompleto" [(ngModel)]="nombreCompleto" name="nombreCompleto"
+            placeholder="Ej. Juan Pérez García" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cedula">Cédula</label>
+          <input type="text" id="cedula" [(ngModel)]="cedula" name="cedula" placeholder="Ej. 0102030405" required />
+        </div>
+
+        <div class="form-group">
+          <label for="formacion">Formación</label>
+          <input type="text" id="formacion" [(ngModel)]="formacion" name="formacion"
+            placeholder="Ej. Ingeniería, Licenciatura" required />
+        </div>
+
+        <div class="form-group">
+          <label for="programa">Programa</label>
+          <input type="text" id="programa" [(ngModel)]="programa" name="programa"
+            placeholder="Ej. Maestría en Educación, Doctorado" required />
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" [(ngModel)]="estado" name="estado" required>
+            <option value="" disabled selected>Seleccione estado</option>
+            <option value="Cursando">Cursando</option>
+            <option value="Finalizado">Finalizado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="periodo">Periodo</label>
+          <input type="text" id="periodo" [(ngModel)]="periodo" name="periodo" placeholder="Ej. 2022-2024, 2021-I"
+            required />
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancelar" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-guardar">
+            Guardar Docente
+          </button>
+        </div>
+      </form>
+      }
+
+      <div class="lista-docentes">
+        <h3>👨‍🏫 Docentes Registrados</h3>
+
+        @if (cargando) {
+        <p>Cargando docentes...</p>
+        }
+
+        @if (!cargando && docentes.length === 0) {
+        <p>No hay docentes registrados aún.</p>
+        }
+
+        @for (docente of docentes; track docente.id) {
+        <div class="docente-card-tabla">
+          <div class="docente-nombre">
+            <strong>{{ docente.nombre }}</strong>
+            <span class="docente-formacion"> | Formación: {{ docente.formacion }}</span>
           </div>
+
+          <div class="docente-capacitaciones">
+            <p><em>Capacitaciones asignadas:</em></p>
+            @for (cap of capacitaciones; track cap.nombre) {
+            <div class="capacitacion-mini">
+              • {{ cap.nombre }} ({{ cap.horas }} horas)
+            </div>
+            }
+          </div>
+
+          <div class="docente-acciones">
+            <button class="btn-tabla" type="button" (click)="abrirModalPatrocinio(docente)">patrocinio</button>
+            <button class="btn-tabla" type="button">plan individual</button>
+            <button class="btn-tabla" type="button">reporte anual</button>
+            <button class="btn-tabla btn-editar-tabla" type="button" (click)="editarDocente(docente)">editar</button>
+            <button class="btn-tabla btn-eliminar-tabla" (click)="eliminarDocente(docente.id!)">eliminar</button>
+          </div>
+        </div>
         }
       </div>
 
-      <div class="docente-acciones">
-        <button class="btn-tabla" type="button" (click)="abrirModalPatrocinio(docente)">patrocinio</button>
-        <button class="btn-tabla" type="button">plan individual</button>
-        <button class="btn-tabla" type="button">reporte anual</button>
-        <button class="btn-tabla btn-editar-tabla" type="button" (click)="editarDocente(docente)">editar</button>
-        <button class="btn-tabla btn-eliminar-tabla" (click)="eliminarDocente(docente.id!)">eliminar</button>
-      </div>
-    </div>
-  }
-</div>
-    
     </div>
   </div>
 </div>
 }
+
+<!-- Modal Patrocinio -->
 @if (modalPatrocinioAbierto) {
 <div class="modal-overlay" (click)="cerrarModalPatrocinio()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
+  <div class="modal-container-patrocinio" (click)="$event.stopPropagation()">
+    
+    <!-- Animación de Generación -->
+    @if (generandoDocumento) {
+    <div class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="loading-text">Generando documento...</p>
+    </div>
+    }
+    
+    <div class="modal-header">
+      <h2>📄 Generar Patrocinio</h2>
+      <button class="btn-cerrar" (click)="cerrarModalPatrocinio()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
 
-    <h2>Generar Patrocinio</h2>
+    <div class="modal-body-patrocinio">
+      <div class="info-docente">
+        <strong>👤 Docente:</strong> {{ docenteSeleccionado?.nombre }}
+      </div>
 
-    <p><strong>Docente:</strong> {{ docenteSeleccionado?.nombre }}</p>
+      <div class="form-group">
+        <label for="capacitacion">Seleccione Capacitación:</label>
+        <select id="capacitacion" [(ngModel)]="capacitacionSeleccionada" required>
+          <option [ngValue]="null">-- Seleccione una capacitación --</option>
+          @for (cap of capacitaciones; track cap.nombre) {
+          <option [ngValue]="cap">{{ cap.nombre }}</option>
+          }
+        </select>
+      </div>
 
-    <select [(ngModel)]="capacitacionSeleccionada">
-      <option [ngValue]="null">Seleccione capacitación</option>
-      @for (cap of capacitaciones; track cap.nombre) {
-        <option [ngValue]="cap">{{ cap.nombre }}</option>
-      }
-    </select>
+      <div class="form-group">
+        <label for="plantilla">Seleccione Plantilla:</label>
+        <select id="plantilla" [(ngModel)]="plantillaSeleccionada" required>
+          <option [ngValue]="null">-- Seleccione una plantilla --</option>
+          @for (doc of plantillasDisponibles; track doc.fileId) {
+          <option [ngValue]="doc">{{ doc.nombre }}</option>
+          }
+        </select>
+      </div>
 
-    <input [(ngModel)]="codigoPatrocinio" placeholder="Código" />
+      <div class="codigo-generacion">
+        <h4>🔢 Código de Patrocinio</h4>
+        <div class="codigo-preview">
+          {{ codigoGenerado }}
+        </div>
+        
+        <div class="codigo-inputs">
+          <div class="form-group-inline">
+            <label for="anio">Año:</label>
+            <input type="number" id="anio" [(ngModel)]="anio" (ngModelChange)="generarCodigo()" placeholder="2025" min="2000" max="2100" required />
+          </div>
+          
+          <div class="form-group-inline">
+            <label for="mes">Mes:</label>
+            <input type="number" id="mes" [(ngModel)]="mes" (ngModelChange)="generarCodigo()" placeholder="01" min="1" max="12" required />
+          </div>
+        </div>
+        
+        <div class="info-secuencia">
+          <small>ℹ️ Secuencia basada en el total de docentes registrados ({{ todosLosDocentes.length }})</small>
+        </div>
+      </div>
 
-    <input type="file" accept=".docx" (change)="onArchivoWordSeleccionado($event)" />
-
-    <button (click)="generarPatrocinio()">Generar Word</button>
-    <button (click)="cerrarModalPatrocinio()">Cancelar</button>
-
+      <div class="modal-buttons">
+        <button type="button" class="btn-cancelar" (click)="cerrarModalPatrocinio()">
+          Cancelar
+        </button>
+        <button type="button" class="btn-generar" (click)="generarPatrocinio()" [disabled]="generandoDocumento">
+          📥 Generar Documento
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 }
+
+<div class="seccion-documentos">
+  <div class="barra-expandible" [class.expandida]="seccionDocumentosExpandida">
+    <button class="btn-expandir" (click)="toggleSeccionDocumentos()">
+      <span class="icono-expandir">
+        {{ seccionDocumentosExpandida ? '▼' : '▶' }}
+      </span>
+      <span class="titulo-seccion">📁 Gestión de Plantillas</span>
+      <span class="badge-contador">{{ plantillasDisponibles.length }}</span>
+    </button>
+    
+    @if (seccionDocumentosExpandida) {
+    <div class="contenido-expandible">
+      <app-documentos (documentosActualizados)="onDocumentosActualizados($event)"></app-documentos>
+    </div>
+    }
+  </div>
+</div>

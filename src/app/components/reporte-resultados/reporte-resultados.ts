@@ -9,11 +9,14 @@ import { Capacitacion } from '../../Interface/Capacitacion';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
+import { DocumentosComponent } from "../documentos/documentos";
+import { DocumentosService } from '../../services/documentos/documentos';
+import { Documento } from '../../Interface/documentos';
 
 @Component({
   selector: 'app-reporte-resultados',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DocumentosComponent],
   templateUrl: './reporte-resultados.html',
   styleUrls: ['./reporte-resultados.css']
 })
@@ -33,26 +36,36 @@ export class ReporteResultados implements OnInit {
   periodo = '';
 
   docentes: Docente[] = [];
+  todosLosDocentes: Docente[] = []; // Para contar el total y generar secuencia
 
   mostrarFormularioDocente = false;
   docenteEditando: Docente | null = null;
 
-  // ===== MODAL PATROCINIO =====
   modalPatrocinioAbierto = false;
   docenteSeleccionado: Docente | null = null;
   capacitacionSeleccionada: Capacitacion | null = null;
-  codigoPatrocinio = '';
-  archivoWord: File | null = null;
+  
+  plantillasDisponibles: Documento[] = [];
+  plantillaSeleccionada: Documento | null = null;
+  seccionDocumentosExpandida = false;
+
+  anio: number = new Date().getFullYear();
+  mes: number = new Date().getMonth() + 1;
+  codigoGenerado: string = '';
+  
+  generandoDocumento = false;
 
   constructor(
     private careerService: CareerService,
     private docenteService: DocenteService,
+    private documentosService: DocumentosService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.obtenerCarreras();
-    this.obtenerDocentes();
+    this.obtenerTodosLosDocentes();
+    this.cargarPlantillas();
   }
 
   obtenerCarreras(): void {
@@ -70,14 +83,26 @@ export class ReporteResultados implements OnInit {
     });
   }
 
-  obtenerDocentes(): void {
+  obtenerTodosLosDocentes(): void {
     this.docenteService.obtenerDocentes().subscribe({
       next: (data) => {
-        this.docentes = data;
+        this.todosLosDocentes = data;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('❌ Error al obtener docentes:', err);
+        console.error('❌ Error al obtener todos los docentes:', err);
+      }
+    });
+  }
+
+  cargarPlantillas(): void {
+    this.documentosService.listarDocumentos().subscribe({
+      next: (data) => {
+        this.plantillasDisponibles = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('❌ Error al cargar plantillas:', err);
       }
     });
   }
@@ -87,7 +112,6 @@ export class ReporteResultados implements OnInit {
     this.modalAbierto = true;
     this.nombreCompleto = '';
 
-    // Limpio antes de cargar
     this.docentes = [];
     this.cargando = true;
 
@@ -126,12 +150,10 @@ export class ReporteResultados implements OnInit {
     };
 
     if (this.docenteEditando) {
-      // 🔹 Actualizar docente existente
       this.docenteService.actualizarDocente(this.docenteEditando.id!, docenteData).subscribe({
         next: (docenteActualizado) => {
           console.log('✏️ Docente actualizado:', docenteActualizado);
 
-          // Reemplazar en la lista
           const index = this.docentes.findIndex(d => d.id === this.docenteEditando!.id);
           if (index !== -1) {
             this.docentes[index] = docenteActualizado;
@@ -139,17 +161,18 @@ export class ReporteResultados implements OnInit {
 
           this.docenteEditando = null;
           this.limpiarFormulario();
+          this.obtenerTodosLosDocentes();
           this.cdr.detectChanges();
         },
         error: (err) => console.error('❌ Error al actualizar docente:', err)
       });
     } else {
-      // 🔹 Crear nuevo docente
       this.docenteService.crearDocente(docenteData).subscribe({
         next: (docenteGuardado) => {
           console.log('✅ Docente guardado:', docenteGuardado);
           this.docentes.push(docenteGuardado);
           this.limpiarFormulario();
+          this.obtenerTodosLosDocentes();
           this.cdr.detectChanges();
         },
         error: (err) => console.error('❌ Error al guardar docente:', err)
@@ -170,6 +193,7 @@ export class ReporteResultados implements OnInit {
     this.docenteService.eliminarDocente(id).subscribe({
       next: () => {
         this.docentes = this.docentes.filter(d => d.id !== id);
+        this.obtenerTodosLosDocentes();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -185,7 +209,6 @@ export class ReporteResultados implements OnInit {
   editarDocente(docente: Docente): void {
     this.docenteEditando = docente;
 
-    // Cargar datos en el formulario
     this.nombreCompleto = docente.nombre;
     this.cedula = docente.cedula || '';
     this.formacion = docente.formacion || '';
@@ -193,71 +216,113 @@ export class ReporteResultados implements OnInit {
     this.estado = docente.estado || '';
     this.periodo = docente.periodo || '';
 
-    this.mostrarFormularioDocente = true; // abrir el formulario
+    this.mostrarFormularioDocente = true;
   }
 
-  // ===========================
-  // FUNCIONES MODAL PATROCINIO
-  // ===========================
 
   abrirModalPatrocinio(docente: Docente): void {
     this.docenteSeleccionado = docente;
     this.capacitacionSeleccionada = null;
-    this.codigoPatrocinio = '';
-    this.archivoWord = null;
+    this.plantillaSeleccionada = null;
     this.modalPatrocinioAbierto = true;
+    
+    this.generarCodigo();
   }
 
   cerrarModalPatrocinio(): void {
     this.modalPatrocinioAbierto = false;
     this.docenteSeleccionado = null;
+    this.codigoGenerado = '';
   }
 
-  onArchivoWordSeleccionado(event: any): void {
-    this.archivoWord = event.target.files[0];
-  }
+  generarCodigo(): void {
+  if (!this.docenteSeleccionado?.secuencia) return;
 
- generarPatrocinio(): void {
-  if (!this.docenteSeleccionado ||
-      !this.capacitacionSeleccionada ||
-      !this.archivoWord ||
-      !this.carreraSeleccionada) {
-    alert('Completa todos los campos');
-    return;
-  }
+  const sec = this.docenteSeleccionado.secuencia
+    .toString()
+    .padStart(2, '0');
 
-  const reader = new FileReader();
+  const mesFormateado = this.mes.toString().padStart(2, '0');
 
-  reader.onload = (event: any) => {
-  try {
-    const content = new Uint8Array(event.target.result);
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-
-    doc.setData({
-      NombresC: this.docenteSeleccionado!.nombre,
-      Cedula1: this.docenteSeleccionado!.cedula,
-      Carrera1: this.carreraSeleccionada!.nombre,
-      NombreCA: this.capacitacionSeleccionada!.nombre,
-      Codigo: this.codigoPatrocinio
-    });
-
-    doc.render();
-
-    const output = doc.getZip().generate({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    });
-
-saveAs(output, `${this.codigoPatrocinio}-${this.docenteSeleccionado!.nombre}.docx`);    this.cerrarModalPatrocinio();
-
-  } catch (error) {
-    console.error('❌ Error al generar Word:', error);
-    alert('Error al procesar el documento Word. Revisa que los campos estén escritos sin formato.');
-  }
-};
-
-reader.readAsArrayBuffer(this.archivoWord);
-
+  this.codigoGenerado = `UGPA-RGI2-${sec}-PRO134-${this.anio}-${mesFormateado}`;
 }
+
+
+  generarPatrocinio(): void {
+    if (!this.docenteSeleccionado ||
+        !this.capacitacionSeleccionada ||
+        !this.plantillaSeleccionada ||
+        !this.carreraSeleccionada) {
+      alert('Por favor complete todos los campos');
+      return;
+    }
+
+    if (!this.anio || !this.mes) {
+      alert('Por favor ingrese año y mes válidos');
+      return;
+    }
+
+    this.generarCodigo();
+    
+    this.generandoDocumento = true;
+
+    this.documentosService.descargarDocumento(this.plantillaSeleccionada.fileId).subscribe({
+      next: (blob) => {
+        const reader = new FileReader();
+
+        reader.onload = (event: any) => {
+          try {
+            const content = new Uint8Array(event.target.result);
+            const zip = new PizZip(content);
+            const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+
+            doc.setData({
+              NombresC: this.docenteSeleccionado!.nombre,
+              Cedula1: this.docenteSeleccionado!.cedula,
+              Carrera1: this.carreraSeleccionada!.nombre,
+              NombreCA: this.capacitacionSeleccionada!.nombre,
+              Codigo: this.codigoGenerado
+            });
+
+            doc.render();
+
+            const output = doc.getZip().generate({
+              type: 'blob',
+              mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            });
+
+            // Descargar como Word
+            saveAs(output, `${this.codigoGenerado}-${this.docenteSeleccionado!.nombre}.docx`);
+            
+            // Ocultar animación
+            this.generandoDocumento = false;
+            
+            alert('✅ Documento generado exitosamente');
+            this.cerrarModalPatrocinio();
+
+          } catch (error) {
+            console.error('❌ Error al generar documento:', error);
+            this.generandoDocumento = false;
+            alert('Error al procesar el documento. Verifica que la plantilla tenga los campos correctos: NombresC, Cedula1, Carrera1, NombreCA, Codigo');
+          }
+        };
+
+        reader.readAsArrayBuffer(blob);
+      },
+      error: (err) => {
+        console.error('❌ Error al descargar plantilla:', err);
+        this.generandoDocumento = false;
+        alert('Error al descargar la plantilla seleccionada');
+      }
+    });
+  }
+
+  toggleSeccionDocumentos(): void {
+    this.seccionDocumentosExpandida = !this.seccionDocumentosExpandida;
+  }
+
+  onDocumentosActualizados(documentos: Documento[]): void {
+    this.plantillasDisponibles = documentos;
+    this.cdr.detectChanges();
+  }
 }
