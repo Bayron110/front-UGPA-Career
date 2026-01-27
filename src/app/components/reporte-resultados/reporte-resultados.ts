@@ -12,11 +12,12 @@ import { saveAs } from 'file-saver';
 import { DocumentosComponent } from "../documentos/documentos";
 import { DocumentosService } from '../../services/documentos/documentos';
 import { Documento } from '../../Interface/documentos';
+import { DescargaG } from "../../components2/descarga-g/descarga-g";
 
 @Component({
   selector: 'app-reporte-resultados',
   standalone: true,
-  imports: [CommonModule, FormsModule, DocumentosComponent],
+  imports: [CommonModule, FormsModule, DocumentosComponent, DescargaG],
   templateUrl: './reporte-resultados.html',
   styleUrls: ['./reporte-resultados.css']
 })
