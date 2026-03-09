@@ -30,6 +30,7 @@
     "docxtemplater": "^3.67.5",
     "docxtemplater-image-module-free": "^1.1.1",
     "file-saver": "^2.0.5",
+    "firebase": "^12.10.0",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "jszip": "^3.10.1",
