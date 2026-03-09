@@ -1,0 +1,210 @@
+<div class="ev-root" (click)="menuAbierto = null">
+
+  <!-- Partículas decorativas -->
+  <div class="ev-particles">
+    <span class="particle" *ngFor="let p of [1,2,3,4,5,6,7,8,9,10,11,12]"></span>
+  </div>
+  <div class="ev-orb ev-orb--top"></div>
+  <div class="ev-orb ev-orb--bottom"></div>
+
+  <div class="ev-container">
+
+    <!-- ── HEADER ─────────────────────────────────────────── -->
+    <header class="ev-header">
+      <div class="ev-header__brand">
+        <div class="ev-header__logo">◈</div>
+        <div>
+          <h1 class="ev-header__title">Eventos</h1>
+          <p class="ev-header__sub">Gestión inteligente de agenda</p>
+        </div>
+      </div>
+
+      <div class="ev-header__actions">
+        <!-- Notif bell -->
+        <button class="ev-icon-btn" (click)="$event.stopPropagation(); mostrarNotificaciones = !mostrarNotificaciones; marcarLeidas()"
+          [class.ev-icon-btn--active]="mostrarNotificaciones" title="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="ev-badge" *ngIf="noLeidas > 0">{{ noLeidas }}</span>
+        </button>
+
+        <!-- Activar notif sistema -->
+        <button class="ev-icon-btn" (click)="solicitarPermiso()" title="Activar notificaciones del sistema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+        </button>
+
+        <!-- Nuevo evento -->
+        <button class="ev-btn-primary" (click)="abrirFormulario()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nuevo Evento
+        </button>
+      </div>
+    </header>
+
+    <!-- ── PANEL NOTIFICACIONES ──────────────────────────── -->
+    <div class="ev-notif-panel" [class.ev-notif-panel--open]="mostrarNotificaciones"
+      (click)="$event.stopPropagation()">
+      <div class="ev-notif-panel__head">
+        <span>🔔 Notificaciones</span>
+        <button (click)="notificaciones = []">Limpiar todo</button>
+      </div>
+      <div class="ev-notif-panel__body">
+        <p class="ev-notif-empty" *ngIf="notificaciones.length === 0">Sin notificaciones aún</p>
+        <div class="ev-notif-item"
+          *ngFor="let n of notificaciones"
+          [ngClass]="'ev-notif-item--' + n.tipo">
+          <div class="ev-notif-dot"></div>
+          <span>{{ n.mensaje }}</span>
+          <time>{{ n.timestamp | date:'HH:mm' }}</time>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STATS ─────────────────────────────────────────── -->
+    <div class="ev-stats">
+      <div class="ev-stat ev-stat--total">
+        <span class="ev-stat__num">{{ eventos.length }}</span>
+        <span class="ev-stat__lbl">Total</span>
+      </div>
+      <div class="ev-stat ev-stat--pending">
+        <span class="ev-stat__num">{{ contar('pending') }}</span>
+        <span class="ev-stat__lbl">Pendientes</span>
+      </div>
+      <div class="ev-stat ev-stat--progress">
+        <span class="ev-stat__num">{{ contar('in-progress') }}</span>
+        <span class="ev-stat__lbl">En Progreso</span>
+      </div>
+      <div class="ev-stat ev-stat--unorganized">
+        <span class="ev-stat__num">{{ contar('unorganized') }}</span>
+        <span class="ev-stat__lbl">Sin Organizar</span>
+      </div>
+    </div>
+
+    <!-- ── FILTROS ────────────────────────────────────────── -->
+    <div class="ev-filters">
+      <button class="ev-filter-btn" [class.ev-filter-btn--active]="filtroActual === 'all'" (click)="filtroActual = 'all'">
+        Todos <span>{{ eventos.length }}</span>
+      </button>
+      <button class="ev-filter-btn ev-filter-btn--pending" [class.ev-filter-btn--active]="filtroActual === 'pending'" (click)="filtroActual = 'pending'">
+        ⏳ Pendientes <span>{{ contar('pending') }}</span>
+      </button>
+      <button class="ev-filter-btn ev-filter-btn--progress" [class.ev-filter-btn--active]="filtroActual === 'in-progress'" (click)="filtroActual = 'in-progress'">
+        ▶ En Progreso <span>{{ contar('in-progress') }}</span>
+      </button>
+      <button class="ev-filter-btn ev-filter-btn--unorganized" [class.ev-filter-btn--active]="filtroActual === 'unorganized'" (click)="filtroActual = 'unorganized'">
+        ◈ Sin Organizar <span>{{ contar('unorganized') }}</span>
+      </button>
+    </div>
+
+    <!-- ── CARDS ──────────────────────────────────────────── -->
+    <div class="ev-empty" *ngIf="filtrados.length === 0">
+      <span class="ev-empty__icon">◈</span>
+      <p>No hay eventos en esta categoría</p>
+      <button class="ev-btn-ghost" (click)="abrirFormulario()">+ Crear el primero</button>
+    </div>
+
+    <div class="ev-cards" *ngIf="filtrados.length > 0">
+      <div class="ev-card" *ngFor="let ev of filtrados; trackBy: trackId"
+        [ngClass]="'ev-card--' + ev.status">
+
+        <!-- Barra lateral de color -->
+        <div class="ev-card__bar"></div>
+
+        <!-- Header de la tarjeta -->
+        <div class="ev-card__head">
+          <div class="ev-card__info">
+            <span class="ev-chip" [ngClass]="'ev-chip--' + ev.status">
+              {{ statusCfg[ev.status].icon }} {{ statusCfg[ev.status].label }}
+            </span>
+            <h3 class="ev-card__title">{{ ev.nombre }}</h3>
+          </div>
+
+          <!-- Menú opciones -->
+          <div class="ev-menu-wrap" (click)="$event.stopPropagation()">
+            <button class="ev-menu-btn" (click)="toggleMenu(ev.id)">⋮</button>
+            <div class="ev-menu" *ngIf="menuAbierto === ev.id">
+              <button class="ev-menu__item"
+                *ngFor="let k of statusKeys"
+                [class.ev-menu__item--active]="ev.status === k"
+                [ngClass]="'ev-menu__item--' + k"
+                (click)="cambiarStatus(ev.id, k)">
+                {{ statusCfg[k].icon }} {{ statusCfg[k].label }}
+              </button>
+              <div class="ev-menu__divider"></div>
+              <button class="ev-menu__item ev-menu__item--edit" (click)="abrirFormulario(ev); menuAbierto = null">✏️ Editar</button>
+              <button class="ev-menu__item ev-menu__item--delete" (click)="eliminar(ev.id)">🗑 Eliminar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <p class="ev-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</p>
+
+        <!-- Meta: fecha y hora -->
+        <div class="ev-card__meta">
+          <span class="ev-meta-tag">📅 {{ formatFecha(ev.fecha) }}</span>
+          <span class="ev-meta-tag">🕐 {{ formatHora(ev.horaInicio) }} – {{ formatHora(ev.horaFin) }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- ── MODAL FORMULARIO ───────────────────────────────── -->
+  <div class="ev-modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
+    <div class="ev-modal" (click)="$event.stopPropagation()">
+      <div class="ev-modal__head">
+        <h2>{{ eventoEditando ? '✏️ Editar Evento' : '✨ Nuevo Evento' }}</h2>
+        <button class="ev-modal__close" (click)="cerrarFormulario()">×</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="ev-form">
+        <div class="ev-field">
+          <label>Nombre del Evento *</label>
+          <input formControlName="nombre" placeholder="Ej: Incorporaciones"
+            [class.ev-field--error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"/>
+          <span class="ev-error" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+            Ingresa un nombre de al menos 3 caracteres
+          </span>
+        </div>
+
+        <div class="ev-field">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" placeholder="Detalles del evento..." rows="3"></textarea>
+        </div>
+
+        <div class="ev-field">
+          <label>Fecha *</label>
+          <input type="date" formControlName="fecha"
+            [class.ev-field--error]="form.get('fecha')?.invalid && form.get('fecha')?.touched"/>
+        </div>
+
+        <div class="ev-form__row">
+          <div class="ev-field">
+            <label>Hora Inicio *</label>
+            <input type="time" formControlName="horaInicio"/>
+          </div>
+          <div class="ev-field">
+            <label>Hora Fin *</label>
+            <input type="time" formControlName="horaFin"/>
+          </div>
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" (click)="cerrarFormulario()">Cancelar</button>
+          <button type="submit" class="ev-btn-submit">
+            {{ eventoEditando ? '💾 Guardar Cambios' : '✨ Crear Evento' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

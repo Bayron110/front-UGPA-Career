@@ -12,6 +12,7 @@ import { AcuerdoPD } from './components/acuerdo-pd/acuerdo-pd';
 import { Component } from '@angular/core';
 import { ReporteResultados } from './components/reporte-resultados/reporte-resultados';
 import { ReporteAnual } from './components/reporte-anual/reporte-anual';
+import { EventosComponent } from './components/eventos/eventos';
 
 export const routes: Routes = [
 
@@ -26,6 +27,7 @@ export const routes: Routes = [
     {path:"generar", component:AcuerdoPD},
     {path: "ReporteR", component:ReporteResultados},
     {path:"reporteA", component:ReporteAnual},
+    {path:"Agenda", component:EventosComponent},
 { path: '', redirectTo: 'Home', pathMatch: 'full' },
 
 ];

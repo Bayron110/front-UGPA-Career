@@ -40,4 +40,7 @@ export class Home {
   irAReporteA(){
     this.router.navigate(["/reporteA"])
   }
+  irAAgenda():void{
+    this.router.navigate(['/Agenda'])
+  }
 }
