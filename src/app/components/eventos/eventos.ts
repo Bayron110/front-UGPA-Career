@@ -13,7 +13,6 @@ import {
   update, remove, Database
 } from 'firebase/database';
 
-// ── Firebase config ────────────────────────────────────────
 const firebaseConfig = {
   apiKey: 'AIzaSyB1OYIgIw5aO7RBC12h-QHKi3fiF_bm9yk',
   authDomain: 'evaluacion1-7dce4.firebaseapp.com',
@@ -27,29 +26,41 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db: Database = getDatabase(firebaseApp);
 
-// ── Types ──────────────────────────────────────────────────
-export type EventStatus = 'pending' | 'in-progress' | 'unorganized';
+export type EventStatus = 'pending' | 'finishing' | 'completed' | 'uncompleted';
 
 export interface Evento {
   id: string;
   nombre: string;
   descripcion: string;
-  fecha: string;
+  fechaInicio: string;   // NUEVO: fecha de inicio
+  fechaFin: string;      // NUEVO: fecha de fin
   horaInicio: string;
   horaFin: string;
   status: EventStatus;
-  notificado15min: boolean;
-  notificado1h: boolean;
-  notificadoInicio: boolean;
+  completadoEn: number | null;
+  notificadoProximo: boolean;
+  notificadoPorFinalizar: boolean;
+  notificadoSinCompletar: boolean;
   createdAt: number;
 }
 
 export interface Notificacion {
   id: string;
   mensaje: string;
-  tipo: 'warning' | 'info' | 'success';
+  tipo: 'warning' | 'info' | 'success' | 'danger';
   timestamp: Date;
   leida: boolean;
+}
+
+export interface HistorialItem {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  fechaInicio: string;
+  fechaFin: string;
+  horaInicio: string;
+  horaFin: string;
+  completadoEn: number;
 }
 
 @Component({
@@ -65,23 +76,34 @@ export class EventosComponent implements OnInit, OnDestroy {
   notificaciones: Notificacion[] = [];
   mostrarFormulario = false;
   mostrarNotificaciones = false;
+  mostrarHistorial = false;
   filtroActual: EventStatus | 'all' = 'all';
   eventoEditando: Evento | null = null;
   menuAbierto: string | null = null;
   cargando = true;
   errorMsg = '';
 
+  // Buscador
+  textoBusqueda = '';
+
+  // Historial
+  historialEditando: HistorialItem | null = null;
+  mostrarConfirmEliminarHistorial = false;
+  formHistorial!: FormGroup;
+
   form!: FormGroup;
   private timer: any;
   private notifCtrl: Record<string, boolean> = {};
   private dbUnsubscribe: (() => void) | null = null;
 
-  readonly statusCfg = {
-    pending:       { label: 'Pendiente',     icon: '⏳', cssClass: 'status-pending' },
-    'in-progress': { label: 'En Progreso',   icon: '▶',  cssClass: 'status-progress' },
-    unorganized:   { label: 'Sin Organizar', icon: '◈',  cssClass: 'status-unorganized' },
+  readonly statusCfg: Record<EventStatus, { label: string; icon: string }> = {
+    pending:     { label: 'Pendiente',    icon: '⏳' },
+    finishing:   { label: 'Por Finalizar', icon: '🔥' },
+    completed:   { label: 'Completada',   icon: '✅' },
+    uncompleted: { label: 'Sin Completar', icon: '❌' },
   };
-  readonly statusKeys: EventStatus[] = ['pending', 'in-progress', 'unorganized'];
+
+  readonly statusKeys: EventStatus[] = ['pending', 'finishing', 'uncompleted'];
 
   constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {}
 
@@ -89,7 +111,16 @@ export class EventosComponent implements OnInit, OnDestroy {
     this.form = this.fb.group({
       nombre:      ['', [Validators.required, Validators.minLength(3)]],
       descripcion: [''],
-      fecha:       ['', Validators.required],
+      fechaInicio: ['', Validators.required],
+      fechaFin:    ['', Validators.required],
+      horaInicio:  ['', Validators.required],
+      horaFin:     ['', Validators.required],
+    });
+    this.formHistorial = this.fb.group({
+      nombre:      ['', [Validators.required, Validators.minLength(3)]],
+      descripcion: [''],
+      fechaInicio: ['', Validators.required],
+      fechaFin:    ['', Validators.required],
       horaInicio:  ['', Validators.required],
       horaFin:     ['', Validators.required],
     });
@@ -102,7 +133,6 @@ export class EventosComponent implements OnInit, OnDestroy {
     if (this.dbUnsubscribe) this.dbUnsubscribe();
   }
 
-  // ── Firebase: escuchar cambios en tiempo real ─────────────
   escucharEventos(): void {
     const eventosRef = ref(db, 'eventos');
     const unsubscribe = onValue(
@@ -112,6 +142,13 @@ export class EventosComponent implements OnInit, OnDestroy {
         if (data) {
           this.eventos = Object.entries(data).map(([id, val]: [string, any]) => ({
             id,
+            completadoEn: null,
+            notificadoProximo: false,
+            notificadoPorFinalizar: false,
+            notificadoSinCompletar: false,
+            // retrocompatibilidad: si solo tiene 'fecha', úsala para ambas
+            fechaInicio: val.fechaInicio ?? val.fecha ?? '',
+            fechaFin:    val.fechaFin    ?? val.fecha ?? '',
             ...val,
           })) as Evento[];
         } else {
@@ -130,39 +167,78 @@ export class EventosComponent implements OnInit, OnDestroy {
     this.dbUnsubscribe = unsubscribe;
   }
 
-  // ── Firebase: crear evento ─────────────────────────────────
   async crearEvento(datos: Omit<Evento, 'id'>): Promise<void> {
     try {
-      const eventosRef = ref(db, 'eventos');
-      await push(eventosRef, datos);
+      await push(ref(db, 'eventos'), datos);
       this.pushNotif(`✅ Evento creado: ${datos.nombre}`, 'success');
     } catch (e: any) {
       this.errorMsg = 'Error al crear evento: ' + e.message;
     }
   }
 
-  // ── Firebase: actualizar evento ────────────────────────────
   async actualizarEvento(id: string, datos: Partial<Evento>): Promise<void> {
     try {
-      const eventoRef = ref(db, `eventos/${id}`);
-      await update(eventoRef, datos);
+      await update(ref(db, `eventos/${id}`), datos);
     } catch (e: any) {
       this.errorMsg = 'Error al actualizar: ' + e.message;
     }
   }
 
-  // ── Firebase: eliminar evento ──────────────────────────────
   async eliminarEvento(id: string): Promise<void> {
     try {
-      const eventoRef = ref(db, `eventos/${id}`);
-      await remove(eventoRef);
+      await remove(ref(db, `eventos/${id}`));
       this.menuAbierto = null;
     } catch (e: any) {
       this.errorMsg = 'Error al eliminar: ' + e.message;
     }
   }
 
-  // ── Monitoreo automático de estados ───────────────────────
+  // ── Historial ───────────────────────────────────────────
+  abrirEdicionHistorial(h: HistorialItem): void {
+    this.historialEditando = h;
+    this.formHistorial.patchValue({
+      nombre:      h.nombre,
+      descripcion: h.descripcion,
+      fechaInicio: h.fechaInicio,
+      fechaFin:    h.fechaFin,
+      horaInicio:  h.horaInicio,
+      horaFin:     h.horaFin,
+    });
+    this.cdr.markForCheck();
+  }
+
+  cerrarEdicionHistorial(): void {
+    this.historialEditando = null;
+    this.formHistorial.reset();
+    this.cdr.markForCheck();
+  }
+
+  async guardarEdicionHistorial(): Promise<void> {
+    if (this.formHistorial.invalid || !this.historialEditando) {
+      this.formHistorial.markAllAsTouched();
+      return;
+    }
+    const v = this.formHistorial.value;
+    await this.actualizarEvento(this.historialEditando.id, {
+      nombre: v.nombre, descripcion: v.descripcion || '',
+      fechaInicio: v.fechaInicio, fechaFin: v.fechaFin,
+      horaInicio: v.horaInicio, horaFin: v.horaFin,
+    });
+    this.pushNotif(`✏️ Historial actualizado: ${v.nombre}`, 'info');
+    this.cerrarEdicionHistorial();
+  }
+
+  async eliminarTodoHistorial(): Promise<void> {
+    try {
+      await Promise.all(this.historial.map(h => remove(ref(db, `eventos/${h.id}`))));
+      this.mostrarConfirmEliminarHistorial = false;
+      this.pushNotif('🗑 Historial eliminado completamente', 'danger');
+      this.cdr.markForCheck();
+    } catch (e: any) {
+      this.errorMsg = 'Error al eliminar historial: ' + e.message;
+    }
+  }
+
   iniciarMonitoreo(): void {
     this.timer = setInterval(() => {
       this.verificarEstados();
@@ -173,64 +249,69 @@ export class EventosComponent implements OnInit, OnDestroy {
   verificarEstados(): void {
     const now = new Date();
     this.eventos.forEach(ev => {
-      const inicio = this.dt(ev.fecha, ev.horaInicio);
-      const fin    = this.dt(ev.fecha, ev.horaFin);
-      const diffM  = (inicio.getTime() - now.getTime()) / 60_000;
-      let nuevoStatus: EventStatus = ev.status;
+      if (ev.status === 'completed') return;
 
-      if (now >= inicio && now < fin) nuevoStatus = 'in-progress';
-      else if (now >= fin && ev.status === 'in-progress') nuevoStatus = 'unorganized';
+      // Usamos fechaFin + horaFin y fechaInicio + horaInicio
+      const inicio = this.dt(ev.fechaInicio, ev.horaInicio);
+      const fin    = this.dt(ev.fechaFin,    ev.horaFin);
+      const minParaInicio = (inicio.getTime() - now.getTime()) / 60_000;
+      const minParaFin    = (fin.getTime()    - now.getTime()) / 60_000;
 
-      // Actualizar en Firebase si el status cambió automáticamente
-      if (nuevoStatus !== ev.status) {
-        this.actualizarEvento(ev.id, { status: nuevoStatus });
+      if (now > fin && ev.status !== 'uncompleted') {
+        this.actualizarEvento(ev.id, { status: 'uncompleted' });
+      } else if (now >= inicio && minParaFin > 0 && minParaFin <= 60 && ev.status === 'pending') {
+        this.actualizarEvento(ev.id, { status: 'finishing' });
       }
 
-      // Notificación 1 hora antes
-      if (!this.notifCtrl[ev.id + '_1h'] && diffM > 0 && diffM <= 60) {
-        this.notifCtrl[ev.id + '_1h'] = true;
-        this.actualizarEvento(ev.id, { notificado1h: true });
-        this.pushNotif(`⏰ En 1 hora: ${ev.nombre}`, 'warning');
+      const key15 = ev.id + '_proximo';
+      if (!this.notifCtrl[key15] && !ev.notificadoProximo && minParaInicio > 0 && minParaInicio <= 30) {
+        this.notifCtrl[key15] = true;
+        this.actualizarEvento(ev.id, { notificadoProximo: true });
+        this.pushNotif(`⏰ Próximo a comenzar en ${Math.round(minParaInicio)} min: ${ev.nombre}`, 'warning');
+        this.notifSistema(`⏰ Próximo a comenzar en ${Math.round(minParaInicio)} min: ${ev.nombre}`);
       }
-      // Notificación 15 minutos antes
-      if (!this.notifCtrl[ev.id + '_15m'] && diffM > 0 && diffM <= 15) {
-        this.notifCtrl[ev.id + '_15m'] = true;
-        this.actualizarEvento(ev.id, { notificado15min: true });
-        this.pushNotif(`🔔 En 15 min: ${ev.nombre}`, 'warning');
+
+      const keyFin = ev.id + '_porFinalizar';
+      if (!this.notifCtrl[keyFin] && !ev.notificadoPorFinalizar && now >= inicio && minParaFin > 0 && minParaFin <= 60) {
+        this.notifCtrl[keyFin] = true;
+        this.actualizarEvento(ev.id, { notificadoPorFinalizar: true });
+        this.pushNotif(`🔥 Por Finalizar en ${Math.round(minParaFin)} min: ${ev.nombre}`, 'warning');
+        this.notifSistema(`🔥 ${ev.nombre} está por finalizar`);
       }
-      // Notificación al inicio
-      const cincoMin = new Date(inicio.getTime() + 5 * 60_000);
-      if (!this.notifCtrl[ev.id + '_st'] && now >= inicio && now < cincoMin) {
-        this.notifCtrl[ev.id + '_st'] = true;
-        this.actualizarEvento(ev.id, { notificadoInicio: true });
-        this.pushNotif(`🚀 Comenzó: ${ev.nombre}`, 'info');
+
+      const keySC = ev.id + '_sinCompletar';
+      if (!this.notifCtrl[keySC] && !ev.notificadoSinCompletar && now > fin) {
+        this.notifCtrl[keySC] = true;
+        this.actualizarEvento(ev.id, { notificadoSinCompletar: true });
+        this.pushNotif(`❌ El evento "${ev.nombre}" finalizó sin ser completado`, 'danger');
+        this.notifSistema(`❌ Evento sin completar: ${ev.nombre}`);
       }
     });
   }
 
-  // ── Notificaciones locales + sistema ──────────────────────
-  pushNotif(mensaje: string, tipo: 'warning' | 'info' | 'success'): void {
-    this.notificaciones.unshift({
-      id: this.uid(), mensaje, tipo,
-      timestamp: new Date(), leida: false
-    });
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('📅 Eventos', { body: mensaje });
-    }
+  async marcarCompletado(ev: Evento): Promise<void> {
+    await this.actualizarEvento(ev.id, { status: 'completed', completadoEn: Date.now() });
+    this.menuAbierto = null;
+    this.pushNotif(`✅ Completado: ${ev.nombre}`, 'success');
+  }
+
+  pushNotif(mensaje: string, tipo: 'warning' | 'info' | 'success' | 'danger'): void {
+    this.notificaciones.unshift({ id: this.uid(), mensaje, tipo, timestamp: new Date(), leida: false });
     this.cdr.markForCheck();
   }
 
-  solicitarPermiso(): void {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(p => {
-        if (p === 'granted') {
-          this.pushNotif('✅ Notificaciones del sistema activadas', 'success');
-        }
-      });
-    }
+  notifSistema(mensaje: string): void {
+    if ('Notification' in window && Notification.permission === 'granted')
+      new Notification('📅 Eventos', { body: mensaje });
   }
 
-  // ── Formulario ────────────────────────────────────────────
+  solicitarPermiso(): void {
+    if ('Notification' in window)
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') this.pushNotif('✅ Notificaciones del sistema activadas', 'success');
+      });
+  }
+
   abrirFormulario(ev?: Evento): void {
     this.eventoEditando = ev ?? null;
     this.mostrarFormulario = true;
@@ -238,7 +319,8 @@ export class EventosComponent implements OnInit, OnDestroy {
     if (ev) {
       this.form.patchValue({
         nombre: ev.nombre, descripcion: ev.descripcion,
-        fecha: ev.fecha, horaInicio: ev.horaInicio, horaFin: ev.horaFin,
+        fechaInicio: ev.fechaInicio, fechaFin: ev.fechaFin,
+        horaInicio: ev.horaInicio, horaFin: ev.horaFin,
       });
     }
   }
@@ -252,19 +334,20 @@ export class EventosComponent implements OnInit, OnDestroy {
   async guardar(): Promise<void> {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
-
     if (this.eventoEditando) {
       await this.actualizarEvento(this.eventoEditando.id, {
         nombre: v.nombre, descripcion: v.descripcion,
-        fecha: v.fecha, horaInicio: v.horaInicio, horaFin: v.horaFin,
+        fechaInicio: v.fechaInicio, fechaFin: v.fechaFin,
+        horaInicio: v.horaInicio, horaFin: v.horaFin,
       });
     } else {
       const nuevo: Omit<Evento, 'id'> = {
         nombre: v.nombre, descripcion: v.descripcion || '',
-        fecha: v.fecha, horaInicio: v.horaInicio, horaFin: v.horaFin,
-        status: 'pending',
-        notificado15min: false, notificado1h: false, notificadoInicio: false,
-        createdAt: Date.now(),
+        fechaInicio: v.fechaInicio, fechaFin: v.fechaFin,
+        horaInicio: v.horaInicio, horaFin: v.horaFin,
+        status: 'pending', completadoEn: null,
+        notificadoProximo: false, notificadoPorFinalizar: false,
+        notificadoSinCompletar: false, createdAt: Date.now(),
       };
       await this.crearEvento(nuevo);
     }
@@ -272,36 +355,85 @@ export class EventosComponent implements OnInit, OnDestroy {
   }
 
   async cambiarStatus(id: string, status: EventStatus): Promise<void> {
-    await this.actualizarEvento(id, { status });
-    this.menuAbierto = null;
+    const ev = this.eventos.find(e => e.id === id);
+    if (status === 'completed' && ev) {
+      await this.marcarCompletado(ev);
+    } else {
+      await this.actualizarEvento(id, { status });
+      this.menuAbierto = null;
+    }
   }
 
   toggleMenu(id: string): void {
     this.menuAbierto = this.menuAbierto === id ? null : id;
   }
 
-  // ── Getters ───────────────────────────────────────────────
+  limpiarBusqueda(): void {
+    this.textoBusqueda = '';
+    this.cdr.markForCheck();
+  }
+
   get filtrados(): Evento[] {
-    return (this.filtroActual === 'all'
-      ? [...this.eventos]
-      : this.eventos.filter(e => e.status === this.filtroActual)
-    ).sort((a, b) => this.dt(a.fecha, a.horaInicio).getTime() - this.dt(b.fecha, b.horaInicio).getTime());
+    let base = this.eventos.filter(e => e.status !== 'completed');
+    if (this.filtroActual !== 'all') base = base.filter(e => e.status === this.filtroActual);
+    if (this.textoBusqueda.trim()) {
+      const q = this.textoBusqueda.toLowerCase();
+      base = base.filter(e =>
+        e.nombre.toLowerCase().includes(q) ||
+        (e.descripcion ?? '').toLowerCase().includes(q)
+      );
+    }
+    return base.sort((a, b) =>
+      this.dt(a.fechaInicio, a.horaInicio).getTime() - this.dt(b.fechaInicio, b.horaInicio).getTime()
+    );
+  }
+
+  get historial(): HistorialItem[] {
+    return this.eventos
+      .filter(e => e.status === 'completed' && e.completadoEn)
+      .sort((a, b) => (b.completadoEn ?? 0) - (a.completadoEn ?? 0))
+      .map(e => ({
+        id: e.id, nombre: e.nombre, descripcion: e.descripcion,
+        fechaInicio: e.fechaInicio, fechaFin: e.fechaFin,
+        horaInicio: e.horaInicio, horaFin: e.horaFin,
+        completadoEn: e.completadoEn!,
+      }));
   }
 
   get noLeidas(): number { return this.notificaciones.filter(n => !n.leida).length; }
-  contar(s: EventStatus): number { return this.eventos.filter(e => e.status === s).length; }
+
+  contar(s: EventStatus | 'active'): number {
+    if (s === 'active') return this.eventos.filter(e => e.status !== 'completed').length;
+    return this.eventos.filter(e => e.status === s).length;
+  }
+
   marcarLeidas(): void { this.notificaciones.forEach(n => n.leida = true); }
   cerrarError(): void { this.errorMsg = ''; }
 
-  // ── Utils ─────────────────────────────────────────────────
+  esMultiDia(ev: Evento): boolean { return ev.fechaInicio !== ev.fechaFin; }
+
   dt(fecha: string, hora: string): Date { return new Date(`${fecha}T${hora}:00`); }
+
   formatFecha(f: string): string {
     return new Date(f + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
   }
+
+  formatFechaCorta(f: string): string {
+    return new Date(f + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  }
+
   formatHora(h: string): string {
     const [hh, mm] = h.split(':').map(Number);
     return `${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh >= 12 ? 'PM' : 'AM'}`;
   }
+
+  formatDateTime(ts: number): string {
+    return new Date(ts).toLocaleString('es-ES', {
+      weekday: 'short', day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
   uid(): string { return Math.random().toString(36).slice(2, 10); }
   trackId(_: number, e: Evento): string { return e.id; }
 }

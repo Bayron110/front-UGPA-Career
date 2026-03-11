@@ -1,6 +1,5 @@
 <div class="ev-root" (click)="menuAbierto = null">
 
-  <!-- Partículas decorativas -->
   <div class="ev-particles">
     <span class="particle" *ngFor="let p of [1,2,3,4,5,6,7,8,9,10,11,12,13,14]"></span>
   </div>
@@ -25,32 +24,28 @@
           <p class="ev-header__sub">Gestión en tiempo real · Firebase</p>
         </div>
       </div>
-
       <div class="ev-header__actions">
-        <!-- Bell notificaciones -->
-        <button
-          class="ev-icon-btn"
-          [class.ev-icon-btn--active]="mostrarNotificaciones"
-          (click)="$event.stopPropagation(); mostrarNotificaciones = !mostrarNotificaciones; marcarLeidas()"
-          title="Notificaciones">
+        <button class="ev-icon-btn" (click)="$event.stopPropagation(); mostrarHistorial = true" title="Historial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/>
+          </svg>
+          <span class="ev-badge ev-badge--green" *ngIf="historial.length > 0">{{ historial.length }}</span>
+        </button>
+        <button class="ev-icon-btn" [class.ev-icon-btn--active]="mostrarNotificaciones"
+          (click)="$event.stopPropagation(); mostrarNotificaciones = !mostrarNotificaciones; marcarLeidas()" title="Notificaciones">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
           <span class="ev-badge" *ngIf="noLeidas > 0">{{ noLeidas }}</span>
         </button>
-
-        <!-- Activar notif sistema -->
         <button class="ev-icon-btn" (click)="solicitarPermiso()" title="Activar notificaciones del sistema">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <circle cx="12" cy="12" r="3"/>
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
           </svg>
         </button>
-
-        <!-- Firebase status dot -->
-        <div class="ev-firebase-dot" [class.ev-firebase-dot--ok]="!cargando && !errorMsg" title="Firebase conectado"></div>
-
+        <div class="ev-firebase-dot" [class.ev-firebase-dot--ok]="!cargando && !errorMsg" title="Firebase"></div>
         <button class="ev-btn-primary" (click)="abrirFormulario()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -61,17 +56,14 @@
     </header>
 
     <!-- ── PANEL NOTIFICACIONES ──────────────────────────── -->
-    <div class="ev-notif-panel" [class.ev-notif-panel--open]="mostrarNotificaciones"
-      (click)="$event.stopPropagation()">
+    <div class="ev-notif-panel" [class.ev-notif-panel--open]="mostrarNotificaciones" (click)="$event.stopPropagation()">
       <div class="ev-notif-panel__head">
         <span>🔔 Notificaciones</span>
         <button (click)="notificaciones = []">Limpiar todo</button>
       </div>
       <div class="ev-notif-panel__body">
         <p class="ev-notif-empty" *ngIf="notificaciones.length === 0">Sin notificaciones aún</p>
-        <div class="ev-notif-item"
-          *ngFor="let n of notificaciones"
-          [ngClass]="'ev-notif-item--' + n.tipo">
+        <div class="ev-notif-item" *ngFor="let n of notificaciones" [ngClass]="'ev-notif-item--' + n.tipo">
           <div class="ev-notif-dot"></div>
           <span>{{ n.mensaje }}</span>
           <time>{{ n.timestamp | date:'HH:mm' }}</time>
@@ -90,91 +82,186 @@
       <!-- ── STATS ─────────────────────────────────────────── -->
       <div class="ev-stats">
         <div class="ev-stat ev-stat--total">
-          <span class="ev-stat__num">{{ eventos.length }}</span>
-          <span class="ev-stat__lbl">Total</span>
+          <div class="ev-stat__icon-wrap">📋</div>
+          <span class="ev-stat__num">{{ contar('active') }}</span>
+          <span class="ev-stat__lbl">Activos</span>
         </div>
         <div class="ev-stat ev-stat--pending">
+          <div class="ev-stat__icon-wrap">⏳</div>
           <span class="ev-stat__num">{{ contar('pending') }}</span>
           <span class="ev-stat__lbl">Pendientes</span>
         </div>
-        <div class="ev-stat ev-stat--progress">
-          <span class="ev-stat__num">{{ contar('in-progress') }}</span>
-          <span class="ev-stat__lbl">En Progreso</span>
+        <div class="ev-stat ev-stat--finishing">
+          <div class="ev-stat__icon-wrap">🔥</div>
+          <span class="ev-stat__num">{{ contar('finishing') }}</span>
+          <span class="ev-stat__lbl">Por Finalizar</span>
         </div>
-        <div class="ev-stat ev-stat--unorganized">
-          <span class="ev-stat__num">{{ contar('unorganized') }}</span>
-          <span class="ev-stat__lbl">Sin Organizar</span>
+        <div class="ev-stat ev-stat--uncompleted">
+          <div class="ev-stat__icon-wrap">❌</div>
+          <span class="ev-stat__num">{{ contar('uncompleted') }}</span>
+          <span class="ev-stat__lbl">Sin Completar</span>
         </div>
       </div>
 
-      <!-- ── FILTROS ────────────────────────────────────────── -->
-      <div class="ev-filters">
-        <button class="ev-filter-btn" [class.ev-filter-btn--active]="filtroActual === 'all'"
-          (click)="filtroActual = 'all'">Todos <span>{{ eventos.length }}</span></button>
-        <button class="ev-filter-btn ev-filter-btn--pending" [class.ev-filter-btn--active]="filtroActual === 'pending'"
-          (click)="filtroActual = 'pending'">⏳ Pendientes <span>{{ contar('pending') }}</span></button>
-        <button class="ev-filter-btn ev-filter-btn--progress" [class.ev-filter-btn--active]="filtroActual === 'in-progress'"
-          (click)="filtroActual = 'in-progress'">▶ En Progreso <span>{{ contar('in-progress') }}</span></button>
-        <button class="ev-filter-btn ev-filter-btn--unorganized" [class.ev-filter-btn--active]="filtroActual === 'unorganized'"
-          (click)="filtroActual = 'unorganized'">◈ Sin Organizar <span>{{ contar('unorganized') }}</span></button>
+      <!-- ── BARRA DE BÚSQUEDA + FILTROS ───────────────────── -->
+      <div class="ev-toolbar">
+        <!-- Buscador -->
+        <div class="ev-search">
+          <svg class="ev-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            class="ev-search__input"
+            type="text"
+            placeholder="Buscar eventos por nombre o descripción..."
+            [(ngModel)]="textoBusqueda"
+          />
+          <button class="ev-search__clear" *ngIf="textoBusqueda" (click)="limpiarBusqueda()" title="Limpiar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="ev-filters">
+          <button class="ev-filter-btn" [class.ev-filter-btn--active]="filtroActual === 'all'" (click)="filtroActual = 'all'">
+            Todos <span>{{ contar('active') }}</span>
+          </button>
+          <button class="ev-filter-btn ev-filter-btn--pending" [class.ev-filter-btn--active]="filtroActual === 'pending'" (click)="filtroActual = 'pending'">
+            ⏳ Pendientes <span>{{ contar('pending') }}</span>
+          </button>
+          <button class="ev-filter-btn ev-filter-btn--finishing" [class.ev-filter-btn--active]="filtroActual === 'finishing'" (click)="filtroActual = 'finishing'">
+            🔥 Por Finalizar <span>{{ contar('finishing') }}</span>
+          </button>
+          <button class="ev-filter-btn ev-filter-btn--uncompleted" [class.ev-filter-btn--active]="filtroActual === 'uncompleted'" (click)="filtroActual = 'uncompleted'">
+            ❌ Sin Completar <span>{{ contar('uncompleted') }}</span>
+          </button>
+        </div>
       </div>
+
+      <!-- Resultado de búsqueda -->
+      <p class="ev-search-result" *ngIf="textoBusqueda.trim()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        {{ filtrados.length }} resultado{{ filtrados.length !== 1 ? 's' : '' }} para "<strong>{{ textoBusqueda }}</strong>"
+      </p>
 
       <!-- ── EMPTY STATE ────────────────────────────────────── -->
       <div class="ev-empty" *ngIf="filtrados.length === 0">
-        <span class="ev-empty__icon">◈</span>
-        <p>No hay eventos en esta categoría</p>
-        <button class="ev-btn-ghost" (click)="abrirFormulario()">+ Crear el primero</button>
+        <span class="ev-empty__icon">{{ textoBusqueda ? '🔍' : '◈' }}</span>
+        <p>{{ textoBusqueda ? 'No se encontraron eventos con ese término' : 'No hay eventos en esta categoría' }}</p>
+        <button class="ev-btn-ghost" (click)="abrirFormulario()" *ngIf="!textoBusqueda">+ Crear el primero</button>
+        <button class="ev-btn-ghost" (click)="limpiarBusqueda()" *ngIf="textoBusqueda">Limpiar búsqueda</button>
       </div>
 
-      <!-- ── CARDS ──────────────────────────────────────────── -->
+      <!-- ── CARDS GRID ─────────────────────────────────────── -->
       <div class="ev-cards" *ngIf="filtrados.length > 0">
         <div class="ev-card" *ngFor="let ev of filtrados; trackBy: trackId; let i = index"
           [ngClass]="'ev-card--' + ev.status"
-          [style.animation-delay]="(i * 0.07) + 's'">
+          [style.animation-delay]="(i * 0.06) + 's'">
 
-          <div class="ev-card__bar"></div>
+          <!-- Acento lateral de color -->
+          <div class="ev-card__side-bar"></div>
 
-          <div class="ev-card__head">
-            <div class="ev-card__info">
-              <span class="ev-chip" [ngClass]="'ev-chip--' + ev.status">
-                {{ statusCfg[ev.status].icon }} {{ statusCfg[ev.status].label }}
-              </span>
-              <h3 class="ev-card__title">{{ ev.nombre }}</h3>
-            </div>
+          <!-- Decoración de fondo -->
+          <div class="ev-card__glow"></div>
 
-            <!-- Menú opciones -->
+          <!-- ── Cabecera de la card ── -->
+          <div class="ev-card__header">
+            <span class="ev-chip" [ngClass]="'ev-chip--' + ev.status">
+              {{ statusCfg[ev.status].icon }} {{ statusCfg[ev.status].label }}
+            </span>
             <div class="ev-menu-wrap" (click)="$event.stopPropagation()">
-              <button class="ev-menu-btn" (click)="toggleMenu(ev.id)">⋮</button>
+              <button class="ev-menu-btn" (click)="toggleMenu(ev.id)">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                  <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
+                </svg>
+              </button>
               <div class="ev-menu" *ngIf="menuAbierto === ev.id">
-                <button class="ev-menu__item"
-                  *ngFor="let k of statusKeys"
-                  [class.ev-menu__item--active]="ev.status === k"
-                  [ngClass]="'ev-menu__item--' + k"
-                  (click)="cambiarStatus(ev.id, k)">
-                  {{ statusCfg[k].icon }} {{ statusCfg[k].label }}
-                </button>
+                <button class="ev-menu__item ev-menu__item--complete" (click)="marcarCompletado(ev)">✅ Marcar Completado</button>
                 <div class="ev-menu__divider"></div>
-                <button class="ev-menu__item ev-menu__item--edit"
-                  (click)="abrirFormulario(ev); menuAbierto = null">✏️ Editar</button>
-                <button class="ev-menu__item ev-menu__item--delete"
-                  (click)="eliminarEvento(ev.id)">🗑 Eliminar</button>
+                <button class="ev-menu__item" *ngFor="let k of statusKeys"
+                  [class.ev-menu__item--active]="ev.status === k" [ngClass]="'ev-menu__item--' + k"
+                  (click)="cambiarStatus(ev.id, k)">{{ statusCfg[k].icon }} {{ statusCfg[k].label }}</button>
+                <div class="ev-menu__divider"></div>
+                <button class="ev-menu__item ev-menu__item--edit" (click)="abrirFormulario(ev); menuAbierto = null">✏️ Editar</button>
+                <button class="ev-menu__item ev-menu__item--delete" (click)="eliminarEvento(ev.id)">🗑 Eliminar</button>
               </div>
             </div>
           </div>
 
-          <p class="ev-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</p>
-
-          <div class="ev-card__meta">
-            <span class="ev-meta-tag">📅 {{ formatFecha(ev.fecha) }}</span>
-            <span class="ev-meta-tag">🕐 {{ formatHora(ev.horaInicio) }} – {{ formatHora(ev.horaFin) }}</span>
+          <!-- ── Nombre y descripción ── -->
+          <div class="ev-card__body">
+            <h3 class="ev-card__title">{{ ev.nombre }}</h3>
+            <p class="ev-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</p>
           </div>
+
+          <!-- ── Bloque de fechas y horas ── -->
+          <div class="ev-card__dates">
+
+            <!-- Si es evento de un solo día -->
+            <ng-container *ngIf="!esMultiDia(ev)">
+              <div class="ev-date-pill ev-date-pill--single">
+                <div class="ev-date-pill__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <span class="ev-date-pill__text">{{ formatFecha(ev.fechaInicio) }}</span>
+              </div>
+              <div class="ev-date-pill ev-date-pill--time">
+                <div class="ev-date-pill__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>
+                  </svg>
+                </div>
+                <span class="ev-date-pill__text">{{ formatHora(ev.horaInicio) }} → {{ formatHora(ev.horaFin) }}</span>
+              </div>
+            </ng-container>
+
+            <!-- Si es evento de múltiples días -->
+            <ng-container *ngIf="esMultiDia(ev)">
+              <div class="ev-date-range">
+                <div class="ev-date-range__col">
+                  <span class="ev-date-range__label">INICIO</span>
+                  <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaInicio) }}</span>
+                  <span class="ev-date-range__time">{{ formatHora(ev.horaInicio) }}</span>
+                </div>
+                <div class="ev-date-range__arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </div>
+                <div class="ev-date-range__col ev-date-range__col--end">
+                  <span class="ev-date-range__label">FIN</span>
+                  <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaFin) }}</span>
+                  <span class="ev-date-range__time">{{ formatHora(ev.horaFin) }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+          </div>
+
+          <!-- ── Botón completar ── -->
+          <button class="ev-card__complete-btn" (click)="marcarCompletado(ev)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Marcar como completado
+          </button>
+
         </div>
       </div>
 
     </ng-container>
-  </div><!-- /container -->
+  </div>
 
-  <!-- ── MODAL FORMULARIO ───────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════
+       MODAL — NUEVO / EDITAR EVENTO
+  ══════════════════════════════════════════════════════ -->
   <div class="ev-modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
     <div class="ev-modal" (click)="$event.stopPropagation()">
       <div class="ev-modal__head">
@@ -183,9 +270,10 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="guardar()" class="ev-form">
+
         <div class="ev-field">
           <label>Nombre del Evento *</label>
-          <input formControlName="nombre" placeholder="Ej: Incorporaciones"
+          <input formControlName="nombre" placeholder="Ej: Conferencia Anual"
             [class.ev-field-input--error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"/>
           <span class="ev-error-msg" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
             Ingresa al menos 3 caracteres
@@ -197,19 +285,37 @@
           <textarea formControlName="descripcion" placeholder="Detalles del evento..." rows="3"></textarea>
         </div>
 
-        <div class="ev-field">
-          <label>Fecha *</label>
-          <input type="date" formControlName="fecha"
-            [class.ev-field-input--error]="form.get('fecha')?.invalid && form.get('fecha')?.touched"/>
+        <!-- Fechas de inicio y fin -->
+        <div class="ev-form__section-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Duración del evento
         </div>
 
         <div class="ev-form__row">
           <div class="ev-field">
-            <label>Hora Inicio *</label>
+            <label>Fecha de Inicio *</label>
+            <input type="date" formControlName="fechaInicio"
+              [class.ev-field-input--error]="form.get('fechaInicio')?.invalid && form.get('fechaInicio')?.touched"/>
+            <span class="ev-error-msg" *ngIf="form.get('fechaInicio')?.invalid && form.get('fechaInicio')?.touched">Requerido</span>
+          </div>
+          <div class="ev-field">
+            <label>Fecha de Fin *</label>
+            <input type="date" formControlName="fechaFin"
+              [class.ev-field-input--error]="form.get('fechaFin')?.invalid && form.get('fechaFin')?.touched"/>
+            <span class="ev-error-msg" *ngIf="form.get('fechaFin')?.invalid && form.get('fechaFin')?.touched">Requerido</span>
+          </div>
+        </div>
+
+        <div class="ev-form__row">
+          <div class="ev-field">
+            <label>Hora de Inicio *</label>
             <input type="time" formControlName="horaInicio"/>
           </div>
           <div class="ev-field">
-            <label>Hora Fin *</label>
+            <label>Hora de Fin *</label>
             <input type="time" formControlName="horaFin"/>
           </div>
         </div>
@@ -221,6 +327,149 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MODAL — HISTORIAL
+  ══════════════════════════════════════════════════════ -->
+  <div class="ev-modal-overlay" *ngIf="mostrarHistorial" (click)="mostrarHistorial = false; cerrarEdicionHistorial()">
+    <div class="ev-modal ev-modal--historial" (click)="$event.stopPropagation()">
+
+      <div class="ev-modal__head">
+        <h2>📋 Historial de Completados</h2>
+        <div class="ev-modal__head-actions">
+          <button class="ev-btn-danger-sm" *ngIf="historial.length > 0"
+            (click)="mostrarConfirmEliminarHistorial = true" title="Eliminar todo el historial">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+            </svg>
+            Eliminar todo
+          </button>
+          <button class="ev-modal__close" (click)="mostrarHistorial = false; cerrarEdicionHistorial()">×</button>
+        </div>
+      </div>
+
+      <!-- Confirmación eliminar historial -->
+      <div class="ev-confirm-box" *ngIf="mostrarConfirmEliminarHistorial">
+        <div class="ev-confirm-box__icon">⚠️</div>
+        <p>¿Eliminar <strong>todo</strong> el historial? Esta acción no se puede deshacer.</p>
+        <div class="ev-confirm-box__actions">
+          <button class="ev-btn-cancel" (click)="mostrarConfirmEliminarHistorial = false">Cancelar</button>
+          <button class="ev-btn-delete" (click)="eliminarTodoHistorial()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            </svg>
+            Sí, eliminar todo
+          </button>
+        </div>
+      </div>
+
+      <!-- Vacío -->
+      <div class="ev-historial-empty" *ngIf="historial.length === 0 && !mostrarConfirmEliminarHistorial">
+        <span>✅</span>
+        <p>Aún no hay eventos completados</p>
+      </div>
+
+      <!-- Lista -->
+      <div class="ev-historial-list" *ngIf="historial.length > 0">
+        <div class="ev-historial-item" *ngFor="let h of historial"
+          [class.ev-historial-item--editing]="historialEditando?.id === h.id">
+
+          <!-- Vista normal -->
+          <ng-container *ngIf="historialEditando?.id !== h.id">
+            <div class="ev-historial-item__check">✅</div>
+            <div class="ev-historial-item__body">
+              <h4>{{ h.nombre }}</h4>
+              <p *ngIf="h.descripcion">{{ h.descripcion }}</p>
+              <div class="ev-historial-item__meta">
+                <!-- Fechas del historial -->
+                <span *ngIf="h.fechaInicio === h.fechaFin">
+                  📅 {{ formatFecha(h.fechaInicio) }}
+                </span>
+                <span *ngIf="h.fechaInicio !== h.fechaFin">
+                  📅 {{ formatFechaCorta(h.fechaInicio) }} → {{ formatFechaCorta(h.fechaFin) }}
+                </span>
+                <span>🕐 {{ formatHora(h.horaInicio) }} – {{ formatHora(h.horaFin) }}</span>
+              </div>
+            </div>
+            <div class="ev-historial-item__right">
+              <div class="ev-historial-item__completado">
+                <span class="ev-historial-item__label">Completado</span>
+                <span class="ev-historial-item__time">{{ formatDateTime(h.completadoEn) }}</span>
+              </div>
+              <div class="ev-historial-item__btns">
+                <button class="ev-historial-edit-btn" (click)="abrirEdicionHistorial(h)" title="Editar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Editar
+                </button>
+                <button class="ev-historial-delete-btn" (click)="eliminarEvento(h.id)" title="Eliminar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Edición inline -->
+          <div class="ev-historial-edit-form" *ngIf="historialEditando?.id === h.id">
+            <div class="ev-historial-edit-form__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editando: <strong>{{ h.nombre }}</strong>
+            </div>
+            <form [formGroup]="formHistorial" (ngSubmit)="guardarEdicionHistorial()" class="ev-form">
+              <div class="ev-field">
+                <label>Nombre *</label>
+                <input formControlName="nombre" placeholder="Nombre del evento"
+                  [class.ev-field-input--error]="formHistorial.get('nombre')?.invalid && formHistorial.get('nombre')?.touched"/>
+                <span class="ev-error-msg" *ngIf="formHistorial.get('nombre')?.invalid && formHistorial.get('nombre')?.touched">
+                  Mínimo 3 caracteres
+                </span>
+              </div>
+              <div class="ev-field">
+                <label>Descripción</label>
+                <textarea formControlName="descripcion" placeholder="Detalles..." rows="2"></textarea>
+              </div>
+              <div class="ev-form__row">
+                <div class="ev-field">
+                  <label>Fecha Inicio *</label>
+                  <input type="date" formControlName="fechaInicio"/>
+                </div>
+                <div class="ev-field">
+                  <label>Fecha Fin *</label>
+                  <input type="date" formControlName="fechaFin"/>
+                </div>
+              </div>
+              <div class="ev-form__row">
+                <div class="ev-field">
+                  <label>Hora Inicio *</label>
+                  <input type="time" formControlName="horaInicio"/>
+                </div>
+                <div class="ev-field">
+                  <label>Hora Fin *</label>
+                  <input type="time" formControlName="horaFin"/>
+                </div>
+              </div>
+              <div class="ev-form__actions">
+                <button type="button" class="ev-btn-cancel" (click)="cerrarEdicionHistorial()">Cancelar</button>
+                <button type="submit" class="ev-btn-submit">💾 Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
