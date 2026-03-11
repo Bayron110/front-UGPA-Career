@@ -17,4 +17,6 @@ export class NavBar {
   goBack(): void {
     this.location.back();
   }
+
+
 }
