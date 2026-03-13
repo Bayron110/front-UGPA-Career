@@ -1,12 +1,33 @@
 {
   "name": "app-carreras",
-  "version": "0.0.0",
+  "version": "1.0.7",
+  "main": "main.js",
+  "author": "Bayron Alomoto",
+  "private": true,
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --base-href ./",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "electron": "electron .",
+    "electron:build": "npm run build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.app.carreras",
+    "productName": "App Carreras",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "Gestion.de.Carrer.as.Setup.${version}.${ext}"
+    }
   },
   "prettier": {
     "overrides": [
@@ -18,7 +39,6 @@
       }
     ]
   },
-  "private": true,
   "dependencies": {
     "@angular/common": "^20.1.0",
     "@angular/compiler": "^20.1.0",
@@ -29,6 +49,8 @@
     "chart.js": "^4.5.1",
     "docxtemplater": "^3.67.5",
     "docxtemplater-image-module-free": "^1.1.1",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
     "file-saver": "^2.0.5",
     "firebase": "^12.10.0",
     "jspdf": "^3.0.3",
@@ -47,6 +69,8 @@
     "@types/jasmine": "~5.1.0",
     "@types/jspdf": "^1.3.3",
     "@types/jszip": "^3.4.0",
+    "electron": "^41.0.0",
+    "electron-builder": "^26.8.1",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
