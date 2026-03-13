@@ -1,4 +1,4 @@
-<div class="ev-root" (click)="menuAbierto = null">
+<div class="ev-root" (click)="menuGeneralAbierto = null; menuFamiliaAbierto = null; menuPendienteAbierto = null">
 
   <div class="ev-particles">
     <span class="particle" *ngFor="let p of [1,2,3,4,5,6,7,8,9,10,11,12,13,14]"></span>
@@ -9,53 +9,76 @@
 
   <div class="ev-container">
 
-    <!-- ── ERROR BANNER ──────────────────────────────────── -->
     <div class="ev-error-banner" *ngIf="errorMsg">
       <span>⚠️ {{ errorMsg }}</span>
       <button (click)="cerrarError()">×</button>
     </div>
 
-    <!-- ── HEADER ─────────────────────────────────────────── -->
     <header class="ev-header">
       <div class="ev-header__brand">
         <div class="ev-header__logo">◈</div>
         <div>
           <h1 class="ev-header__title">Eventos</h1>
-          <p class="ev-header__sub">Gestión en tiempo real · Firebase</p>
+          <p class="ev-header__sub">General con fecha · grupos con pendientes</p>
         </div>
       </div>
+
       <div class="ev-header__actions">
         <button class="ev-icon-btn" (click)="$event.stopPropagation(); mostrarHistorial = true" title="Historial">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/>
+            <path d="M12 8v4l3 3"></path>
+            <circle cx="12" cy="12" r="9"></circle>
           </svg>
           <span class="ev-badge ev-badge--green" *ngIf="historial.length > 0">{{ historial.length }}</span>
         </button>
-        <button class="ev-icon-btn" [class.ev-icon-btn--active]="mostrarNotificaciones"
-          (click)="$event.stopPropagation(); mostrarNotificaciones = !mostrarNotificaciones; marcarLeidas()" title="Notificaciones">
+
+        <button class="ev-icon-btn"
+          [class.ev-icon-btn--active]="mostrarNotificaciones"
+          (click)="$event.stopPropagation(); mostrarNotificaciones = !mostrarNotificaciones; marcarLeidas()"
+          title="Notificaciones">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
           </svg>
           <span class="ev-badge" *ngIf="noLeidas > 0">{{ noLeidas }}</span>
         </button>
+
         <button class="ev-icon-btn" (click)="solicitarPermiso()" title="Activar notificaciones del sistema">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
           </svg>
         </button>
+
         <div class="ev-firebase-dot" [class.ev-firebase-dot--ok]="!cargando && !errorMsg" title="Firebase"></div>
-        <button class="ev-btn-primary" (click)="abrirFormulario()">
+
+        <button class="ev-btn-carga" (click)="abrirCargaMasiva('general')" title="Carga masiva">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <polyline points="16 16 12 12 8 16"></polyline>
+            <line x1="12" y1="12" x2="12" y2="21"></line>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+          </svg>
+          Carga Masiva
+        </button>
+
+        <button class="ev-btn-familia" (click)="abrirFormFamilia()" title="Crear grupo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Nuevo Grupo
+        </button>
+
+        <button class="ev-btn-primary" (click)="abrirFormularioGeneral()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
           Nuevo Evento
         </button>
       </div>
     </header>
 
-    <!-- ── PANEL NOTIFICACIONES ──────────────────────────── -->
     <div class="ev-notif-panel" [class.ev-notif-panel--open]="mostrarNotificaciones" (click)="$event.stopPropagation()">
       <div class="ev-notif-panel__head">
         <span>🔔 Notificaciones</span>
@@ -71,211 +94,418 @@
       </div>
     </div>
 
-    <!-- ── LOADING ───────────────────────────────────────── -->
     <div class="ev-loading" *ngIf="cargando">
       <div class="ev-spinner"></div>
       <p>Conectando con Firebase...</p>
     </div>
 
     <ng-container *ngIf="!cargando">
+      <div class="ev-grid-main">
 
-      <!-- ── STATS ─────────────────────────────────────────── -->
-      <div class="ev-stats">
-        <div class="ev-stat ev-stat--total">
-          <div class="ev-stat__icon-wrap">📋</div>
-          <span class="ev-stat__num">{{ contar('active') }}</span>
-          <span class="ev-stat__lbl">Activos</span>
-        </div>
-        <div class="ev-stat ev-stat--pending">
-          <div class="ev-stat__icon-wrap">⏳</div>
-          <span class="ev-stat__num">{{ contar('pending') }}</span>
-          <span class="ev-stat__lbl">Pendientes</span>
-        </div>
-        <div class="ev-stat ev-stat--finishing">
-          <div class="ev-stat__icon-wrap">🔥</div>
-          <span class="ev-stat__num">{{ contar('finishing') }}</span>
-          <span class="ev-stat__lbl">Por Finalizar</span>
-        </div>
-        <div class="ev-stat ev-stat--uncompleted">
-          <div class="ev-stat__icon-wrap">❌</div>
-          <span class="ev-stat__num">{{ contar('uncompleted') }}</span>
-          <span class="ev-stat__lbl">Sin Completar</span>
-        </div>
-      </div>
+        <div class="ev-col">
+          <div class="ev-general-panel">
 
-      <!-- ── BARRA DE BÚSQUEDA + FILTROS ───────────────────── -->
-      <div class="ev-toolbar">
-        <!-- Buscador -->
-        <div class="ev-search">
-          <svg class="ev-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            class="ev-search__input"
-            type="text"
-            placeholder="Buscar eventos por nombre o descripción..."
-            [(ngModel)]="textoBusqueda"
-          />
-          <button class="ev-search__clear" *ngIf="textoBusqueda" (click)="limpiarBusqueda()" title="Limpiar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Filtros -->
-        <div class="ev-filters">
-          <button class="ev-filter-btn" [class.ev-filter-btn--active]="filtroActual === 'all'" (click)="filtroActual = 'all'">
-            Todos <span>{{ contar('active') }}</span>
-          </button>
-          <button class="ev-filter-btn ev-filter-btn--pending" [class.ev-filter-btn--active]="filtroActual === 'pending'" (click)="filtroActual = 'pending'">
-            ⏳ Pendientes <span>{{ contar('pending') }}</span>
-          </button>
-          <button class="ev-filter-btn ev-filter-btn--finishing" [class.ev-filter-btn--active]="filtroActual === 'finishing'" (click)="filtroActual = 'finishing'">
-            🔥 Por Finalizar <span>{{ contar('finishing') }}</span>
-          </button>
-          <button class="ev-filter-btn ev-filter-btn--uncompleted" [class.ev-filter-btn--active]="filtroActual === 'uncompleted'" (click)="filtroActual = 'uncompleted'">
-            ❌ Sin Completar <span>{{ contar('uncompleted') }}</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Resultado de búsqueda -->
-      <p class="ev-search-result" *ngIf="textoBusqueda.trim()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        {{ filtrados.length }} resultado{{ filtrados.length !== 1 ? 's' : '' }} para "<strong>{{ textoBusqueda }}</strong>"
-      </p>
-
-      <!-- ── EMPTY STATE ────────────────────────────────────── -->
-      <div class="ev-empty" *ngIf="filtrados.length === 0">
-        <span class="ev-empty__icon">{{ textoBusqueda ? '🔍' : '◈' }}</span>
-        <p>{{ textoBusqueda ? 'No se encontraron eventos con ese término' : 'No hay eventos en esta categoría' }}</p>
-        <button class="ev-btn-ghost" (click)="abrirFormulario()" *ngIf="!textoBusqueda">+ Crear el primero</button>
-        <button class="ev-btn-ghost" (click)="limpiarBusqueda()" *ngIf="textoBusqueda">Limpiar búsqueda</button>
-      </div>
-
-      <!-- ── CARDS GRID ─────────────────────────────────────── -->
-      <div class="ev-cards" *ngIf="filtrados.length > 0">
-        <div class="ev-card" *ngFor="let ev of filtrados; trackBy: trackId; let i = index"
-          [ngClass]="'ev-card--' + ev.status"
-          [style.animation-delay]="(i * 0.06) + 's'">
-
-          <!-- Acento lateral de color -->
-          <div class="ev-card__side-bar"></div>
-
-          <!-- Decoración de fondo -->
-          <div class="ev-card__glow"></div>
-
-          <!-- ── Cabecera de la card ── -->
-          <div class="ev-card__header">
-            <span class="ev-chip" [ngClass]="'ev-chip--' + ev.status">
-              {{ statusCfg[ev.status].icon }} {{ statusCfg[ev.status].label }}
-            </span>
-            <div class="ev-menu-wrap" (click)="$event.stopPropagation()">
-              <button class="ev-menu-btn" (click)="toggleMenu(ev.id)">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                  <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
+            <div class="ev-general-panel__head">
+              <div class="ev-general-panel__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-              </button>
-              <div class="ev-menu" *ngIf="menuAbierto === ev.id">
-                <button class="ev-menu__item ev-menu__item--complete" (click)="marcarCompletado(ev)">✅ Marcar Completado</button>
-                <div class="ev-menu__divider"></div>
-                <button class="ev-menu__item" *ngFor="let k of statusKeys"
-                  [class.ev-menu__item--active]="ev.status === k" [ngClass]="'ev-menu__item--' + k"
-                  (click)="cambiarStatus(ev.id, k)">{{ statusCfg[k].icon }} {{ statusCfg[k].label }}</button>
-                <div class="ev-menu__divider"></div>
-                <button class="ev-menu__item ev-menu__item--edit" (click)="abrirFormulario(ev); menuAbierto = null">✏️ Editar</button>
-                <button class="ev-menu__item ev-menu__item--delete" (click)="eliminarEvento(ev.id)">🗑 Eliminar</button>
+                Eventos Generales
+              </div>
+              <div class="ev-general-panel__head-actions">
+                <button class="ev-btn-carga-sm" (click)="abrirCargaMasiva('general')" title="Carga masiva de eventos">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <polyline points="16 16 12 12 8 16"></polyline>
+                    <line x1="12" y1="12" x2="12" y2="21"></line>
+                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                  </svg>
+                  Masiva
+                </button>
+                <button class="ev-btn-general-create" (click)="abrirFormularioGeneral()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Crear Evento
+                </button>
               </div>
             </div>
-          </div>
 
-          <!-- ── Nombre y descripción ── -->
-          <div class="ev-card__body">
-            <h3 class="ev-card__title">{{ ev.nombre }}</h3>
-            <p class="ev-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</p>
-          </div>
+            <div class="ev-general-panel__scroll">
 
-          <!-- ── Bloque de fechas y horas ── -->
-          <div class="ev-card__dates">
+            <div class="ev-actual-section" *ngIf="eventosGeneralesActivos.length > 0">
+              <div class="ev-actual-section__head">
+                <div class="ev-actual-pulse"></div>
+                <span>En curso ahora</span>
+              </div>
+              <div class="ev-actual-cards">
+                <div class="ev-actual-card" *ngFor="let ev of eventosGeneralesActivos">
+                  <div class="ev-actual-card__left">
+                    <div class="ev-actual-card__nombre">{{ ev.nombre }}</div>
+                    <div class="ev-actual-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</div>
+                    <div class="ev-actual-card__meta">
+                      <span>🕐 {{ formatHora(ev.horaInicio) }} → {{ formatHora(ev.horaFin) }}</span>
+                    </div>
+                  </div>
+                  <button class="ev-actual-card__btn" (click)="marcarGeneralCompletado(ev)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Completar
+                  </button>
+                </div>
+              </div>
+            </div>
 
-            <!-- Si es evento de un solo día -->
-            <ng-container *ngIf="!esMultiDia(ev)">
-              <div class="ev-date-pill ev-date-pill--single">
-                <div class="ev-date-pill__icon">
+            <div class="ev-stats">
+              <div class="ev-stat ev-stat--total">
+                <div class="ev-stat__icon-wrap">📋</div>
+                <span class="ev-stat__num">{{ contarGenerales('active') }}</span>
+                <span class="ev-stat__lbl">Activos</span>
+              </div>
+              <div class="ev-stat ev-stat--pending">
+                <div class="ev-stat__icon-wrap">⏳</div>
+                <span class="ev-stat__num">{{ contarGenerales('pending') }}</span>
+                <span class="ev-stat__lbl">Pendientes</span>
+              </div>
+              <div class="ev-stat ev-stat--finishing">
+                <div class="ev-stat__icon-wrap">🔥</div>
+                <span class="ev-stat__num">{{ contarGenerales('finishing') }}</span>
+                <span class="ev-stat__lbl">Por Finalizar</span>
+              </div>
+              <div class="ev-stat ev-stat--uncompleted">
+                <div class="ev-stat__icon-wrap">❌</div>
+                <span class="ev-stat__num">{{ contarGenerales('uncompleted') }}</span>
+                <span class="ev-stat__lbl">Sin Completar</span>
+              </div>
+            </div>
+
+            <div class="ev-toolbar">
+              <div class="ev-search">
+                <svg class="ev-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input class="ev-search__input" type="text" placeholder="Buscar eventos generales..."
+                  [(ngModel)]="textoBusquedaGeneral" />
+                <button class="ev-search__clear" *ngIf="textoBusquedaGeneral" (click)="limpiarBusquedaGeneral()" title="Limpiar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="ev-filters-row">
+                <div class="ev-filters">
+                  <button class="ev-filter-btn" [class.ev-filter-btn--active]="filtroGeneralActual === 'all'"
+                    (click)="filtroGeneralActual = 'all'">
+                    Todos <span>{{ contarGenerales('active') }}</span>
+                  </button>
+                  <button class="ev-filter-btn ev-filter-btn--pending"
+                    [class.ev-filter-btn--active]="filtroGeneralActual === 'pending'"
+                    (click)="filtroGeneralActual = 'pending'">
+                    ⏳ Pendientes <span>{{ contarGenerales('pending') }}</span>
+                  </button>
+                  <button class="ev-filter-btn ev-filter-btn--finishing"
+                    [class.ev-filter-btn--active]="filtroGeneralActual === 'finishing'"
+                    (click)="filtroGeneralActual = 'finishing'">
+                    🔥 Por Finalizar <span>{{ contarGenerales('finishing') }}</span>
+                  </button>
+                  <button class="ev-filter-btn ev-filter-btn--uncompleted"
+                    [class.ev-filter-btn--active]="filtroGeneralActual === 'uncompleted'"
+                    (click)="filtroGeneralActual = 'uncompleted'">
+                    ❌ Sin Completar <span>{{ contarGenerales('uncompleted') }}</span>
+                  </button>
+                </div>
+                <button class="ev-sort-btn" (click)="toggleOrdenGeneral()" [title]="ordenGeneralAsc ? 'Orden: más próximo primero' : 'Orden: más lejano primero'">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="15" y2="12"></line>
+                    <line x1="3" y1="18" x2="9" y2="18"></line>
                   </svg>
-                </div>
-                <span class="ev-date-pill__text">{{ formatFecha(ev.fechaInicio) }}</span>
-              </div>
-              <div class="ev-date-pill ev-date-pill--time">
-                <div class="ev-date-pill__icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 3.5"/>
+                  <svg class="ev-sort-btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"
+                    [class.ev-sort-btn__arrow--down]="!ordenGeneralAsc">
+                    <polyline points="18 15 12 9 6 15"></polyline>
                   </svg>
-                </div>
-                <span class="ev-date-pill__text">{{ formatHora(ev.horaInicio) }} → {{ formatHora(ev.horaFin) }}</span>
+                  {{ ordenGeneralAsc ? 'Más próximo' : 'Más lejano' }}
+                </button>
               </div>
-            </ng-container>
+            </div>
 
-            <!-- Si es evento de múltiples días -->
-            <ng-container *ngIf="esMultiDia(ev)">
-              <div class="ev-date-range">
-                <div class="ev-date-range__col">
-                  <span class="ev-date-range__label">INICIO</span>
-                  <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaInicio) }}</span>
-                  <span class="ev-date-range__time">{{ formatHora(ev.horaInicio) }}</span>
-                </div>
-                <div class="ev-date-range__arrow">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                  </svg>
-                </div>
-                <div class="ev-date-range__col ev-date-range__col--end">
-                  <span class="ev-date-range__label">FIN</span>
-                  <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaFin) }}</span>
-                  <span class="ev-date-range__time">{{ formatHora(ev.horaFin) }}</span>
-                </div>
-              </div>
-            </ng-container>
+            <p class="ev-search-result" *ngIf="textoBusquedaGeneral.trim()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              {{ eventosGeneralesFiltrados.length }} resultado{{ eventosGeneralesFiltrados.length !== 1 ? 's' : '' }} para
+              "<strong>{{ textoBusquedaGeneral }}</strong>"
+            </p>
 
+            <div class="ev-empty" *ngIf="eventosGeneralesFiltrados.length === 0">
+              <span class="ev-empty__icon">{{ textoBusquedaGeneral ? '🔍' : '📅' }}</span>
+              <p>{{ textoBusquedaGeneral ? 'No se encontraron eventos generales' : 'No hay eventos generales registrados' }}</p>
+              <button class="ev-btn-ghost" (click)="abrirFormularioGeneral()" *ngIf="!textoBusquedaGeneral">+ Crear el primero</button>
+              <button class="ev-btn-ghost" (click)="limpiarBusquedaGeneral()" *ngIf="textoBusquedaGeneral">Limpiar búsqueda</button>
+            </div>
+
+            <div class="ev-cards" *ngIf="eventosGeneralesFiltrados.length > 0">
+              <div class="ev-card"
+                *ngFor="let ev of eventosGeneralesFiltrados; trackBy: trackGeneralId; let i = index"
+                [ngClass]="'ev-card--' + ev.status"
+                [style.animation-delay]="(i * 0.06) + 's'">
+
+                <div class="ev-card__side-bar"></div>
+                <div class="ev-card__glow"></div>
+
+                <div class="ev-card__header">
+                  <span class="ev-chip" [ngClass]="'ev-chip--' + ev.status">
+                    {{ statusCfg[ev.status].icon }} {{ statusCfg[ev.status].label }}
+                  </span>
+
+                  <div class="ev-menu-wrap" (click)="$event.stopPropagation()">
+                    <button class="ev-menu-btn" (click)="toggleMenuGeneral(ev.id)">
+                      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <circle cx="12" cy="5" r="1.8"></circle>
+                        <circle cx="12" cy="12" r="1.8"></circle>
+                        <circle cx="12" cy="19" r="1.8"></circle>
+                      </svg>
+                    </button>
+
+                    <div class="ev-menu" *ngIf="menuGeneralAbierto === ev.id">
+                      <button class="ev-menu__item ev-menu__item--complete" (click)="marcarGeneralCompletado(ev)">✅ Marcar Completado</button>
+                      <div class="ev-menu__divider"></div>
+                      <button class="ev-menu__item"
+                        *ngFor="let k of statusKeys"
+                        [class.ev-menu__item--active]="ev.status === k"
+                        [ngClass]="'ev-menu__item--' + k"
+                        (click)="cambiarStatusGeneral(ev.id, k)">
+                        {{ statusCfg[k].icon }} {{ statusCfg[k].label }}
+                      </button>
+                      <div class="ev-menu__divider"></div>
+                      <button class="ev-menu__item ev-menu__item--edit" (click)="abrirFormularioGeneral(ev); menuGeneralAbierto = null">✏️ Editar</button>
+                      <button class="ev-menu__item ev-menu__item--delete" (click)="eliminarEventoGeneral(ev.id)">🗑 Eliminar</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ev-card__body">
+                  <h3 class="ev-card__title">{{ ev.nombre }}</h3>
+                  <p class="ev-card__desc" *ngIf="ev.descripcion">{{ ev.descripcion }}</p>
+                </div>
+
+                <div class="ev-card__dates">
+                  <ng-container *ngIf="ev.fechaInicio === ev.fechaFin">
+                    <div class="ev-date-pill ev-date-pill--single">
+                      <div class="ev-date-pill__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      </div>
+                      <span class="ev-date-pill__text">{{ formatFecha(ev.fechaInicio) }}</span>
+                    </div>
+
+                    <div class="ev-date-pill ev-date-pill--time" *ngIf="ev.horaInicio">
+                      <div class="ev-date-pill__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                          <circle cx="12" cy="12" r="9"></circle>
+                          <path d="M12 7v5l3.5 3.5"></path>
+                        </svg>
+                      </div>
+                      <span class="ev-date-pill__text">{{ formatHora(ev.horaInicio) }} → {{ formatHora(ev.horaFin) }}</span>
+                    </div>
+                  </ng-container>
+
+                  <ng-container *ngIf="ev.fechaInicio !== ev.fechaFin">
+                    <div class="ev-date-range">
+                      <div class="ev-date-range__col">
+                        <span class="ev-date-range__label">INICIO</span>
+                        <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaInicio) }}</span>
+                        <span class="ev-date-range__time">{{ formatHora(ev.horaInicio) }}</span>
+                      </div>
+                      <div class="ev-date-range__arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </div>
+                      <div class="ev-date-range__col ev-date-range__col--end">
+                        <span class="ev-date-range__label">FIN</span>
+                        <span class="ev-date-range__date">{{ formatFechaCorta(ev.fechaFin) }}</span>
+                        <span class="ev-date-range__time">{{ formatHora(ev.horaFin) }}</span>
+                      </div>
+                    </div>
+                  </ng-container>
+                </div>
+
+                <button class="ev-card__complete-btn" (click)="marcarGeneralCompletado(ev)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Marcar como completado
+                </button>
+              </div>
+            </div>
+
+            </div><!-- /ev-general-panel__scroll -->
           </div>
-
-          <!-- ── Botón completar ── -->
-          <button class="ev-card__complete-btn" (click)="marcarCompletado(ev)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Marcar como completado
-          </button>
-
         </div>
-      </div>
 
+        <div class="ev-col">
+          <div class="ev-grupos-panel">
+
+            <div class="ev-grupos-panel__head">
+              <div class="ev-grupos-panel__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Familias y Grupos
+              </div>
+              <div class="ev-grupos-panel__head-actions">
+                <button class="ev-btn-carga-sm ev-btn-carga-sm--familia" (click)="abrirCargaMasiva('familia')" title="Carga masiva en grupo">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                    <polyline points="16 16 12 12 8 16"></polyline>
+                    <line x1="12" y1="12" x2="12" y2="21"></line>
+                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                  </svg>
+                  Masiva
+                </button>
+                <button class="ev-btn-familia-create" (click)="abrirFormFamilia()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Crear Grupo
+                </button>
+              </div>
+            </div>
+
+            <div class="ev-grupos-panel__scroll">
+
+            <div class="ev-grupos-summary" *ngIf="familias.length > 0">
+              <div class="ev-grupos-summary__stat">
+                <span class="ev-grupos-summary__num">{{ familias.length }}</span>
+                <span class="ev-grupos-summary__lbl">Grupos</span>
+              </div>
+              <div class="ev-grupos-summary__divider"></div>
+              <div class="ev-grupos-summary__stat">
+                <span class="ev-grupos-summary__num">{{ totalPendientesActivos }}</span>
+                <span class="ev-grupos-summary__lbl">Activos</span>
+              </div>
+              <div class="ev-grupos-summary__divider"></div>
+              <div class="ev-grupos-summary__stat">
+                <span class="ev-grupos-summary__num">{{ totalPendientesCompletados }}</span>
+                <span class="ev-grupos-summary__lbl">Completados</span>
+              </div>
+            </div>
+
+            <div class="ev-grupos-empty" *ngIf="familias.length === 0">
+              <span>👨‍👩‍👧</span>
+              <p>Aún no tienes familias o grupos</p>
+              <button class="ev-btn-ghost" (click)="abrirFormFamilia()">+ Crear el primero</button>
+            </div>
+
+            <div class="ev-familia-grid" *ngIf="familias.length > 0">
+              <div class="ev-familia-card"
+                *ngFor="let f of familias; trackBy: trackFamiliaId"
+                [style.--familia-color]="f.color"
+                (click)="abrirModalFamilia(f)">
+
+                <div class="ev-familia-card__bar"></div>
+
+                <div class="ev-familia-card__head">
+                  <div class="ev-familia-card__icono">{{ f.icono }}</div>
+
+                  <div class="ev-familia-card__head-right">
+                    <span class="ev-familia-card__badge"
+                      *ngIf="getPendientesActivos(f.id) > 0"
+                      title="Pendientes activos">
+                      {{ getPendientesActivos(f.id) }}
+                    </span>
+                    <span class="ev-familia-card__badge ev-familia-card__badge--done"
+                      *ngIf="getPendientesActivos(f.id) === 0 && getTotalPendientes(f.id) > 0"
+                      title="Todo completado">✓</span>
+
+                    <div class="ev-familia-menu-wrap" (click)="$event.stopPropagation()">
+                      <button class="ev-menu-btn" (click)="toggleMenuFamilia(f.id)">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                          <circle cx="12" cy="5" r="1.8"></circle>
+                          <circle cx="12" cy="12" r="1.8"></circle>
+                          <circle cx="12" cy="19" r="1.8"></circle>
+                        </svg>
+                      </button>
+                      <div class="ev-menu" *ngIf="menuFamiliaAbierto === f.id">
+                        <button class="ev-menu__item" (click)="abrirFormFamilia(f); menuFamiliaAbierto = null">✏️ Editar Grupo</button>
+                        <button class="ev-menu__item ev-menu__item--delete" (click)="eliminarFamilia(f.id)">🗑 Eliminar Grupo</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ev-familia-card__body">
+                  <h3 class="ev-familia-card__nombre">{{ f.nombre }}</h3>
+                  <p class="ev-familia-card__desc" *ngIf="f.descripcion">{{ f.descripcion }}</p>
+                </div>
+
+                <div class="ev-familia-card__progress" *ngIf="getTotalPendientes(f.id) > 0">
+                  <div class="ev-familia-card__progress-bar">
+                    <div class="ev-familia-card__progress-fill"
+                      [style.width.%]="getProgresoPendientes(f.id)"
+                      [style.background]="f.color">
+                    </div>
+                  </div>
+                  <span class="ev-familia-card__progress-label">
+                    {{ getCompletadosPendientes(f.id) }}/{{ getTotalPendientes(f.id) }} completados
+                  </span>
+                </div>
+
+                <div class="ev-familia-card__footer">
+                  <span class="ev-familia-card__count">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    {{ getTotalPendientes(f.id) === 0
+                        ? 'Sin pendientes aún'
+                        : getPendientesActivos(f.id) + ' pendiente' + (getPendientesActivos(f.id) !== 1 ? 's' : '') + ' activo' + (getPendientesActivos(f.id) !== 1 ? 's' : '') }}
+                  </span>
+                  <span class="ev-familia-card__ver">Abrir →</span>
+                </div>
+              </div>
+            </div>
+
+            </div><!-- /ev-grupos-panel__scroll -->
+          </div>
+        </div>
+
+      </div>
     </ng-container>
+
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       MODAL — NUEVO / EDITAR EVENTO
-  ══════════════════════════════════════════════════════ -->
-  <div class="ev-modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
+
+  <div class="ev-modal-overlay" *ngIf="mostrarFormularioGeneral" (click)="cerrarFormularioGeneral()">
     <div class="ev-modal" (click)="$event.stopPropagation()">
       <div class="ev-modal__head">
-        <h2>{{ eventoEditando ? '✏️ Editar Evento' : '✨ Nuevo Evento' }}</h2>
-        <button class="ev-modal__close" (click)="cerrarFormulario()">×</button>
+        <h2>{{ eventoGeneralEditando ? '✏️ Editar Evento General' : '✨ Nuevo Evento General' }}</h2>
+        <button class="ev-modal__close" (click)="cerrarFormularioGeneral()">×</button>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="guardar()" class="ev-form">
-
+      <form [formGroup]="formGeneral" (ngSubmit)="guardarEventoGeneral()" class="ev-form">
         <div class="ev-field">
           <label>Nombre del Evento *</label>
           <input formControlName="nombre" placeholder="Ej: Conferencia Anual"
-            [class.ev-field-input--error]="form.get('nombre')?.invalid && form.get('nombre')?.touched"/>
-          <span class="ev-error-msg" *ngIf="form.get('nombre')?.invalid && form.get('nombre')?.touched">
+            [class.ev-field-input--error]="formGeneral.get('nombre')?.invalid && formGeneral.get('nombre')?.touched" />
+          <span class="ev-error-msg" *ngIf="formGeneral.get('nombre')?.invalid && formGeneral.get('nombre')?.touched">
             Ingresa al menos 3 caracteres
           </span>
         </div>
@@ -285,11 +515,12 @@
           <textarea formControlName="descripcion" placeholder="Detalles del evento..." rows="3"></textarea>
         </div>
 
-        <!-- Fechas de inicio y fin -->
         <div class="ev-form__section-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
           Duración del evento
         </div>
@@ -298,41 +529,236 @@
           <div class="ev-field">
             <label>Fecha de Inicio *</label>
             <input type="date" formControlName="fechaInicio"
-              [class.ev-field-input--error]="form.get('fechaInicio')?.invalid && form.get('fechaInicio')?.touched"/>
-            <span class="ev-error-msg" *ngIf="form.get('fechaInicio')?.invalid && form.get('fechaInicio')?.touched">Requerido</span>
+              [class.ev-field-input--error]="formGeneral.get('fechaInicio')?.invalid && formGeneral.get('fechaInicio')?.touched" />
           </div>
           <div class="ev-field">
             <label>Fecha de Fin *</label>
             <input type="date" formControlName="fechaFin"
-              [class.ev-field-input--error]="form.get('fechaFin')?.invalid && form.get('fechaFin')?.touched"/>
-            <span class="ev-error-msg" *ngIf="form.get('fechaFin')?.invalid && form.get('fechaFin')?.touched">Requerido</span>
+              [class.ev-field-input--error]="formGeneral.get('fechaFin')?.invalid && formGeneral.get('fechaFin')?.touched" />
           </div>
         </div>
 
         <div class="ev-form__row">
           <div class="ev-field">
             <label>Hora de Inicio *</label>
-            <input type="time" formControlName="horaInicio"/>
+            <input type="time" formControlName="horaInicio" />
           </div>
           <div class="ev-field">
             <label>Hora de Fin *</label>
-            <input type="time" formControlName="horaFin"/>
+            <input type="time" formControlName="horaFin" />
           </div>
         </div>
 
         <div class="ev-form__actions">
-          <button type="button" class="ev-btn-cancel" (click)="cerrarFormulario()">Cancelar</button>
+          <button type="button" class="ev-btn-cancel" (click)="cerrarFormularioGeneral()">Cancelar</button>
           <button type="submit" class="ev-btn-submit">
-            {{ eventoEditando ? '💾 Guardar Cambios' : '✨ Crear Evento' }}
+            {{ eventoGeneralEditando ? '💾 Guardar Cambios' : '✨ Crear Evento' }}
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       MODAL — HISTORIAL
-  ══════════════════════════════════════════════════════ -->
+
+  <div class="ev-modal-overlay" *ngIf="mostrarFormFamilia" (click)="cerrarFormFamilia()">
+    <div class="ev-modal ev-modal--familia" (click)="$event.stopPropagation()">
+      <div class="ev-modal__head">
+        <h2>{{ familiaEditando ? '✏️ Editar Grupo' : '👨‍👩‍👧 Crear Familia / Grupo' }}</h2>
+        <button class="ev-modal__close" (click)="cerrarFormFamilia()">×</button>
+      </div>
+
+      <form [formGroup]="formFamilia" (ngSubmit)="guardarFamilia()" class="ev-form">
+        <div class="ev-field">
+          <label>Nombre del Grupo *</label>
+          <input formControlName="nombre" placeholder="Ej: Familia García, Equipo Dev..."
+            [class.ev-field-input--error]="formFamilia.get('nombre')?.invalid && formFamilia.get('nombre')?.touched" />
+          <span class="ev-error-msg" *ngIf="formFamilia.get('nombre')?.invalid && formFamilia.get('nombre')?.touched">
+            Mínimo 2 caracteres
+          </span>
+        </div>
+
+        <div class="ev-field">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" placeholder="Descripción del grupo..." rows="2"></textarea>
+        </div>
+
+        <div class="ev-field">
+          <label>Ícono</label>
+          <div class="ev-icono-grid">
+            <button type="button" class="ev-icono-btn"
+              *ngFor="let ic of familiaIconos"
+              [class.ev-icono-btn--active]="familiaIconoSeleccionado === ic"
+              (click)="familiaIconoSeleccionado = ic">{{ ic }}</button>
+          </div>
+        </div>
+
+        <div class="ev-field">
+          <label>Color de acento</label>
+          <div class="ev-color-grid">
+            <button type="button" class="ev-color-btn"
+              *ngFor="let c of familiaColores"
+              [class.ev-color-btn--active]="familiaColorSeleccionado === c.valor"
+              [style.background]="c.valor"
+              [title]="c.nombre"
+              (click)="familiaColorSeleccionado = c.valor">
+              <svg *ngIf="familiaColorSeleccionado === c.valor" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="14" height="14">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="ev-familia-preview" [style.--familia-color]="familiaColorSeleccionado">
+          <div class="ev-familia-preview__bar"></div>
+          <span class="ev-familia-preview__icono">{{ familiaIconoSeleccionado }}</span>
+          <span class="ev-familia-preview__nombre">{{ formFamilia.get('nombre')?.value || 'Nombre del grupo' }}</span>
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" (click)="cerrarFormFamilia()">Cancelar</button>
+          <button type="submit" class="ev-btn-submit">
+            {{ familiaEditando ? '💾 Guardar Cambios' : '👨‍👩‍👧 Crear Grupo' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="ev-modal-overlay" *ngIf="mostrarModalFamilia && familiaSeleccionada" (click)="cerrarModalFamilia()">
+    <div class="ev-modal ev-modal--familia-detalle" (click)="$event.stopPropagation()">
+      <div class="ev-modal__head">
+        <h2>{{ familiaSeleccionada.icono }} {{ familiaSeleccionada.nombre }}</h2>
+        <button class="ev-modal__close" (click)="cerrarModalFamilia()">×</button>
+      </div>
+
+      <div class="ev-familia-banner" [style.--familia-color]="familiaSeleccionada.color">
+        <div class="ev-familia-banner__left">
+          <span class="ev-familia-banner__icono">{{ familiaSeleccionada.icono }}</span>
+          <div>
+            <p class="ev-familia-banner__label">Grupo activo</p>
+            <h3 class="ev-familia-banner__nombre">{{ familiaSeleccionada.nombre }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="formPendiente" (ngSubmit)="guardarPendienteFamilia()" class="ev-form">
+        <div class="ev-field">
+          <label>Nombre del Pendiente *</label>
+          <input formControlName="nombre" placeholder="Ej: Comprar víveres"
+            [class.ev-field-input--error]="formPendiente.get('nombre')?.invalid && formPendiente.get('nombre')?.touched" />
+          <span class="ev-error-msg" *ngIf="formPendiente.get('nombre')?.invalid && formPendiente.get('nombre')?.touched">
+            Ingresa al menos 2 caracteres
+          </span>
+        </div>
+
+        <div class="ev-field">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" placeholder="Detalle opcional..." rows="2"></textarea>
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" *ngIf="pendienteEditando" (click)="cancelarEdicionPendiente()">Cancelar edición</button>
+          <button type="submit" class="ev-btn-submit">
+            {{ pendienteEditando ? '💾 Guardar Cambios' : '➕ Agregar Pendiente' }}
+          </button>
+        </div>
+      </form>
+
+      <div class="ev-toolbar">
+        <div class="ev-search">
+          <svg class="ev-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input class="ev-search__input" type="text" placeholder="Buscar pendientes..."
+            [(ngModel)]="textoBusquedaPendientes" />
+          <button class="ev-search__clear" *ngIf="textoBusquedaPendientes" (click)="limpiarBusquedaPendientes()" title="Limpiar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <button class="ev-sort-btn ev-sort-btn--pendientes" (click)="toggleOrdenPendientes()" [title]="ordenPendientesAsc ? 'Orden: más reciente primero' : 'Orden: más antiguo primero'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="15" y2="12"></line>
+            <line x1="3" y1="18" x2="9" y2="18"></line>
+          </svg>
+          <svg class="ev-sort-btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"
+            [class.ev-sort-btn__arrow--down]="!ordenPendientesAsc">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+          {{ ordenPendientesAsc ? 'Más reciente' : 'Más antiguo' }}
+        </button>
+      </div>
+
+      <div class="ev-mini-stats">
+        <div class="ev-mini-stat">
+          <span class="ev-mini-stat__num">{{ pendientesFamiliaFiltrados.length }}</span>
+          <span class="ev-mini-stat__lbl">Total</span>
+        </div>
+        <div class="ev-mini-stat">
+          <span class="ev-mini-stat__num">{{ pendientesActivosGrupo }}</span>
+          <span class="ev-mini-stat__lbl">Activos</span>
+        </div>
+        <div class="ev-mini-stat">
+          <span class="ev-mini-stat__num">{{ contarCompletadosGrupo() }}</span>
+          <span class="ev-mini-stat__lbl">Completados</span>
+        </div>
+      </div>
+
+      <div class="ev-empty" *ngIf="pendientesFamiliaFiltrados.length === 0">
+        <span class="ev-empty__icon">{{ textoBusquedaPendientes ? '🔍' : '📝' }}</span>
+        <p>{{ textoBusquedaPendientes ? 'No se encontraron pendientes' : 'No hay pendientes en este grupo' }}</p>
+      </div>
+
+      <div class="ev-pendientes-list" *ngIf="pendientesFamiliaFiltrados.length > 0">
+        <div class="ev-pendiente-item"
+          *ngFor="let p of pendientesFamiliaFiltrados; trackBy: trackPendienteId"
+          [class.ev-pendiente-item--done]="p.completado">
+
+          <button class="ev-pendiente-check"
+            [class.ev-pendiente-check--done]="p.completado"
+            (click)="toggleCompletarPendiente(p)">
+            <svg *ngIf="p.completado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="12" height="12">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+
+          <div class="ev-pendiente-content">
+            <span class="ev-pendiente-nombre">{{ p.nombre }}</span>
+            <span class="ev-pendiente-desc" *ngIf="p.descripcion">{{ p.descripcion }}</span>
+            <span class="ev-pendiente-completado" *ngIf="p.completadoEn">
+              Completado: {{ formatDateTime(p.completadoEn) }}
+            </span>
+          </div>
+
+          <div class="ev-pendiente-menu-wrap" (click)="$event.stopPropagation()">
+            <button class="ev-pendiente-menu-btn" (click)="toggleMenuPendiente(p.id)">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                <circle cx="12" cy="5" r="1.8"></circle>
+                <circle cx="12" cy="12" r="1.8"></circle>
+                <circle cx="12" cy="19" r="1.8"></circle>
+              </svg>
+            </button>
+            <div class="ev-menu" *ngIf="menuPendienteAbierto === p.id">
+              <button class="ev-menu__item ev-menu__item--complete" (click)="toggleCompletarPendiente(p)">
+                {{ p.completado ? '↩️ Reabrir' : '✅ Completar' }}
+              </button>
+              <div class="ev-menu__divider"></div>
+              <button class="ev-menu__item ev-menu__item--edit" (click)="editarPendiente(p)">✏️ Editar</button>
+              <button class="ev-menu__item ev-menu__item--delete" (click)="eliminarPendienteFamilia(p.id)">🗑 Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
   <div class="ev-modal-overlay" *ngIf="mostrarHistorial" (click)="mostrarHistorial = false; cerrarEdicionHistorial()">
     <div class="ev-modal ev-modal--historial" (click)="$event.stopPropagation()">
 
@@ -340,11 +766,12 @@
         <h2>📋 Historial de Completados</h2>
         <div class="ev-modal__head-actions">
           <button class="ev-btn-danger-sm" *ngIf="historial.length > 0"
-            (click)="mostrarConfirmEliminarHistorial = true" title="Eliminar todo el historial">
+            (click)="mostrarConfirmEliminarHistorial = true"
+            title="Eliminar todo el historial">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6M14 11v6"></path>
             </svg>
             Eliminar todo
           </button>
@@ -352,50 +779,48 @@
         </div>
       </div>
 
-      <!-- Confirmación eliminar historial -->
       <div class="ev-confirm-box" *ngIf="mostrarConfirmEliminarHistorial">
         <div class="ev-confirm-box__icon">⚠️</div>
         <p>¿Eliminar <strong>todo</strong> el historial? Esta acción no se puede deshacer.</p>
         <div class="ev-confirm-box__actions">
           <button class="ev-btn-cancel" (click)="mostrarConfirmEliminarHistorial = false">Cancelar</button>
-          <button class="ev-btn-delete" (click)="eliminarTodoHistorial()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-            </svg>
-            Sí, eliminar todo
-          </button>
+          <button class="ev-btn-delete" (click)="eliminarTodoHistorial()">Sí, eliminar todo</button>
         </div>
       </div>
 
-      <!-- Vacío -->
       <div class="ev-historial-empty" *ngIf="historial.length === 0 && !mostrarConfirmEliminarHistorial">
         <span>✅</span>
-        <p>Aún no hay eventos completados</p>
+        <p>Aún no hay elementos completados</p>
       </div>
 
-      <!-- Lista -->
       <div class="ev-historial-list" *ngIf="historial.length > 0">
-        <div class="ev-historial-item" *ngFor="let h of historial"
+        <div class="ev-historial-item"
+          *ngFor="let h of historial"
           [class.ev-historial-item--editing]="historialEditando?.id === h.id">
 
-          <!-- Vista normal -->
           <ng-container *ngIf="historialEditando?.id !== h.id">
             <div class="ev-historial-item__check">✅</div>
+
             <div class="ev-historial-item__body">
               <h4>{{ h.nombre }}</h4>
               <p *ngIf="h.descripcion">{{ h.descripcion }}</p>
               <div class="ev-historial-item__meta">
-                <!-- Fechas del historial -->
-                <span *ngIf="h.fechaInicio === h.fechaFin">
-                  📅 {{ formatFecha(h.fechaInicio) }}
+                <span *ngIf="h.tipo === 'general' && h.fechaInicio === h.fechaFin && h.fechaInicio">
+                  📅 {{ formatFecha(h.fechaInicio!) }}
                 </span>
-                <span *ngIf="h.fechaInicio !== h.fechaFin">
-                  📅 {{ formatFechaCorta(h.fechaInicio) }} → {{ formatFechaCorta(h.fechaFin) }}
+                <span *ngIf="h.tipo === 'general' && h.fechaInicio !== h.fechaFin && h.fechaInicio">
+                  📅 {{ formatFechaCorta(h.fechaInicio!) }} → {{ formatFechaCorta(h.fechaFin!) }}
                 </span>
-                <span>🕐 {{ formatHora(h.horaInicio) }} – {{ formatHora(h.horaFin) }}</span>
+                <span *ngIf="h.tipo === 'familia'">♾️ Sin fecha</span>
+                <span *ngIf="h.tipo === 'general' && h.horaInicio">
+                  🕐 {{ formatHora(h.horaInicio!) }} – {{ formatHora(h.horaFin!) }}
+                </span>
+                <span *ngIf="getFamilia(h.familiaId) as fam" [style.color]="fam.color">
+                  {{ fam.icono }} {{ fam.nombre }}
+                </span>
               </div>
             </div>
+
             <div class="ev-historial-item__right">
               <div class="ev-historial-item__completado">
                 <span class="ev-historial-item__label">Completado</span>
@@ -403,64 +828,51 @@
               </div>
               <div class="ev-historial-item__btns">
                 <button class="ev-historial-edit-btn" (click)="abrirEdicionHistorial(h)" title="Editar">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
                   Editar
-                </button>
-                <button class="ev-historial-delete-btn" (click)="eliminarEvento(h.id)" title="Eliminar">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  </svg>
                 </button>
               </div>
             </div>
           </ng-container>
 
-          <!-- Edición inline -->
           <div class="ev-historial-edit-form" *ngIf="historialEditando?.id === h.id">
             <div class="ev-historial-edit-form__title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
               Editando: <strong>{{ h.nombre }}</strong>
             </div>
+
             <form [formGroup]="formHistorial" (ngSubmit)="guardarEdicionHistorial()" class="ev-form">
               <div class="ev-field">
                 <label>Nombre *</label>
-                <input formControlName="nombre" placeholder="Nombre del evento"
-                  [class.ev-field-input--error]="formHistorial.get('nombre')?.invalid && formHistorial.get('nombre')?.touched"/>
-                <span class="ev-error-msg" *ngIf="formHistorial.get('nombre')?.invalid && formHistorial.get('nombre')?.touched">
-                  Mínimo 3 caracteres
-                </span>
+                <input formControlName="nombre" placeholder="Nombre"
+                  [class.ev-field-input--error]="formHistorial.get('nombre')?.invalid && formHistorial.get('nombre')?.touched" />
               </div>
+
               <div class="ev-field">
                 <label>Descripción</label>
                 <textarea formControlName="descripcion" placeholder="Detalles..." rows="2"></textarea>
               </div>
-              <div class="ev-form__row">
+
+              <div class="ev-form__row" *ngIf="h.tipo === 'general'">
                 <div class="ev-field">
-                  <label>Fecha Inicio *</label>
-                  <input type="date" formControlName="fechaInicio"/>
+                  <label>Fecha Inicio</label>
+                  <input type="date" formControlName="fechaInicio" />
                 </div>
                 <div class="ev-field">
-                  <label>Fecha Fin *</label>
-                  <input type="date" formControlName="fechaFin"/>
-                </div>
-              </div>
-              <div class="ev-form__row">
-                <div class="ev-field">
-                  <label>Hora Inicio *</label>
-                  <input type="time" formControlName="horaInicio"/>
-                </div>
-                <div class="ev-field">
-                  <label>Hora Fin *</label>
-                  <input type="time" formControlName="horaFin"/>
+                  <label>Fecha Fin</label>
+                  <input type="date" formControlName="fechaFin" />
                 </div>
               </div>
+
+              <div class="ev-form__row" *ngIf="h.tipo === 'general'">
+                <div class="ev-field">
+                  <label>Hora Inicio</label>
+                  <input type="time" formControlName="horaInicio" />
+                </div>
+                <div class="ev-field">
+                  <label>Hora Fin</label>
+                  <input type="time" formControlName="horaFin" />
+                </div>
+              </div>
+
               <div class="ev-form__actions">
                 <button type="button" class="ev-btn-cancel" (click)="cerrarEdicionHistorial()">Cancelar</button>
                 <button type="submit" class="ev-btn-submit">💾 Guardar Cambios</button>
@@ -470,6 +882,265 @@
 
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <div class="ev-modal-overlay ev-modal-overlay--carga" *ngIf="mostrarCargaMasiva" (click)="cerrarCargaMasiva()">
+    <div class="ev-modal ev-modal--carga" (click)="$event.stopPropagation()">
+
+      <div class="ev-modal__head">
+        <div class="ev-carga-head">
+          <div class="ev-carga-head__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <polyline points="16 16 12 12 8 16"></polyline>
+              <line x1="12" y1="12" x2="12" y2="21"></line>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+            </svg>
+          </div>
+          <div>
+            <h2>Carga Masiva</h2>
+            <p class="ev-carga-head__sub">Importa múltiples registros desde una tabla</p>
+          </div>
+        </div>
+        <button class="ev-modal__close" (click)="cerrarCargaMasiva()">×</button>
+      </div>
+
+      <div class="ev-carga-steps">
+        <div class="ev-carga-step" [class.ev-carga-step--active]="cargaMasivaPaso >= 1" [class.ev-carga-step--done]="cargaMasivaPaso > 1">
+          <div class="ev-carga-step__dot">{{ cargaMasivaPaso > 1 ? '✓' : '1' }}</div>
+          <span>Pegar datos</span>
+        </div>
+        <div class="ev-carga-step__line" [class.ev-carga-step__line--done]="cargaMasivaPaso > 1"></div>
+        <div class="ev-carga-step" [class.ev-carga-step--active]="cargaMasivaPaso >= 2" [class.ev-carga-step--done]="cargaMasivaPaso > 2">
+          <div class="ev-carga-step__dot">{{ cargaMasivaPaso > 2 ? '✓' : '2' }}</div>
+          <span>Revisar</span>
+        </div>
+        <div class="ev-carga-step__line" [class.ev-carga-step__line--done]="cargaMasivaPaso > 2"></div>
+        <div class="ev-carga-step" [class.ev-carga-step--active]="cargaMasivaPaso >= 3">
+          <div class="ev-carga-step__dot">3</div>
+          <span>Resultado</span>
+        </div>
+      </div>
+
+      <ng-container *ngIf="cargaMasivaPaso === 1">
+        <div class="ev-carga-modo">
+          <button class="ev-carga-modo-btn" [class.ev-carga-modo-btn--active]="cargaMasivaModo === 'general'"
+            (click)="cargaMasivaModo = 'general'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+            </svg>
+            Eventos Generales
+          </button>
+          <button class="ev-carga-modo-btn" [class.ev-carga-modo-btn--active]="cargaMasivaModo === 'familia'"
+            (click)="cargaMasivaModo = 'familia'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            Pendientes de Grupo
+          </button>
+        </div>
+
+        <div class="ev-carga-tip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Copia y pega directamente desde Excel, Google Sheets o cualquier tabla. Formato esperado: <strong>Actividad · Fecha Inicio · Fecha Fin</strong> (separados por tabulación)
+        </div>
+
+        <div class="ev-field">
+          <label>Pega el contenido de tu tabla aquí</label>
+          <textarea
+            class="ev-carga-textarea"
+            [(ngModel)]="cargaMasivaTexto"
+            placeholder="Inducción general al proceso de titulación&#9;09/04/2026&#9;09/04/2026&#10;Finalización de Clases&#9;24/04/2026&#9;24/04/2026&#10;Metodología 1&#9;27/04/2026&#9;27/04/2026"
+            rows="10">
+          </textarea>
+        </div>
+
+        <div class="ev-carga-error" *ngIf="cargaMasivaError">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ cargaMasivaError }}
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" (click)="cerrarCargaMasiva()">Cancelar</button>
+          <button type="button" class="ev-btn-submit" (click)="procesarTextoCargaMasiva()" [disabled]="!cargaMasivaTexto.trim()">
+            Previsualizar →
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="cargaMasivaPaso === 2">
+
+        <div class="ev-carga-config" *ngIf="cargaMasivaModo === 'familia'">
+          <div class="ev-carga-config__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+            Destino del grupo
+          </div>
+
+          <div class="ev-carga-toggle-nueva">
+            <label class="ev-carga-switch">
+              <input type="checkbox" [(ngModel)]="cargaMasivaCrearFamiliaNueva" />
+              <span class="ev-carga-switch__track"></span>
+              <span class="ev-carga-switch__label">Crear grupo nuevo</span>
+            </label>
+          </div>
+
+          <ng-container *ngIf="!cargaMasivaCrearFamiliaNueva">
+            <div class="ev-field" *ngIf="familias.length > 0">
+              <label>Seleccionar grupo existente</label>
+              <select class="ev-select" [(ngModel)]="cargaMasivaFamiliaId">
+                <option *ngFor="let f of familias" [value]="f.id">{{ f.icono }} {{ f.nombre }}</option>
+              </select>
+            </div>
+            <p class="ev-carga-no-familias" *ngIf="familias.length === 0">
+              No hay grupos existentes. Activa "Crear grupo nuevo" para crear uno.
+            </p>
+          </ng-container>
+
+          <ng-container *ngIf="cargaMasivaCrearFamiliaNueva">
+            <div class="ev-field">
+              <label>Nombre del nuevo grupo *</label>
+              <input [(ngModel)]="cargaMasivaFamiliaNuevaNombre" placeholder="Ej: Titulación 2026" />
+            </div>
+            <div class="ev-field">
+              <label>Ícono</label>
+              <div class="ev-icono-grid">
+                <button type="button" class="ev-icono-btn"
+                  *ngFor="let ic of familiaIconos"
+                  [class.ev-icono-btn--active]="cargaMasivaFamiliaNuevaIcono === ic"
+                  (click)="cargaMasivaFamiliaNuevaIcono = ic">{{ ic }}</button>
+              </div>
+            </div>
+            <div class="ev-field">
+              <label>Color</label>
+              <div class="ev-color-grid">
+                <button type="button" class="ev-color-btn"
+                  *ngFor="let c of familiaColores"
+                  [class.ev-color-btn--active]="cargaMasivaFamiliaNuevaColor === c.valor"
+                  [style.background]="c.valor"
+                  [title]="c.nombre"
+                  (click)="cargaMasivaFamiliaNuevaColor = c.valor">
+                  <svg *ngIf="cargaMasivaFamiliaNuevaColor === c.valor" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="14" height="14">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="ev-carga-preview-header">
+          <span class="ev-carga-preview-count">
+            <span class="ev-carga-preview-count__num ev-carga-preview-count__num--ok">{{ cargaMasivaPreview | cargaValidos }}</span> válidos
+            <span *ngIf="(cargaMasivaPreview | cargaInvalidos) > 0">
+              · <span class="ev-carga-preview-count__num ev-carga-preview-count__num--err">{{ cargaMasivaPreview | cargaInvalidos }}</span> con error
+            </span>
+          </span>
+          <button class="ev-carga-back-btn" (click)="cargaMasivaPaso = 1">← Volver</button>
+        </div>
+
+        <div class="ev-carga-preview-list">
+          <div class="ev-carga-preview-item"
+            *ngFor="let item of cargaMasivaPreview; trackBy: trackPreviewId; let i = index"
+            [class.ev-carga-preview-item--error]="!item.valido">
+
+            <div class="ev-carga-preview-item__num">{{ i + 1 }}</div>
+
+            <div class="ev-carga-preview-item__body">
+              <div class="ev-carga-preview-item__nombre">{{ item.nombre }}</div>
+              <div class="ev-carga-preview-item__fechas" *ngIf="item.valido">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                </svg>
+                {{ formatFechaCorta(item.fechaInicio) }} → {{ formatFechaCorta(item.fechaFin) }}
+              </div>
+              <div class="ev-carga-preview-item__error" *ngIf="!item.valido">
+                ⚠️ {{ item.error }}
+              </div>
+            </div>
+
+            <div class="ev-carga-preview-item__status">
+              <span *ngIf="item.valido" class="ev-carga-preview-item__ok">✓</span>
+              <span *ngIf="!item.valido" class="ev-carga-preview-item__err">✗</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ev-carga-error" *ngIf="cargaMasivaError">
+          {{ cargaMasivaError }}
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" (click)="cargaMasivaPaso = 1">← Volver</button>
+          <button type="button" class="ev-btn-submit ev-btn-submit--carga"
+            (click)="ejecutarCargaMasiva()"
+            [disabled]="cargaMasivaProcesando || (cargaMasivaPreview | cargaValidos) === 0">
+            <span *ngIf="!cargaMasivaProcesando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                <polyline points="16 16 12 12 8 16"></polyline>
+                <line x1="12" y1="12" x2="12" y2="21"></line>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+              </svg>
+              Importar {{ cargaMasivaPreview | cargaValidos }} registros
+            </span>
+            <span *ngIf="cargaMasivaProcesando">
+              <div class="ev-carga-spinner"></div>
+              Importando...
+            </span>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="cargaMasivaPaso === 3 && cargaMasivaResultado">
+        <div class="ev-carga-resultado" [class.ev-carga-resultado--ok]="cargaMasivaResultado.fallidos === 0">
+          <div class="ev-carga-resultado__icon">
+            {{ cargaMasivaResultado.fallidos === 0 ? '🎉' : '⚠️' }}
+          </div>
+          <h3 class="ev-carga-resultado__titulo">
+            {{ cargaMasivaResultado.fallidos === 0 ? '¡Carga completada!' : 'Carga con errores' }}
+          </h3>
+
+          <div class="ev-carga-resultado__stats">
+            <div class="ev-carga-resultado__stat ev-carga-resultado__stat--ok">
+              <span class="ev-carga-resultado__num">{{ cargaMasivaResultado.exitosos }}</span>
+              <span class="ev-carga-resultado__lbl">Creados exitosamente</span>
+            </div>
+            <div class="ev-carga-resultado__stat ev-carga-resultado__stat--err" *ngIf="cargaMasivaResultado.fallidos > 0">
+              <span class="ev-carga-resultado__num">{{ cargaMasivaResultado.fallidos }}</span>
+              <span class="ev-carga-resultado__lbl">Con error</span>
+            </div>
+          </div>
+
+          <div class="ev-carga-resultado__errores" *ngIf="cargaMasivaResultado.errores.length > 0">
+            <p class="ev-carga-resultado__errores-title">Errores:</p>
+            <div class="ev-carga-resultado__error-item" *ngFor="let err of cargaMasivaResultado.errores">
+              {{ err }}
+            </div>
+          </div>
+        </div>
+
+        <div class="ev-form__actions">
+          <button type="button" class="ev-btn-cancel" (click)="abrirCargaMasiva(cargaMasivaModo)">Nueva carga</button>
+          <button type="button" class="ev-btn-submit" (click)="cerrarCargaMasiva()">Cerrar</button>
+        </div>
+      </ng-container>
+
     </div>
   </div>
 
