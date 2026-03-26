@@ -43,4 +43,7 @@ export class Home {
   irAAgenda():void{
     this.router.navigate(['/Agenda'])
   }
+  iraControl(): void{
+    this.router.navigate(['/Control'])
+  }
 }

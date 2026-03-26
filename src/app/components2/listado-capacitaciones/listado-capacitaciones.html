@@ -1,0 +1,178 @@
+<div class="contenedor">
+
+    <!-- ── CABECERA ─────────────────────────────────────────────────── -->
+    <div class="cabecera">
+        <div class="cabecera-left">
+            <h2>Control de Capacitaciones</h2>
+            <p>Acuerdo de patrocinio y plan individual por docente</p>
+        </div>
+        <div class="stats-row">
+            <div class="stat">
+                <span class="stat-num">{{ totalDocentes() }}</span>
+                <span class="stat-lbl">Total</span>
+            </div>
+            <div class="stat completo">
+                <span class="stat-num">{{ totalCompletos() }}</span>
+                <span class="stat-lbl">Completos</span>
+            </div>
+            <div class="stat pendiente">
+                <span class="stat-num">{{ totalPendientes() }}</span>
+                <span class="stat-lbl">Pendientes</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── BARRA DE BÚSQUEDA ─────────────────────────────────────────── -->
+    <div class="toolbar">
+        <div class="search-wrap">
+            <svg viewBox="0 0 20 20" fill="currentColor" class="search-ico">
+                <path fill-rule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clip-rule="evenodd" />
+            </svg>
+            <input type="text" [(ngModel)]="busqueda" (input)="onBusquedaChange()"
+                placeholder="Buscar por docente o carrera..." class="search-input" />
+        </div>
+        <button class="btn-reload" (click)="cargarDocentes()">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+                <path fill-rule="evenodd"
+                    d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                    clip-rule="evenodd" />
+            </svg>
+            Recargar
+        </button>
+    </div>
+
+    <!-- ── ESTADOS ────────────────────────────────────────────────────── -->
+    @if (cargando) {
+    <div class="estado-msg carga"><span class="spinner"></span> Cargando registros...</div>
+    }
+    @if (error) {
+    <div class="estado-msg error">⚠ {{ error }}</div>
+    }
+    @if (!cargando && !error && docentesFiltrados.length === 0) {
+    <div class="estado-msg vacio">No se encontraron registros.</div>
+    }
+
+    <!-- ── TABLA PRINCIPAL ───────────────────────────────────────────── -->
+    @if (!cargando && docentesFiltrados.length > 0) {
+    <div class="tabla-wrap">
+        <table class="tabla">
+
+            <thead>
+                <tr>
+                    <th class="th-docente">Nombre del Docente</th>
+                    <th class="th-carrera">Carrera</th>
+                    <th class="th-patrocinio">
+                        <div class="th-inner">
+                            <span>Patrocinio</span>
+                            <span class="th-sub">Acuerdo por capacitación</span>
+                        </div>
+                    </th>
+                    <th class="th-plan">Plan Individual</th>
+                    <th class="th-estado">Estado</th>
+                    <th class="th-accion"></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @for (docente of docentesFiltrados; track trackByDocente($index, docente)) {
+
+                <tr class="fila" [ngClass]="'fila-' + estadoBadge(docente)">
+
+                    <!-- DOCENTE -->
+                    <td class="td-docente">
+                        <div class="avatar">{{ getNombreDocente(docente).charAt(0).toUpperCase() }}</div>
+                        <span class="docente-nombre">{{ getNombreDocente(docente) }}</span>
+                    </td>
+
+                    <!-- CARRERA -->
+                    <td class="td-carrera">
+                        <span class="carrera-tag">{{ getNombreCarrera(docente) }}</span>
+                    </td>
+
+                    <!-- PATROCINIO ── filtrado por capacitación -->
+                    <td class="td-patrocinio">
+                        <div class="patrocinio-grupo">
+
+                            <!-- Selector capacitación -->
+                            <div class="select-wrap">
+                                <select class="cap-select" [(ngModel)]="getControl(docente).capacitacionSeleccionadaId"
+                                    (change)="onCapacitacionChange(docente)">
+                                    <option value="">— Seleccionar capacitación —</option>
+                                    @for (cap of getCapacitacionesPorDocente(docente); track getCapacitacionId(cap,
+                                    $index, docentes)) {
+                                    <option [value]="getCapacitacionId(cap, $index, docente)">
+                                        {{ getNombreCapacitacion(cap) }}
+                                    </option>
+                                    }
+                                </select>
+
+                                <svg class="chevron" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+
+                            <!-- Toggle patrocinio -->
+                            <label class="toggle-label"
+                                [class.disabled]="!getControl(docente).capacitacionSeleccionadaId">
+                                <input type="checkbox" [(ngModel)]="getControl(docente).entregoAcuerdoPatrocinio"
+                                    (change)="guardarCambios(docente)"
+                                    [disabled]="!getControl(docente).capacitacionSeleccionadaId" />
+                                <span class="toggle-track">
+                                    <span class="toggle-thumb"></span>
+                                </span>
+                                <span class="toggle-txt">
+                                    @if (getControl(docente).entregoAcuerdoPatrocinio) { Entregado }
+                                    @else if (!getControl(docente).capacitacionSeleccionadaId) { Sin capacitación }
+                                    @else { Pendiente }
+                                </span>
+                            </label>
+
+                        </div>
+                    </td>
+
+                    <!-- PLAN INDIVIDUAL -->
+                    <td class="td-plan">
+                        <label class="toggle-label">
+                            <input type="checkbox" [(ngModel)]="getControl(docente).entregoPlanIndividual"
+                                (change)="guardarCambios(docente)" />
+                            <span class="toggle-track">
+                                <span class="toggle-thumb"></span>
+                            </span>
+                            <span class="toggle-txt">
+                                @if (getControl(docente).entregoPlanIndividual) { Entregado }
+                                @else { Pendiente }
+                            </span>
+                        </label>
+                    </td>
+
+                    <!-- ESTADO -->
+                    <td class="td-estado">
+                        <span class="badge" [ngClass]="'badge-' + estadoBadge(docente)">
+                            {{ estadoTexto(docente) }}
+                        </span>
+                    </td>
+
+                    <!-- ACCIÓN -->
+                    <td class="td-accion">
+                        <button class="btn-clear" (click)="limpiarFila(docente)" title="Limpiar fila">
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                                <path fill-rule="evenodd"
+                                    d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+
+                </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+    }
+
+</div>
