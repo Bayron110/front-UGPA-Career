@@ -46,4 +46,7 @@ export class Home {
   iraControl(): void{
     this.router.navigate(['/Control'])
   }
+  iraDas(): void{
+    this.router.navigate(['/Dash'])
+  }
 }

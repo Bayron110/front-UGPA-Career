@@ -1,0 +1,388 @@
+<div class="db-wrapper">
+
+  <header class="db-header">
+    <div class="db-header__left">
+      <div class="db-header__logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="10" fill="url(#logoGrad)"/>
+          <rect x="7" y="18" width="4" height="8" rx="2" fill="white" opacity=".9"/>
+          <rect x="14" y="12" width="4" height="14" rx="2" fill="white"/>
+          <rect x="21" y="7" width="4" height="19" rx="2" fill="white" opacity=".75"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <h1 class="db-header__title">Dashboard de Calidad</h1>
+        <p class="db-header__sub">Análisis automático de datos</p>
+      </div>
+    </div>
+
+    <div class="db-header__actions">
+      @if (filasExcel.length > 0) {
+        <button class="db-btn-secondary" (click)="abrirConfiguracion()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Configurar
+        </button>
+      }
+      <label class="db-upload-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>{{ nombreArchivo ? 'Cambiar archivo' : 'Subir archivo' }}</span>
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onExcelSelected($event)" />
+      </label>
+    </div>
+  </header>
+
+  <!-- ─────────── MODAL DE CONFIGURACIÓN ─────────── -->
+  @if (mostrarModal) {
+    <div class="db-overlay" (click)="cancelarModal()">
+      <div class="db-modal" (click)="$event.stopPropagation()">
+
+        <div class="db-modal__head">
+          <div class="db-modal__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="db-modal__title">Configurar dashboard</h3>
+            <p class="db-modal__sub">Personaliza cómo se analizan los datos del archivo</p>
+          </div>
+          <button class="db-modal__close" (click)="cancelarModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="db-modal__body">
+
+          <!-- Columna principal -->
+          <div class="db-modal__field">
+            <label class="db-modal__label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/>
+              </svg>
+              Columna principal — Doughnut y tabla de distribución
+            </label>
+            <div class="db-select-wrap db-select-wrap--full">
+              <svg class="db-select-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              <select [(ngModel)]="columnaPrincipalTemp">
+                @for (col of columnasExcel; track col) {
+                  <option [value]="col">{{ col }}</option>
+                }
+              </select>
+            </div>
+            <p class="db-modal__hint">
+              💡 Elige una columna con pocas categorías (Carrera, Género, Etnia…). Evita columnas con valores únicos por fila como Nombre o ID.
+            </p>
+          </div>
+
+          <!-- Columnas a analizar -->
+          <div class="db-modal__field">
+            <label class="db-modal__label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+              </svg>
+              Columnas a analizar en gráficos y tablas
+            </label>
+            <div class="db-checkboxes">
+              @for (col of columnasExcel; track col) {
+                @if (col !== columnaPrincipalTemp) {
+                  <label class="db-check">
+                    <input type="checkbox"
+                           [checked]="columnasSeleccionadasTemp.includes(col)"
+                           (change)="toggleColumna(col)" />
+                    <span class="db-check__box"></span>
+                    <span class="db-check__label">{{ col }}</span>
+                  </label>
+                }
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <div class="db-modal__footer">
+          <button class="db-btn-ghost" (click)="cancelarModal()">Cancelar</button>
+          <button class="db-btn-primary" (click)="aplicarConfiguracion()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Aplicar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- STATUS BARS -->
+  @if (cargando) {
+    <div class="db-status db-status--loading">
+      <span class="db-spinner"></span>
+      <span>Procesando <strong>{{ nombreArchivo }}</strong>…</span>
+    </div>
+  }
+
+  @if (mensaje) {
+    <div class="db-status db-status--error">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (!cargando && !mensaje && nombreArchivo && filasExcel.length > 0) {
+    <div class="db-status db-status--ok">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <span>
+        <strong>{{ nombreArchivo }}</strong> cargado — {{ totalRegistros }} registros ·
+        Categoría principal: <strong>{{ columnaPrincipal }}</strong>
+      </span>
+    </div>
+  }
+
+  <!-- EMPTY STATE -->
+  @if (!filasExcel.length && !cargando) {
+    <div class="db-empty">
+      <div class="db-empty__icon">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <p class="db-empty__title">Sin datos cargados</p>
+      <p class="db-empty__sub">
+        Sube un archivo <strong>.xlsx</strong>, <strong>.xls</strong> o <strong>.csv</strong><br>
+        Podrás elegir cuál columna usar como categoría principal
+      </p>
+      <label class="db-empty__cta">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Seleccionar archivo
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onExcelSelected($event)" />
+      </label>
+    </div>
+  }
+
+  <!-- DASHBOARD CONTENT -->
+  @if (filasExcel.length > 0) {
+
+    <section class="db-kpis">
+
+      <div class="db-kpi db-kpi--indigo">
+        <div class="db-kpi__icon db-kpi__icon--indigo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <span class="db-kpi__label">Registros totales</span>
+          <span class="db-kpi__value">{{ totalRegistros | number }}</span>
+        </div>
+      </div>
+
+      <div class="db-kpi db-kpi--violet">
+        <div class="db-kpi__icon db-kpi__icon--violet">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <div>
+          <span class="db-kpi__label">Columnas analizadas</span>
+          <span class="db-kpi__value">{{ columnasPreguntas.length }}</span>
+        </div>
+      </div>
+
+      <div class="db-kpi db-kpi--emerald">
+        <div class="db-kpi__icon db-kpi__icon--emerald">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <div>
+          <span class="db-kpi__label">Total respuestas</span>
+          <span class="db-kpi__value">{{ getTotalRespuestasAnalizadas() | number }}</span>
+        </div>
+      </div>
+
+      <div class="db-kpi db-kpi--amber">
+        <div class="db-kpi__icon db-kpi__icon--amber">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div>
+          <span class="db-kpi__label">Columna más respondida</span>
+          <span class="db-kpi__value db-kpi__value--sm">{{ getPreguntaMasRespondida()?.pregunta || '—' }}</span>
+        </div>
+      </div>
+
+      <div class="db-kpi db-kpi--rose">
+        <div class="db-kpi__icon db-kpi__icon--rose">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+          </svg>
+        </div>
+        <div>
+          <span class="db-kpi__label">Respuesta más frecuente</span>
+          <span class="db-kpi__value db-kpi__value--sm">{{ getRespuestaMasFrecuenteGlobal()?.valor || '—' }}</span>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="db-charts">
+
+      <div class="db-card db-card--wide">
+        <div class="db-card__head">
+          <div>
+            <h2 class="db-card__title">Distribución de respuestas</h2>
+            <p class="db-card__desc">Frecuencia por categoría de respuesta</p>
+          </div>
+          <div class="db-select-wrap">
+            <svg class="db-select-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <select [(ngModel)]="preguntaSeleccionada" (change)="onPreguntaChange()">
+              @for (item of resumenPreguntas; track item.pregunta) {
+                <option [value]="item.pregunta">{{ item.pregunta }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="db-chart-box">
+          <canvas #graficoPreguntas></canvas>
+        </div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card__head">
+          <div>
+            <h2 class="db-card__title">{{ columnaPrincipal }}</h2>
+            <p class="db-card__desc">Distribución general</p>
+          </div>
+          <span class="db-badge">Doughnut</span>
+        </div>
+        <div class="db-chart-box">
+          <canvas #graficoPrincipal></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="db-tables">
+
+      <div class="db-card">
+        <div class="db-card__head">
+          <div>
+            <h2 class="db-card__title">Detalle por columna</h2>
+            <p class="db-card__desc">Conteo y porcentaje preciso por respuesta</p>
+          </div>
+        </div>
+
+        <div class="db-accordion">
+          @for (item of resumenPreguntas; track item.pregunta; let i = $index) {
+            <div class="db-accordion__item">
+              <button class="db-accordion__trigger" (click)="toggleAccordion(i)">
+                <div class="db-accordion__label">
+                  <span class="db-accordion__num">{{ String(i + 1).padStart(2, '0') }}</span>
+                  <span class="db-accordion__name">{{ item.pregunta }}</span>
+                </div>
+                <div class="db-accordion__meta">
+                  <span class="db-chip">{{ item.total }} resp.</span>
+                  <svg [class.rotated]="accordionOpen[i]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </button>
+
+              @if (accordionOpen[i]) {
+                <div class="db-accordion__body">
+                  <table class="db-table">
+                    <thead>
+                      <tr>
+                        <th>Respuesta</th>
+                        <th class="db-table__num">N°</th>
+                        <th class="db-table__num">%</th>
+                        <th class="db-table__bar">Proporción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (respuesta of item.respuestas; track respuesta.valor) {
+                        <tr>
+                          <td class="db-table__label">{{ respuesta.valor }}</td>
+                          <td class="db-table__num"><strong>{{ respuesta.cantidad }}</strong></td>
+                          <td class="db-table__num db-table__pct">{{ respuesta.porcentaje | number:'1.2-2' }}%</td>
+                          <td class="db-table__bar">
+                            <div class="db-minibar">
+                              <div class="db-minibar__fill" [style.width.%]="respuesta.porcentaje"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card__head">
+          <div>
+            <h2 class="db-card__title">{{ columnaPrincipal }}</h2>
+            <p class="db-card__desc">Distribución de la categoría principal</p>
+          </div>
+        </div>
+
+        <div class="db-table-wrap">
+          <table class="db-table">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th class="db-table__num">N°</th>
+                <th class="db-table__num">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of resumenPrincipal; track item.nombre) {
+                <tr>
+                  <td class="db-table__label">{{ item.nombre }}</td>
+                  <td class="db-table__num"><strong>{{ item.total }}</strong></td>
+                  <td class="db-table__num db-table__pct">
+                    {{ totalRegistros ? ((item.total / totalRegistros) * 100 | number:'1.2-2') + '%' : '—' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  }
+</div>
