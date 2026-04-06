@@ -1,385 +1,69 @@
 <div>
-    <div class="container">
-        <div class="header">
-            <h1>BIENVENIDO</h1>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>BIENVENIDO</h1>
 
-        <div class="views-grid">
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🎯 CARRERA</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/CdyRKgBg/Carrera-1.jpg');">
-                            </div>
-
-                            <div class="card__text">
-                                <p class="card__title">Ingrese una Nueva Carrera</p>
-                                <p class="card__description">En esta sección usted podrá ingresar nuevas carreras a la
-                                    base de datos.</p>
-                            </div>
-                            <div class="card__footer">
-                                <div class="card__price"> Ingreso de Nuevas Carreras </div>
-                                <div class="card__button" (click)="irACarrera()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-                
-            </div>
-            
-            
-
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">📚 TIPO</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/fyQ3zsSY/Duraci-n-1.jpg');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Duración de Carrera</p>
-                                <p class="card__description">En esta sección usted pueda Modificar la Duracion de los tipos de Carreras Existentes </p>
-                            </div>
-                            <div class="card__footer">
-                                <div class="card__price">Tipo de Duración</div>
-                                <div class="card__button" (click)="irATipo()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">💼 CÁLCULO</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/NfJgbYfc/fin-de-carerra-1.webp');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Calculo de Duración de una Carrera </p>
-                                <p class="card__description">Calcule el tiempo estimado de duración de carreras
-                                    seleccionadas.</p>
-                            </div>
-                            <div class="card__footer">
-                                <div class="card__price">Estimación de Tiempo</div>
-                                <div class="card__button" (click)="irACalCareer()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🚀 Carreras de Tipo Superior</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/s2D6DdCG/Superior-2.png');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Carreras de Tipo Superior</p>
-                                <p class="card__description">En esta Sección Usted podra Visualizar los Contenidos de las Carreras y Descargar sus respectivos PDF.
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Historial De Carreras Superiores</div>
-                                <div class="card__button" (click)="irAHistory()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                
-            </div>
-            
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🚀 Carreras-TSU</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/Y9RszrN8/TSU-1.webp');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Carreras de Tipo TSU</p>
-                                <p class="card__description">En esta Sección Usted podra Visualizar los Contenidos de las Carreras y Descargar sus respectivos PDF.
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Historial de Carrera TSU</div>
-                                <div class="card__button" (click)="irAHistorytsu()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🎯 Patrocinio Institucional</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/CdyRKgBg/Carrera-1.jpg');">
-                            </div>
-
-                            <div class="card__text">
-                                <p class="card__title">Generar Plan Individual </p>
-                                <p class="card__description">Aqui se puede generar los planes individuales con un excel</p>
-                            </div>
-                            <div class="card__footer">
-                                <div class="card__price"> Generación de Patrocinios </div>
-                                <div class="card__button" (click)="irAGenerar()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-                
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🚀Reporte de Resultados del Plan de Formación y Capacitación Docente</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/j2XxzR4P/Documentos.jpg');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Reportes Anuales</p>
-                                <p class="card__description">Sección para la generación de reportes Anuales
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Reporte Anual</div>
-                                <div class="card__button" (click)="irAReporteA()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🚀Documentación</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/B6HwLQn5/patrocinio1.avif');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Patrocinios</p>
-                                <p class="card__description">Sección donde podra generar cualquier patrocinio
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Documentación</div>
-                                <div class="card__button" (click)="irAReporteR()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">🚀Eventos</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/fbs29Q15/calendario.avif');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Agenda</p>
-                                <p class="card__description">Sección para ingresar pendientes
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Agenda</div>
-                                <div class="card__button" (click)="irAAgenda()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-              <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">Control Documentos</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/fbs29Q15/calendario.avif');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Documentos Entregados</p>
-                                <p class="card__description">Sección para llevar un control de los documentos entregados
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Control</div>
-                                <div class="card__button" (click)="iraControl()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="card-container">
-                <div class="card-effect">
-                    <div class="card-inner">
-                        <div class="card__liquid"></div>
-                        <div class="card__shine"></div>
-                        <div class="card__glow"></div>
-                        <div class="card__content">
-                            <div class="card__badge">Control Documentos</div>
-                            <div class="card__image"
-                                style="background-image: url('https://i.postimg.cc/fbs29Q15/calendario.avif');">
-                            </div>
-                            <div class="card__text">
-                                <p class="card__title">Documentos Entregados</p>
-                                <p class="card__description">Sección para llevar un control de los documentos entregados
-                                </p>
-                            </div>
-                            
-                            <div class="card__footer">
-                                <div class="card__price">Control</div>
-                                <div class="card__button" (click)="iraDas()">
-                                    <svg viewBox="0 0 24 24" width="16" height="16">
-                                        <path fill="currentColor" d="M5 12H19M12 5V19" stroke="currentColor"
-                                            stroke-width="2"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                </div>
-            </div>
-            
-            <!--Aqui Siempre puedes Agregar una NuevA Sección si asi se nesesita-->
-        </div>
-        
+      <div class="pagination-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox"
+                 [checked]="paginationEnabled"
+                 (change)="togglePagination($any($event.target).checked)" />
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Paginación</span>
+      </div>
     </div>
-    
 
-    <script>
-        function showMore(section) {
-            alert(`Mostrando más información sobre: ${section.toUpperCase()}`);
-            console.log(`Usuario interesado en la sección: ${section}`);
-        }
+    <div class="views-grid">
+      <div class="card-container" *ngFor="let card of visibleCards">
+        <div class="card-effect">
+          <div class="card-inner">
+            <div class="card__liquid"></div>
+            <div class="card__shine"></div>
+            <div class="card__glow"></div>
+            <div class="card__content">
+              <div class="card__badge">{{ card.badge }}</div>
+              <div class="card__image" [style.background-image]="'url(' + card.image + ')'"></div>
+              <div class="card__text">
+                <p class="card__title">{{ card.title }}</p>
+                <p class="card__description">{{ card.description }}</p>
+              </div>
+              <div class="card__footer">
+                <div class="card__price">{{ card.footer }}</div>
+                <div class="card__button" (click)="navigate(card.action)">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M5 12H19M12 5V19"
+                          stroke="currentColor" stroke-width="2"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const cards = document.querySelectorAll('.card-container');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.2}s`;
-            });
-        });
+    <div class="pagination-controls" *ngIf="paginationEnabled">
+      <span class="page-info">
+        Página {{ currentPage }} de {{ totalPages }}
+      </span>
+      <button class="page-btn"
+              [disabled]="currentPage === 1"
+              (click)="goToPage(currentPage - 1)">
+        ‹ Anterior
+      </button>
+      <button class="page-btn"
+              *ngFor="let p of pages"
+              [class.active]="p === currentPage"
+              (click)="goToPage(p)">
+        {{ p }}
+      </button>
+      <button class="page-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="goToPage(currentPage + 1)">
+        Siguiente ›
+      </button>
+    </div>
 
-        window.addEventListener('scroll', function () {
-            const scrolled = window.pageYOffset;
-            const header = document.querySelector('.header');
-            header.style.transform = `translateY(${scrolled * 0.5}px)`;
-        });
-    </script>
+  </div>
 </div>
