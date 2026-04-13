@@ -54,17 +54,14 @@ export class DarboardCalidad {
   @ViewChild('graficoPreguntas') graficoPreguntasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('graficoPrincipal') graficoPrincipalRef!: ElementRef<HTMLCanvasElement>;
 
-  // ── Datos del Excel ──────────────────────────────
   filasExcel: ExcelRow[] = [];
-  columnasExcel: string[] = [];           // todas las columnas del archivo
-  columnaPrincipal = '';                  // columna activa del doughnut
-  columnasPreguntas: string[] = [];       // columnas activas en gráfico de barras/tabla
+  columnasExcel: string[] = [];         
+  columnaPrincipal = '';                 
+  columnasPreguntas: string[] = [];       
 
-  // ── Resúmenes calculados ──────────────────────────
   resumenPreguntas: ResumenPregunta[] = [];
   resumenPrincipal: ResumenPrincipal[] = [];
 
-  // ── Estado general ────────────────────────────────
   totalRegistros = 0;
   cargando = false;
   mensaje = '';
@@ -72,12 +69,10 @@ export class DarboardCalidad {
   preguntaSeleccionada = '';
   accordionOpen: boolean[] = [];
 
-  // ── Modal de configuración ────────────────────────
   mostrarModal = false;
-  columnaPrincipalTemp = '';              // valor temporal mientras el modal está abierto
+  columnaPrincipalTemp = '';              
   columnasSeleccionadasTemp: string[] = [];
 
-  // ── Charts ────────────────────────────────────────
   chartPreguntas: Chart | null = null;
   chartPrincipal: Chart | null = null;
 
@@ -90,10 +85,6 @@ export class DarboardCalidad {
   String = String;
 
   constructor(private cdr: ChangeDetectorRef) {}
-
-  // ════════════════════════════════════════════════════
-  //  MODAL
-  // ════════════════════════════════════════════════════
 
   abrirConfiguracion(): void {
     this.columnaPrincipalTemp = this.columnaPrincipal;
@@ -110,7 +101,6 @@ export class DarboardCalidad {
     if (idx > -1) {
       this.columnasSeleccionadasTemp.splice(idx, 1);
     } else {
-      // Mantener el orden original del Excel
       const ordenOriginal = this.columnasExcel.filter(
         c => c !== this.columnaPrincipalTemp
       );
@@ -124,7 +114,6 @@ export class DarboardCalidad {
     this.mostrarModal = false;
     this.columnaPrincipal = this.columnaPrincipalTemp;
 
-    // Las columnas a analizar son las seleccionadas, excluyendo la principal
     this.columnasPreguntas = this.columnasSeleccionadasTemp.filter(
       c => c !== this.columnaPrincipal
     );
@@ -144,9 +133,6 @@ export class DarboardCalidad {
     }, 0);
   }
 
-  // ════════════════════════════════════════════════════
-  //  CARGA DE ARCHIVO
-  // ════════════════════════════════════════════════════
 
   async onExcelSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -180,15 +166,13 @@ export class DarboardCalidad {
         return;
       }
 
-      // Abrir el modal para que el usuario elija la columna principal
-      // Pre-seleccionar la primera columna por defecto
+
       this.columnaPrincipalTemp = this.columnasExcel[0];
       this.columnasSeleccionadasTemp = this.columnasExcel.slice(1);
 
       this.cargando = false;
       this.cdr.detectChanges();
 
-      // Mostrar modal de configuración en lugar de renderizar directamente
       this.mostrarModal = true;
 
       input.value = '';
@@ -217,9 +201,7 @@ export class DarboardCalidad {
     });
   }
 
-  // ════════════════════════════════════════════════════
-  //  GENERACIÓN DE RESÚMENES
-  // ════════════════════════════════════════════════════
+
 
   generarResumenPrincipal(): void {
     const contador = new Map<string, number>();
@@ -257,9 +239,7 @@ export class DarboardCalidad {
     return valor.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
   }
 
-  // ════════════════════════════════════════════════════
-  //  GRÁFICOS
-  // ════════════════════════════════════════════════════
+
 
   crearGraficoPreguntas(): void {
     if (!this.graficoPreguntasRef?.nativeElement) return;
@@ -380,9 +360,6 @@ export class DarboardCalidad {
     });
   }
 
-  // ════════════════════════════════════════════════════
-  //  HELPERS
-  // ════════════════════════════════════════════════════
 
   toggleAccordion(index: number): void {
     this.accordionOpen[index] = !this.accordionOpen[index];

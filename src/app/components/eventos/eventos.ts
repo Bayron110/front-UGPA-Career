@@ -1,44 +1,15 @@
-import {Component, OnInit, OnDestroy, ChangeDetectionStrategy,ChangeDetectorRef} from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { getDatabase, ref, push, onValue, update, remove, Database } from 'firebase/database';
 import { initializeApp } from 'firebase/app';
-import {getDatabase, ref, push, onValue, update, remove, Database, set} from 'firebase/database';
 import { EventoGeneral } from '../../Interface/events/EventoGeneral';
 import { CargaInvalidosPipe, CargaValidosPipe } from '../../pipes/carga-masiva-pipe';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyB1OYIgIw5aO7RBC12h-QHKi3fiF_bm9yk',
-  authDomain: 'evaluacion1-7dce4.firebaseapp.com',
-  databaseURL: 'https://evaluacion1-7dce4-default-rtdb.firebaseio.com',
-  projectId: 'evaluacion1-7dce4',
-  storageBucket: 'evaluacion1-7dce4.firebasestorage.app',
-  messagingSenderId: '51092318160',
-  appId: '1:51092318160:web:8b19e526d6d2997bc67bd5'
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const db: Database = getDatabase(firebaseApp);
+// Importa todo lo de familias desde el archivo separado
+import { FamiliasLogic, Familia, PendienteFamilia, FAMILIA_COLORES, FAMILIA_ICONOS, db } from './components/familias';
 
 export type EventStatus = 'pending' | 'finishing' | 'completed' | 'uncompleted';
-
-export interface Familia {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  color: string;
-  icono: string;
-  createdAt: number;
-}
-
-export interface PendienteFamilia {
-  id: string;
-  familiaId: string;
-  nombre: string;
-  descripcion: string;
-  completado: boolean;
-  completadoEn: number | null;
-  createdAt: number;
-}
 
 export interface Notificacion {
   id: string;
@@ -75,18 +46,8 @@ export interface CargaMasivaResultado {
   errores: string[];
 }
 
-export const FAMILIA_COLORES = [
-  { valor: '#6366f1', nombre: 'Índigo' },
-  { valor: '#ec4899', nombre: 'Rosa' },
-  { valor: '#14b8a6', nombre: 'Teal' },
-  { valor: '#f59e0b', nombre: 'Ámbar' },
-  { valor: '#8b5cf6', nombre: 'Violeta' },
-  { valor: '#10b981', nombre: 'Esmeralda' },
-  { valor: '#f97316', nombre: 'Naranja' },
-  { valor: '#3b82f6', nombre: 'Azul' }
-];
-
-export const FAMILIA_ICONOS = ['🏠', '👨‍👩‍👧', '🏢', '🎓', '🎨', '🚀', '⚽', '🎵', '💼', '🌿', '🔬', '🍕'];
+export { FAMILIA_COLORES, FAMILIA_ICONOS };
+  export type { Familia, PendienteFamilia };
 
 @Component({
   selector: 'app-eventos',
@@ -96,86 +57,63 @@ export const FAMILIA_ICONOS = ['🏠', '👨‍👩‍👧', '🏢', '🎓', '�
   styleUrls: ['./eventos.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EventosComponent implements OnInit, OnDestroy {
+export class EventosComponent extends FamiliasLogic implements OnInit, OnDestroy {
 
   eventosGenerales: EventoGeneral[] = [];
-  familias: Familia[] = [];
-  pendientesFamilia: PendienteFamilia[] = [];
   notificaciones: Notificacion[] = [];
 
-  conteosPorFamilia: Record<string, { total: number; activos: number; completados: number }> = {};
-
-  mostrarFormularioGeneral = false;
-  mostrarFormFamilia = false;
-  mostrarModalFamilia = false;
-  mostrarNotificaciones = false;
-  mostrarHistorial = false;
+  mostrarFormularioGeneral        = false;
+  mostrarNotificaciones           = false;
+  mostrarHistorial                = false;
   mostrarConfirmEliminarHistorial = false;
-  mostrarCargaMasiva = false;
+  mostrarCargaMasiva              = false;
 
   cargando = true;
-  errorMsg = '';
 
   textoBusquedaGeneral = '';
-  textoBusquedaPendientes = '';
 
-  familiaSeleccionada: Familia | null = null;
-  familiaEditando: Familia | null = null;
   eventoGeneralEditando: EventoGeneral | null = null;
-  pendienteEditando: PendienteFamilia | null = null;
-  historialEditando: HistorialItem | null = null;
+  historialEditando: HistorialItem | null     = null;
 
   filtroGeneralActual: EventStatus | 'all' = 'all';
-  ordenGeneralAsc = true;
-  ordenPendientesAsc = true;
+  ordenGeneralAsc    = true;
   menuGeneralAbierto: string | null = null;
-  menuFamiliaAbierto: string | null = null;
-  menuPendienteAbierto: string | null = null;
 
-  familiaColorSeleccionado = FAMILIA_COLORES[0].valor;
-  familiaIconoSeleccionado = FAMILIA_ICONOS[0];
-  readonly familiaColores = FAMILIA_COLORES;
-  readonly familiaIconos = FAMILIA_ICONOS;
-
-  formGeneral!: FormGroup;
-  formFamilia!: FormGroup;
-  formPendiente!: FormGroup;
+  formGeneral!:   FormGroup;
   formHistorial!: FormGroup;
 
-  cargaMasivaTexto = '';
+  cargaMasivaTexto              = '';
   cargaMasivaPreview: CargaMasivaItem[] = [];
   cargaMasivaModo: 'general' | 'familia' = 'general';
-  cargaMasivaFamiliaId = '';
+  cargaMasivaFamiliaId          = '';
   cargaMasivaFamiliaNuevaNombre = '';
-  cargaMasivaFamiliaNuevaColor = FAMILIA_COLORES[0].valor;
-  cargaMasivaFamiliaNuevaIcono = FAMILIA_ICONOS[0];
-  cargaMasivaCrearFamiliaNueva = false;
-  cargaMasivaProcesando = false;
+  cargaMasivaFamiliaNuevaColor  = FAMILIA_COLORES[0].valor;
+  cargaMasivaFamiliaNuevaIcono  = FAMILIA_ICONOS[0];
+  cargaMasivaCrearFamiliaNueva  = false;
+  cargaMasivaProcesando         = false;
   cargaMasivaResultado: CargaMasivaResultado | null = null;
-  cargaMasivaError = '';
-  cargaMasivaPaso: 1 | 2 | 3 = 1;
+  cargaMasivaError              = '';
+  cargaMasivaPaso: 1 | 2 | 3    = 1;
 
   private timer: any;
   private notifCtrl: Record<string, boolean> = {};
-
   private unsubGeneral: (() => void) | null = null;
-  private unsubFamilias: (() => void) | null = null;
-  private unsubPendientes: (() => void) | null = null;
-  private unsubConteos: (() => void)[] = [];
 
   readonly statusCfg: Record<EventStatus, { label: string; icon: string }> = {
-    pending:     { label: 'Pendiente',    icon: '⏳' },
-    finishing:   { label: 'Por Finalizar',icon: '🔥' },
-    completed:   { label: 'Completado',   icon: '✅' },
-    uncompleted: { label: 'Sin Completar',icon: '❌' }
+    pending:     { label: 'Pendiente',     icon: '⏳' },
+    finishing:   { label: 'Por Finalizar', icon: '🔥' },
+    completed:   { label: 'Completado',    icon: '✅' },
+    uncompleted: { label: 'Sin Completar', icon: '❌' }
   };
 
   readonly statusKeys: EventStatus[] = ['pending', 'finishing', 'uncompleted'];
 
   constructor(
-    private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
-  ) {}
+    protected override fb: FormBuilder,
+    protected override cdr: ChangeDetectorRef
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
     this.formGeneral = this.fb.group({
@@ -187,16 +125,6 @@ export class EventosComponent implements OnInit, OnDestroy {
       horaFin:     ['', Validators.required]
     });
 
-    this.formFamilia = this.fb.group({
-      nombre:      ['', [Validators.required, Validators.minLength(2)]],
-      descripcion: ['']
-    });
-
-    this.formPendiente = this.fb.group({
-      nombre:      ['', [Validators.required, Validators.minLength(2)]],
-      descripcion: ['']
-    });
-
     this.formHistorial = this.fb.group({
       nombre:      ['', [Validators.required, Validators.minLength(2)]],
       descripcion: [''],
@@ -206,6 +134,8 @@ export class EventosComponent implements OnInit, OnDestroy {
       horaFin:     ['']
     });
 
+    this.initFamiliasForm();
+
     this.escucharFamilias();
     this.escucharEventosGenerales();
     this.iniciarMonitoreo();
@@ -213,57 +143,17 @@ export class EventosComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
-    if (this.unsubGeneral)   this.unsubGeneral();
-    if (this.unsubFamilias)  this.unsubFamilias();
-    if (this.unsubPendientes) this.unsubPendientes();
+    this.unsubGeneral?.();
+    this.unsubFamilias?.();
+    this.unsubPendientes?.();
     this.unsubConteos.forEach(u => u());
   }
 
-  escucharFamilias(): void {
-    this.unsubFamilias = onValue(
-      ref(db, 'familias'),
-      snapshot => {
-        const data = snapshot.val();
-        this.familias = data
-          ? Object.entries(data).map(([id, val]: [string, any]) => ({ id, ...val }))
-          : [];
-        this.familias.sort((a, b) => b.createdAt - a.createdAt);
-        this.escucharConteosFamilias();
-        this.cargando = false;
-        this.cdr.markForCheck();
-      },
-      error => {
-        this.errorMsg = 'Error al cargar grupos: ' + error.message;
-        this.cargando = false;
-        this.cdr.markForCheck();
-      }
-    );
-  }
-
-  escucharConteosFamilias(): void {
-    this.unsubConteos.forEach(u => u());
-    this.unsubConteos = [];
-
-    this.familias.forEach(f => {
-      const unsub = onValue(
-        ref(db, `familiaPendientes/${f.id}`),
-        snapshot => {
-          const data = snapshot.val();
-          const pendientes: PendienteFamilia[] = data
-            ? Object.entries(data).map(([id, val]: [string, any]) => ({ id, ...val }))
-            : [];
-
-          this.conteosPorFamilia[f.id] = {
-            total:       pendientes.length,
-            activos:     pendientes.filter(p => !p.completado).length,
-            completados: pendientes.filter(p =>  p.completado).length
-          };
-
-          this.cdr.markForCheck();
-        }
-      );
-      this.unsubConteos.push(unsub);
+  override pushNotif(mensaje: string, tipo: 'warning' | 'info' | 'success' | 'danger'): void {
+    this.notificaciones.unshift({
+      id: this.uid(), mensaje, tipo, timestamp: new Date(), leida: false
     });
+    this.cdr.markForCheck();
   }
 
   escucharEventosGenerales(): void {
@@ -274,8 +164,8 @@ export class EventosComponent implements OnInit, OnDestroy {
         this.eventosGenerales = data
           ? Object.entries(data).map(([id, val]: [string, any]) => ({
               id,
-              completadoEn: null,
-              notificadoProximo: false,
+              completadoEn:           null,
+              notificadoProximo:      false,
               notificadoPorFinalizar: false,
               notificadoSinCompletar: false,
               ...val
@@ -283,128 +173,15 @@ export class EventosComponent implements OnInit, OnDestroy {
           : [];
         this.eventosGenerales.sort((a, b) => b.createdAt - a.createdAt);
         this.verificarEstadosGenerales();
+        this.cargando = false;
         this.cdr.markForCheck();
       },
       error => {
         this.errorMsg = 'Error al cargar eventos generales: ' + error.message;
+        this.cargando = false;
         this.cdr.markForCheck();
       }
     );
-  }
-
-  escucharPendientesFamilia(familiaId: string): void {
-    if (this.unsubPendientes) {
-      this.unsubPendientes();
-      this.unsubPendientes = null;
-    }
-
-    this.unsubPendientes = onValue(
-      ref(db, `familiaPendientes/${familiaId}`),
-      snapshot => {
-        const data = snapshot.val();
-        this.pendientesFamilia = data
-          ? Object.entries(data).map(([id, val]: [string, any]) => ({ id, ...val }))
-          : [];
-        this.pendientesFamilia.sort((a, b) => {
-          if (a.completado !== b.completado) return Number(a.completado) - Number(b.completado);
-          return b.createdAt - a.createdAt;
-        });
-        this.cdr.markForCheck();
-      },
-      error => {
-        this.errorMsg = 'Error al cargar pendientes del grupo: ' + error.message;
-        this.cdr.markForCheck();
-      }
-    );
-  }
-
-  async crearFamilia(datos: Omit<Familia, 'id'>): Promise<void> {
-    try {
-      await push(ref(db, 'familias'), datos);
-      this.pushNotif(`👨‍👩‍👧 Grupo creado: ${datos.nombre}`, 'success');
-    } catch (e: any) {
-      this.errorMsg = 'Error al crear grupo: ' + e.message;
-    }
-  }
-
-  async actualizarFamilia(id: string, datos: Partial<Familia>): Promise<void> {
-    try {
-      await update(ref(db, `familias/${id}`), datos);
-    } catch (e: any) {
-      this.errorMsg = 'Error al actualizar grupo: ' + e.message;
-    }
-  }
-
-  async eliminarFamilia(id: string): Promise<void> {
-    try {
-      await remove(ref(db, `familias/${id}`));
-      await remove(ref(db, `familiaPendientes/${id}`));
-      if (this.familiaSeleccionada?.id === id) this.cerrarModalFamilia();
-      this.menuFamiliaAbierto = null;
-      this.pushNotif('🗑 Grupo eliminado', 'danger');
-    } catch (e: any) {
-      this.errorMsg = 'Error al eliminar grupo: ' + e.message;
-    }
-  }
-
-  abrirFormFamilia(f?: Familia): void {
-    this.familiaEditando = f ?? null;
-    this.mostrarFormFamilia = true;
-    this.formFamilia.reset();
-
-    if (f) {
-      this.formFamilia.patchValue({ nombre: f.nombre, descripcion: f.descripcion });
-      this.familiaColorSeleccionado = f.color;
-      this.familiaIconoSeleccionado = f.icono;
-    } else {
-      this.familiaColorSeleccionado = FAMILIA_COLORES[0].valor;
-      this.familiaIconoSeleccionado = FAMILIA_ICONOS[0];
-    }
-  }
-
-  cerrarFormFamilia(): void {
-    this.mostrarFormFamilia = false;
-    this.familiaEditando = null;
-    this.formFamilia.reset();
-  }
-
-  async guardarFamilia(): Promise<void> {
-    if (this.formFamilia.invalid) { this.formFamilia.markAllAsTouched(); return; }
-
-    const v = this.formFamilia.value;
-    const datos = {
-      nombre:      v.nombre,
-      descripcion: v.descripcion || '',
-      color:       this.familiaColorSeleccionado,
-      icono:       this.familiaIconoSeleccionado
-    };
-
-    if (this.familiaEditando) {
-      await this.actualizarFamilia(this.familiaEditando.id, datos);
-      this.pushNotif(`✏️ Grupo actualizado: ${v.nombre}`, 'info');
-    } else {
-      await this.crearFamilia({ ...datos, createdAt: Date.now() });
-    }
-
-    this.cerrarFormFamilia();
-  }
-
-  abrirModalFamilia(familia: Familia): void {
-    this.familiaSeleccionada = familia;
-    this.mostrarModalFamilia = true;
-    this.pendienteEditando = null;
-    this.formPendiente.reset({ nombre: '', descripcion: '' });
-    this.escucharPendientesFamilia(familia.id);
-  }
-
-  cerrarModalFamilia(): void {
-    this.mostrarModalFamilia = false;
-    this.familiaSeleccionada = null;
-    this.pendientesFamilia = [];
-    this.pendienteEditando = null;
-    this.formPendiente.reset();
-    this.menuPendienteAbierto = null;
-    if (this.unsubPendientes) { this.unsubPendientes(); this.unsubPendientes = null; }
   }
 
   async crearEventoGeneral(datos: Omit<EventoGeneral, 'id'>): Promise<void> {
@@ -434,7 +211,7 @@ export class EventosComponent implements OnInit, OnDestroy {
   }
 
   abrirFormularioGeneral(ev?: EventoGeneral): void {
-    this.eventoGeneralEditando = ev ?? null;
+    this.eventoGeneralEditando    = ev ?? null;
     this.mostrarFormularioGeneral = true;
     this.formGeneral.reset();
 
@@ -452,7 +229,7 @@ export class EventosComponent implements OnInit, OnDestroy {
 
   cerrarFormularioGeneral(): void {
     this.mostrarFormularioGeneral = false;
-    this.eventoGeneralEditando = null;
+    this.eventoGeneralEditando    = null;
     this.formGeneral.reset();
   }
 
@@ -506,86 +283,6 @@ export class EventosComponent implements OnInit, OnDestroy {
     this.pushNotif(`✅ Completado: ${ev.nombre}`, 'success');
   }
 
-  async guardarPendienteFamilia(): Promise<void> {
-    if (!this.familiaSeleccionada) return;
-    if (this.formPendiente.invalid) { this.formPendiente.markAllAsTouched(); return; }
-
-    const v = this.formPendiente.value;
-
-    if (this.pendienteEditando) {
-      await this.actualizarPendienteFamilia(this.familiaSeleccionada.id, this.pendienteEditando.id, {
-        nombre:      v.nombre,
-        descripcion: v.descripcion || ''
-      });
-      this.pushNotif(`✏️ Pendiente actualizado: ${v.nombre}`, 'info');
-    } else {
-      const nuevoRef = push(ref(db, `familiaPendientes/${this.familiaSeleccionada.id}`));
-      const nuevo: Omit<PendienteFamilia, 'id'> = {
-        familiaId:   this.familiaSeleccionada.id,
-        nombre:      v.nombre,
-        descripcion: v.descripcion || '',
-        completado:  false,
-        completadoEn:null,
-        createdAt:   Date.now()
-      };
-      try {
-        await set(nuevoRef, nuevo);
-        this.pushNotif(`📝 Pendiente creado en ${this.familiaSeleccionada.nombre}`, 'success');
-      } catch (e: any) {
-        this.errorMsg = 'Error al crear pendiente: ' + e.message;
-      }
-    }
-
-    this.cancelarEdicionPendiente();
-  }
-
-  async actualizarPendienteFamilia(
-    familiaId: string,
-    pendienteId: string,
-    datos: Partial<PendienteFamilia>
-  ): Promise<void> {
-    try {
-      await update(ref(db, `familiaPendientes/${familiaId}/${pendienteId}`), datos);
-    } catch (e: any) {
-      this.errorMsg = 'Error al actualizar pendiente: ' + e.message;
-    }
-  }
-
-  async eliminarPendienteFamilia(pendienteId: string): Promise<void> {
-    if (!this.familiaSeleccionada) return;
-    try {
-      await remove(ref(db, `familiaPendientes/${this.familiaSeleccionada.id}/${pendienteId}`));
-      this.menuPendienteAbierto = null;
-    } catch (e: any) {
-      this.errorMsg = 'Error al eliminar pendiente: ' + e.message;
-    }
-  }
-
-  editarPendiente(p: PendienteFamilia): void {
-    this.pendienteEditando = p;
-    this.formPendiente.patchValue({ nombre: p.nombre, descripcion: p.descripcion });
-    this.menuPendienteAbierto = null;
-    this.cdr.markForCheck();
-  }
-
-  cancelarEdicionPendiente(): void {
-    this.pendienteEditando = null;
-    this.formPendiente.reset({ nombre: '', descripcion: '' });
-    this.cdr.markForCheck();
-  }
-
-  async toggleCompletarPendiente(p: PendienteFamilia): Promise<void> {
-    if (!this.familiaSeleccionada) return;
-    const nuevoEstado = !p.completado;
-    await this.actualizarPendienteFamilia(this.familiaSeleccionada.id, p.id, {
-      completado:   nuevoEstado,
-      completadoEn: nuevoEstado ? Date.now() : null
-    });
-    this.pushNotif(
-      nuevoEstado ? `✅ Pendiente completado: ${p.nombre}` : `↩️ Pendiente reactivado: ${p.nombre}`,
-      nuevoEstado ? 'success' : 'info'
-    );
-  }
 
   abrirEdicionHistorial(h: HistorialItem): void {
     this.historialEditando = h;
@@ -653,52 +350,41 @@ export class EventosComponent implements OnInit, OnDestroy {
     }
   }
 
+
   abrirCargaMasiva(modo: 'general' | 'familia' = 'general'): void {
-    this.mostrarCargaMasiva = true;
-    this.cargaMasivaModo = modo;
-    this.cargaMasivaTexto = '';
-    this.cargaMasivaPreview = [];
-    this.cargaMasivaFamiliaId = this.familias.length > 0 ? this.familias[0].id : '';
+    this.mostrarCargaMasiva           = true;
+    this.cargaMasivaModo              = modo;
+    this.cargaMasivaTexto             = '';
+    this.cargaMasivaPreview           = [];
+    this.cargaMasivaFamiliaId         = this.familias.length > 0 ? this.familias[0].id : '';
     this.cargaMasivaFamiliaNuevaNombre = '';
-    this.cargaMasivaFamiliaNuevaColor = FAMILIA_COLORES[0].valor;
-    this.cargaMasivaFamiliaNuevaIcono = FAMILIA_ICONOS[0];
-    this.cargaMasivaCrearFamiliaNueva = false;
-    this.cargaMasivaProcesando = false;
-    this.cargaMasivaResultado = null;
-    this.cargaMasivaError = '';
-    this.cargaMasivaPaso = 1;
+    this.cargaMasivaFamiliaNuevaColor  = FAMILIA_COLORES[0].valor;
+    this.cargaMasivaFamiliaNuevaIcono  = FAMILIA_ICONOS[0];
+    this.cargaMasivaCrearFamiliaNueva  = false;
+    this.cargaMasivaProcesando         = false;
+    this.cargaMasivaResultado          = null;
+    this.cargaMasivaError              = '';
+    this.cargaMasivaPaso               = 1;
   }
 
   cerrarCargaMasiva(): void {
-    this.mostrarCargaMasiva = false;
-    this.cargaMasivaTexto = '';
-    this.cargaMasivaPreview = [];
+    this.mostrarCargaMasiva   = false;
+    this.cargaMasivaTexto     = '';
+    this.cargaMasivaPreview   = [];
     this.cargaMasivaResultado = null;
-    this.cargaMasivaError = '';
-    this.cargaMasivaPaso = 1;
+    this.cargaMasivaError     = '';
+    this.cargaMasivaPaso      = 1;
   }
 
   parsearFecha(raw: string): string {
     if (!raw) return '';
     const limpio = raw.trim();
 
-    const ddmmyyyy = /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/;
-    const m1 = limpio.match(ddmmyyyy);
-    if (m1) {
-      const d = m1[1].padStart(2, '0');
-      const mo = m1[2].padStart(2, '0');
-      const y = m1[3];
-      return `${y}-${mo}-${d}`;
-    }
+    const m1 = limpio.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
 
-    const yyyymmdd = /^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/;
-    const m2 = limpio.match(yyyymmdd);
-    if (m2) {
-      const y = m2[1];
-      const mo = m2[2].padStart(2, '0');
-      const d = m2[3].padStart(2, '0');
-      return `${y}-${mo}-${d}`;
-    }
+    const m2 = limpio.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+    if (m2) return `${m2[1]}-${m2[2].padStart(2,'0')}-${m2[3].padStart(2,'0')}`;
 
     return '';
   }
@@ -710,22 +396,8 @@ export class EventosComponent implements OnInit, OnDestroy {
       const nombre = partes[0].trim();
       const fi = this.parsearFecha(partes[1].trim());
       const ff = this.parsearFecha(partes[2].trim());
-
       if (!nombre) return null;
-
-      const item: CargaMasivaItem = {
-        nombre,
-        fechaInicio: fi,
-        fechaFin: ff,
-        valido: true
-      };
-
-      if (!fi || !ff) {
-        item.valido = false;
-        item.error = 'Fechas no reconocidas';
-      }
-
-      return item;
+      return { nombre, fechaInicio: fi, fechaFin: ff, valido: !!(fi && ff), error: (!fi || !ff) ? 'Fechas no reconocidas' : undefined };
     }
 
     if (partes.length === 1) {
@@ -734,16 +406,8 @@ export class EventosComponent implements OnInit, OnDestroy {
         const nombre = cols[0].trim();
         const fi = this.parsearFecha(cols[cols.length - 2].trim());
         const ff = this.parsearFecha(cols[cols.length - 1].trim());
-
         if (!nombre) return null;
-
-        return {
-          nombre,
-          fechaInicio: fi,
-          fechaFin: ff,
-          valido: !!(fi && ff),
-          error: (!fi || !ff) ? 'Fechas no reconocidas' : undefined
-        };
+        return { nombre, fechaInicio: fi, fechaFin: ff, valido: !!(fi && ff), error: (!fi || !ff) ? 'Fechas no reconocidas' : undefined };
       }
     }
 
@@ -751,7 +415,7 @@ export class EventosComponent implements OnInit, OnDestroy {
   }
 
   procesarTextoCargaMasiva(): void {
-    this.cargaMasivaError = '';
+    this.cargaMasivaError   = '';
     this.cargaMasivaPreview = [];
 
     if (!this.cargaMasivaTexto.trim()) {
@@ -759,19 +423,12 @@ export class EventosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const lineas = this.cargaMasivaTexto
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-
+    const lineas = this.cargaMasivaTexto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const items: CargaMasivaItem[] = [];
 
     for (const linea of lineas) {
-      const esEncabezado = /^(actividad|nombre|evento|tarea|descripcion|fecha|inicio|fin)/i.test(linea);
-      if (esEncabezado) continue;
-
-      const esTituloSeccion = !/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}/.test(linea) && linea.split('\t').length < 2;
-      if (esTituloSeccion) continue;
+      if (/^(actividad|nombre|evento|tarea|descripcion|fecha|inicio|fin)/i.test(linea)) continue;
+      if (!/\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}/.test(linea) && linea.split('\t').length < 2) continue;
 
       const item = this.parsearLineaCargaMasiva(linea);
       if (item) items.push(item);
@@ -783,7 +440,7 @@ export class EventosComponent implements OnInit, OnDestroy {
     }
 
     this.cargaMasivaPreview = items;
-    this.cargaMasivaPaso = 2;
+    this.cargaMasivaPaso    = 2;
     this.cdr.markForCheck();
   }
 
@@ -791,13 +448,10 @@ export class EventosComponent implements OnInit, OnDestroy {
     if (this.cargaMasivaPreview.length === 0) return;
 
     const itemsValidos = this.cargaMasivaPreview.filter(i => i.valido);
-    if (itemsValidos.length === 0) {
-      this.cargaMasivaError = 'No hay ítems válidos para cargar.';
-      return;
-    }
+    if (itemsValidos.length === 0) { this.cargaMasivaError = 'No hay ítems válidos para cargar.'; return; }
 
     this.cargaMasivaProcesando = true;
-    this.cargaMasivaError = '';
+    this.cargaMasivaError      = '';
     this.cdr.markForCheck();
 
     const resultado: CargaMasivaResultado = { exitosos: 0, fallidos: 0, errores: [] };
@@ -867,11 +521,11 @@ export class EventosComponent implements OnInit, OnDestroy {
               descripcion: item.fechaInicio && item.fechaFin
                 ? `${this.formatFechaCorta(item.fechaInicio)} → ${this.formatFechaCorta(item.fechaFin)}`
                 : '',
-              completado:  false,
-              completadoEn:null,
-              createdAt:   Date.now()
+              completado:   false,
+              completadoEn: null,
+              createdAt:    Date.now()
             };
-            await set(nuevoRef, nuevo);
+            await (await import('firebase/database')).set(nuevoRef, nuevo);
             resultado.exitosos++;
           } catch (e: any) {
             resultado.fallidos++;
@@ -881,7 +535,7 @@ export class EventosComponent implements OnInit, OnDestroy {
       }
 
       this.cargaMasivaResultado = resultado;
-      this.cargaMasivaPaso = 3;
+      this.cargaMasivaPaso      = 3;
       this.pushNotif(
         `📥 Carga masiva completada: ${resultado.exitosos} creados${resultado.fallidos > 0 ? `, ${resultado.fallidos} con error` : ''}`,
         resultado.fallidos === 0 ? 'success' : 'warning'
@@ -946,13 +600,6 @@ export class EventosComponent implements OnInit, OnDestroy {
     });
   }
 
-  pushNotif(mensaje: string, tipo: 'warning' | 'info' | 'success' | 'danger'): void {
-    this.notificaciones.unshift({
-      id: this.uid(), mensaje, tipo, timestamp: new Date(), leida: false
-    });
-    this.cdr.markForCheck();
-  }
-
   notifSistema(mensaje: string): void {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('📅 Eventos', { body: mensaje });
@@ -971,31 +618,6 @@ export class EventosComponent implements OnInit, OnDestroy {
     this.notificaciones.forEach(n => (n.leida = true));
   }
 
-  getPendientesActivos(familiaId: string): number {
-    return this.conteosPorFamilia[familiaId]?.activos ?? 0;
-  }
-
-  getTotalPendientes(familiaId: string): number {
-    return this.conteosPorFamilia[familiaId]?.total ?? 0;
-  }
-
-  getCompletadosPendientes(familiaId: string): number {
-    return this.conteosPorFamilia[familiaId]?.completados ?? 0;
-  }
-
-  getProgresoPendientes(familiaId: string): number {
-    const total = this.getTotalPendientes(familiaId);
-    if (total === 0) return 0;
-    return Math.round((this.getCompletadosPendientes(familiaId) / total) * 100);
-  }
-
-  get totalPendientesActivos(): number {
-    return Object.values(this.conteosPorFamilia).reduce((sum, c) => sum + c.activos, 0);
-  }
-
-  get totalPendientesCompletados(): number {
-    return Object.values(this.conteosPorFamilia).reduce((sum, c) => sum + c.completados, 0);
-  }
 
   get eventosGeneralesActivos(): EventoGeneral[] {
     const now = new Date();
@@ -1011,9 +633,7 @@ export class EventosComponent implements OnInit, OnDestroy {
   get eventosGeneralesFiltrados(): EventoGeneral[] {
     let base = this.eventosGenerales.filter(e => e.status !== 'completed');
 
-    if (this.filtroGeneralActual !== 'all') {
-      base = base.filter(e => e.status === this.filtroGeneralActual);
-    }
+    if (this.filtroGeneralActual !== 'all') base = base.filter(e => e.status === this.filtroGeneralActual);
 
     if (this.textoBusquedaGeneral.trim()) {
       const q = this.textoBusquedaGeneral.toLowerCase();
@@ -1024,71 +644,40 @@ export class EventosComponent implements OnInit, OnDestroy {
     }
 
     const mult = this.ordenGeneralAsc ? 1 : -1;
-    return [...base].sort((a, b) => mult * (
-      this.dt(a.fechaInicio, a.horaInicio || '00:00').getTime() -
-      this.dt(b.fechaInicio, b.horaInicio || '00:00').getTime()
-    ));
-  }
-
-  toggleOrdenGeneral(): void {
-    this.ordenGeneralAsc = !this.ordenGeneralAsc;
-    this.cdr.markForCheck();
-  }
-
-  toggleOrdenPendientes(): void {
-    this.ordenPendientesAsc = !this.ordenPendientesAsc;
-    this.cdr.markForCheck();
-  }
-
-  get pendientesFamiliaFiltrados(): PendienteFamilia[] {
-    let base = [...this.pendientesFamilia];
-    if (this.textoBusquedaPendientes.trim()) {
-      const q = this.textoBusquedaPendientes.toLowerCase();
-      base = base.filter(p =>
-        p.nombre.toLowerCase().includes(q) ||
-        (p.descripcion ?? '').toLowerCase().includes(q)
-      );
-    }
-    const mult = this.ordenPendientesAsc ? 1 : -1;
-    return base.sort((a, b) => {
-      if (a.completado !== b.completado) return Number(a.completado) - Number(b.completado);
-      return mult * (a.createdAt - b.createdAt);
-    });
-  }
-
-  get pendientesActivosGrupo(): number {
-    return this.pendientesFamiliaFiltrados.filter(p => !p.completado).length;
+    return [...base].sort((a, b) =>
+      mult * (this.dt(a.fechaInicio, a.horaInicio || '00:00').getTime() -
+              this.dt(b.fechaInicio, b.horaInicio || '00:00').getTime())
+    );
   }
 
   get historial(): HistorialItem[] {
-    const historialGenerales: HistorialItem[] = this.eventosGenerales
+    const generales: HistorialItem[] = this.eventosGenerales
       .filter(e => e.status === 'completed' && e.completadoEn)
       .map(e => ({
-        id:          e.id,
-        tipo:        'general' as const,
-        nombre:      e.nombre,
-        descripcion: e.descripcion,
-        fechaInicio: e.fechaInicio,
-        fechaFin:    e.fechaFin,
-        horaInicio:  e.horaInicio,
-        horaFin:     e.horaFin,
-        completadoEn:e.completadoEn!,
-        familiaId:   null
+        id:           e.id,
+        tipo:         'general' as const,
+        nombre:       e.nombre,
+        descripcion:  e.descripcion,
+        fechaInicio:  e.fechaInicio,
+        fechaFin:     e.fechaFin,
+        horaInicio:   e.horaInicio,
+        horaFin:      e.horaFin,
+        completadoEn: e.completadoEn!,
+        familiaId:    null
       }));
 
-    const historialPendientes: HistorialItem[] = this.pendientesFamilia
+    const pendientes: HistorialItem[] = this.pendientesFamilia
       .filter(p => p.completado && p.completadoEn)
       .map(p => ({
-        id:          p.id,
-        tipo:        'familia' as const,
-        nombre:      p.nombre,
-        descripcion: p.descripcion,
-        completadoEn:p.completadoEn!,
-        familiaId:   p.familiaId
+        id:           p.id,
+        tipo:         'familia' as const,
+        nombre:       p.nombre,
+        descripcion:  p.descripcion,
+        completadoEn: p.completadoEn!,
+        familiaId:    p.familiaId
       }));
 
-    return [...historialGenerales, ...historialPendientes]
-      .sort((a, b) => b.completadoEn - a.completadoEn);
+    return [...generales, ...pendientes].sort((a, b) => b.completadoEn - a.completadoEn);
   }
 
   get noLeidas(): number {
@@ -1100,36 +689,21 @@ export class EventosComponent implements OnInit, OnDestroy {
     return this.eventosGenerales.filter(e => e.status === s).length;
   }
 
-  contarPendientesGrupo(familiaId: string): number {
-    if (this.familiaSeleccionada?.id === familiaId) {
-      return this.pendientesFamilia.filter(p => !p.completado).length;
-    }
-    return 0;
-  }
-
-  contarCompletadosGrupo(): number {
-    return this.pendientesFamilia.filter(p => p.completado).length;
-  }
-
-  getFamilia(id: string | null): Familia | undefined {
-    if (!id) return undefined;
-    return this.familias.find(f => f.id === id);
-  }
-
   cerrarError(): void { this.errorMsg = ''; }
+
+  toggleOrdenGeneral(): void {
+    this.ordenGeneralAsc = !this.ordenGeneralAsc;
+    this.cdr.markForCheck();
+  }
 
   toggleMenuGeneral(id: string): void {
     this.menuGeneralAbierto = this.menuGeneralAbierto === id ? null : id;
   }
-  toggleMenuFamilia(id: string): void {
-    this.menuFamiliaAbierto = this.menuFamiliaAbierto === id ? null : id;
-  }
-  toggleMenuPendiente(id: string): void {
-    this.menuPendienteAbierto = this.menuPendienteAbierto === id ? null : id;
-  }
 
-  limpiarBusquedaGeneral(): void   { this.textoBusquedaGeneral   = ''; this.cdr.markForCheck(); }
-  limpiarBusquedaPendientes(): void { this.textoBusquedaPendientes = ''; this.cdr.markForCheck(); }
+  limpiarBusquedaGeneral(): void {
+    this.textoBusquedaGeneral = '';
+    this.cdr.markForCheck();
+  }
 
   dt(fecha: string, hora: string): Date {
     return new Date(`${fecha}T${hora}:00`);
@@ -1144,9 +718,7 @@ export class EventosComponent implements OnInit, OnDestroy {
 
   formatFechaCorta(f: string): string {
     if (!f) return '—';
-    return new Date(f + 'T00:00:00').toLocaleDateString('es-ES', {
-      day: 'numeric', month: 'short'
-    });
+    return new Date(f + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 
   formatHora(h: string): string {
@@ -1166,8 +738,6 @@ export class EventosComponent implements OnInit, OnDestroy {
     return Math.random().toString(36).slice(2, 10);
   }
 
-  trackGeneralId(_: number, e: EventoGeneral): string { return e.id; }
-  trackFamiliaId(_: number, f: Familia): string       { return f.id; }
-  trackPendienteId(_: number, p: PendienteFamilia): string { return p.id; }
+  trackGeneralId(_: number, e: EventoGeneral): string   { return e.id; }
   trackPreviewId(_: number, i: CargaMasivaItem): string { return i.nombre + i.fechaInicio; }
 }

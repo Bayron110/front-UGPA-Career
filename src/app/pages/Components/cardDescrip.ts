@@ -89,4 +89,6 @@ export const HOME_CARDS: HomeCard[] = [
         footer: 'Inducciones', 
         image: 'https://i.postimg.cc/XqjCL7yt/Asistencia.jpg', 
         action: 'iraControlInd' },
+        
+
 ];

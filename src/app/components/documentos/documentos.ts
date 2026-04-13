@@ -17,14 +17,12 @@ export class DocumentosComponent implements OnInit {
   nombre: string = '';
   descripcion: string = '';
   
-  // Variables para el modal
   modalAbierto: boolean = false;
   documentoSeleccionado: Documento | null = null;
   documentoUrl: SafeResourceUrl | null = null;
   blobUrl: string = '';
   errorVisualizacion: string = '';
 
-  // Output para comunicar cambios al componente padre
   @Output() documentosActualizados = new EventEmitter<Documento[]>();
 
   constructor(
@@ -47,7 +45,6 @@ export class DocumentosComponent implements OnInit {
         .subscribe(res => {
           alert(res);
           this.listarDocumentos();
-          // Limpiar formulario
           this.nombre = '';
           this.descripcion = '';
           this.selectedFile = null as any;
@@ -61,7 +58,6 @@ export class DocumentosComponent implements OnInit {
     this.documentosService.listarDocumentos()
       .subscribe(data => {
         this.documentos = data;
-        // Emitir evento al componente padre
         this.documentosActualizados.emit(data);
         this.cdr.detectChanges();
       });

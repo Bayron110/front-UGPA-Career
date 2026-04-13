@@ -1,13 +1,16 @@
 <div>
   <div class="container">
     <div class="header">
-      <h1>BIENVENIDO</h1>
 
+      <span class="header-sub">Portal de servicios</span>
+      <h1>Bienvenido</h1>
       <div class="pagination-toggle">
         <label class="toggle-switch">
-          <input type="checkbox"
-                 [checked]="paginationEnabled"
-                 (change)="togglePagination($any($event.target).checked)" />
+          <input
+            type="checkbox"
+            [checked]="paginationEnabled"
+            (change)="togglePagination($any($event.target).checked)"
+          />
           <span class="toggle-slider"></span>
         </label>
         <span class="toggle-label">Paginación</span>
@@ -18,51 +21,62 @@
       <div class="card-container" *ngFor="let card of visibleCards">
         <div class="card-effect">
           <div class="card-inner">
-            <div class="card__liquid"></div>
-            <div class="card__shine"></div>
-            <div class="card__glow"></div>
+
             <div class="card__content">
-              <div class="card__badge">{{ card.badge }}</div>
-              <div class="card__image" [style.background-image]="'url(' + card.image + ')'"></div>
-              <div class="card__text">
-                <p class="card__title">{{ card.title }}</p>
-                <p class="card__description">{{ card.description }}</p>
+
+              <div class="card__image"
+                [style.background-image]="'url(' + card.image + ')'">
               </div>
-              <div class="card__footer">
-                <div class="card__price">{{ card.footer }}</div>
-                <div class="card__button" (click)="navigate(card.action)">
-                  <svg viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M5 12H19M12 5V19"
-                          stroke="currentColor" stroke-width="2"></path>
-                  </svg>
+
+              <div class="card__body-inner">
+
+                <div class="card__meta">
+                  <span class="card__badge">{{ card.badge }}</span>
+                  <span class="card__status-dot"></span>
                 </div>
+
+                <div class="card__text">
+                  <p class="card__title">{{ card.title }}</p>
+                  <p class="card__description">{{ card.description }}</p>
+                </div>
+
+                <div class="card__footer">
+                  <div class="card__footer-info">
+                  </div>
+                  <button class="card__button" (click)="navigate(card.action)">
+                    Acceder
+                    <svg viewBox="0 0 24 24">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                </div>
+
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </div>
 
     <div class="pagination-controls" *ngIf="paginationEnabled">
-      <span class="page-info">
-        Página {{ currentPage }} de {{ totalPages }}
-      </span>
-      <button class="page-btn"
-              [disabled]="currentPage === 1"
-              (click)="goToPage(currentPage - 1)">
-        ‹ Anterior
-      </button>
-      <button class="page-btn"
-              *ngFor="let p of pages"
-              [class.active]="p === currentPage"
-              (click)="goToPage(p)">
-        {{ p }}
-      </button>
-      <button class="page-btn"
-              [disabled]="currentPage === totalPages"
-              (click)="goToPage(currentPage + 1)">
-        Siguiente ›
-      </button>
+      <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button
+        class="page-btn"
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)"
+      >‹</button>
+      <button
+        class="page-btn"
+        *ngFor="let p of pages"
+        [class.active]="p === currentPage"
+        (click)="goToPage(p)"
+      >{{ p }}</button>
+      <button
+        class="page-btn"
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)"
+      >›</button>
     </div>
 
   </div>

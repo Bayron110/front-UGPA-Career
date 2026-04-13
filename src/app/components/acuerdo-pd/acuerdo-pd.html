@@ -1,12 +1,141 @@
 <div class="contenedor">
     <div class="header">
+        <br>
+        <br>
         <h2>Subir archivo Excel</h2>
         <p class="subtitle">Carga un archivo Excel para generar archivos individuales</p>
     </div>
 
+    <!-- DESCARGAS SUPERIORES -->
+    <div class="top-downloads">
+        <button class="btn-top btn-top-word" (click)="descargarDocumentoBase('patrocinio', 'word')">
+            📄 Descargar Word Patrocinio
+        </button>
+
+        <button class="btn-top btn-top-excel" (click)="descargarDocumentoBase('patrocinio', 'excel')">
+            📊 Descargar Excel Patrocinio
+        </button>
+
+        <button class="btn-top btn-top-word" (click)="descargarDocumentoBase('individual', 'word')">
+            📄 Descargar Word Plan Individual
+        </button>
+
+        <button class="btn-top btn-top-excel" (click)="descargarDocumentoBase('individual', 'excel')">
+            📊 Descargar Excel Plan Individual
+        </button>
+    </div>
+
+    <!-- SELECTOR DE ESTRUCTURA -->
+    <div class="estructura-tabs">
+        <button
+            class="tab-btn"
+            [class.active]="tipoEstructura() === 'patrocinio'"
+            (click)="cambiarEstructura('patrocinio')">
+            Estructura Patrocinio
+        </button>
+
+        <button
+            class="tab-btn"
+            [class.active]="tipoEstructura() === 'individual'"
+            (click)="cambiarEstructura('individual')">
+            Estructura Plan
+        </button>
+    </div>
+
+    <!-- VISTA DE ESTRUCTURA -->
+    <div class="estructura-card">
+        <div class="estructura-card-header">
+            <div>
+                <h3>{{ tituloEstructuraActual() }}</h3>
+                <p>Revisa este ejemplo antes de subir tu archivo Excel</p>
+            </div>
+
+            <div class="estructura-actions">
+                <button class="btn-mini btn-mini-word" (click)="descargarWordActual()">
+                    📄 Descargar Word
+                </button>
+                <button class="btn-mini btn-mini-excel" (click)="descargarExcelActual()">
+                    📊 Descargar Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="estructura-preview-box">
+            <div class="preview-label">Ejemplo de columnas esperadas</div>
+
+            <div class="preview-columns">
+                @for (columna of columnasEstructuraActual(); track columna) {
+                    <div class="preview-column">{{ columna }}</div>
+                }
+            </div>
+
+            <div class="preview-example">
+                @if (tipoEstructura() === 'patrocinio') {
+                    <div class="example-table">
+                        <div class="example-row example-head">
+                            <div>Codigo</div>
+                            <div>NombresC</div>
+                            <div>Cedula1</div>
+                            <div>Carrera1</div>
+                            <div>NombreCA</div>
+                            <div>Capacitaciones</div>
+                            <div>Horas</div>
+                            <div>Fecha</div>
+                            <div>Tipo</div>
+                        </div>
+
+                        <div class="example-row">
+                            <div>UGPA-RGI2-01-PRO-134-2026-03</div>
+                            <div>Juan Perez</div>
+                            <div>0102030405</div>
+                            <div>Software</div>
+                            <div>Juan Perez</div>
+                            <div>Scrum - Git - Angular</div>
+                            <div>40 - 24 - 60</div>
+                            <div>2024-01-10 - 2024-02-12 - 2024-03-15</div>
+                            <div>APROBACIÓN - APROBACIÓN - APROBACIÓN</div>
+                        </div>
+                    </div>
+                }
+
+                @if (tipoEstructura() === 'individual') {
+                    <div class="example-table">
+                        <div class="example-row example-head">
+                            <div>Codigo</div>
+                            <div>NombresC</div>
+                            <div>Cedula1</div>
+                            <div>Carrera1</div>
+                            <div>NombreCA</div>
+                            <div>Teoria</div>
+                            <div>Practica</div>
+                            <div>Fecha1</div>
+                        </div>
+
+                        <div class="example-row">
+                            <div>UGPA-RGI1-01-PRO-134-2026-03</div>
+                            <div>Maria Lopez</div>
+                            <div>0912345678</div>
+                            <div>Desarrollo</div>
+                            <div>Maria Lopez</div>
+                            <div>POO - Base de Datos - API REST</div>
+                            <div>Ejercicios - Proyecto - Implementación</div>
+                            <div>2026-04-12</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- CARGA DE EXCEL -->
     <div class="upload-area">
-        <input type="file" id="fileInput" (change)="onFileChange($event)" accept=".xlsx, .xls"
+        <input
+            type="file"
+            id="fileInput"
+            (change)="onFileChange($event)"
+            accept=".xlsx, .xls"
             [disabled]="cargando()" />
+
         <label for="fileInput" class="upload-label">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round"
@@ -43,9 +172,11 @@
                 </svg>
                 Limpiar
             </button>
+
             <button (click)="exportarExcel()" class="btn-exportar">
-  Exportar Capacitaciones a Excel
-</button>
+                Exportar Capacitaciones a Excel
+            </button>
+
             <button class="btn-primary" (click)="abrirModalPlantilla()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"
@@ -56,14 +187,13 @@
                     <line x1="9" y1="15" x2="15" y2="15" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round" />
                 </svg>
-                Generar PDF con Plantilla
+                Generar Documentos
             </button>
         </div>
     </div>
     }
 </div>
 
-<!-- Modal para subir plantilla Word -->
 @if (mostrarModalPlantilla()) {
 <div class="modal-overlay" (click)="cerrarModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
@@ -87,10 +217,15 @@
                 <div>
                     <strong>Instrucciones:</strong>
                     <p>En tu documento Word, usa placeholders con doble llave <code>{{'{{'}}nombre{{'}}'}}</code></p>
-                    <p><strong>Ejemplo:</strong> Si tu Excel tiene "Nombres Completos", escribe
-                        <code>{{'{{'}}Nombres Completos{{'}}'}}</code></p>
-                    <p class="warning">⚠️ Los placeholders deben coincidir EXACTAMENTE con los nombres de columnas del
-                        Excel (mayúsculas, espacios, etc.)</p>
+                    <p>
+                        <strong>Ejemplo:</strong>
+                        Si tu Excel tiene "Nombres Completos", escribe
+                        <code>{{'{{'}}Nombres Completos{{'}}'}}</code>
+                    </p>
+                    <p class="warning">
+                        ⚠️ Los placeholders deben coincidir EXACTAMENTE con los nombres de columnas del Excel
+                        (mayúsculas, espacios, etc.)
+                    </p>
                 </div>
             </div>
 
@@ -115,9 +250,6 @@
                 </label>
             </div>
         </div>
-        
-
     </div>
-    
 </div>
 }

@@ -1,102 +1,115 @@
+/* ─────────────────────────────────────────
+   Contenedor principal
+───────────────────────────────────────── */
 .form-container {
-  max-width: 500px;
-  min-height: 300px;
-  background: linear-gradient(0deg, #e8f9fa 0%, #f4f7fb 100%);
-  border-radius: 40px;
-  padding: 25px 35px;
-  border: 5px solid #ffffff;
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 30px 30px -20px;
-  margin: 20px auto;
+  max-width: 520px;
+  background: #07111f;
+  border: 1px solid #162030;
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin: 24px auto;
 }
 
+/* ─── Título ─── */
 .heading {
   text-align: center;
-  font-weight: 900;
-  font-size: 28px;
-  color: #1089d3;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1.8px;
+  color: #60a5fa;
+  margin-bottom: 24px;
+  text-transform: uppercase;
 }
 
+/* ─── Formulario ─── */
 .form {
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-group label {
   display: block;
+  font-size: 10px;
   font-weight: 700;
-  font-size: 14px;
-  color: #1089d3;
-  margin-bottom: 8px;
-  margin-left: 5px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #3b5170;
+  margin-bottom: 6px;
+  margin-left: 2px;
 }
 
 .input {
   width: 100%;
-  background: white;
-  border: none;
-  padding: 15px 20px;
-  border-radius: 20px;
-  box-shadow: #cff0ff 0px 10px 10px -5px;
-  border-inline: 2px solid transparent;
-  font-size: 15px;
+  background: #040c18;
+  border: 1px solid #162030;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #cbd5e1;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
 
-.input::placeholder {
-  color: #aaaaaa;
+.input:hover {
+  border-color: #1e3a5f;
 }
 
 .input:focus {
-  outline: none;
-  border-inline: 2px solid #12b1d1;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.input::placeholder {
+  color: #1e3252;
+}
+
+/* ─── Botón guardar ─── */
 .login-button {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  font-weight: bold;
-  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
-  color: white;
-  padding-block: 15px;
-  margin: 20px auto;
-  border-radius: 20px;
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 20px 10px -15px;
+  background: #1d4ed8;
+  color: #bfdbfe;
+  padding: 11px;
+  margin-top: 6px;
+  border-radius: 10px;
   border: none;
-  transition: all 0.2s ease-in-out;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
   cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, transform 0.12s;
 }
 
 .login-button:hover {
-  transform: scale(1.03);
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 23px 10px -20px;
+  background: #2563eb;
 }
 
 .login-button:active {
-  transform: scale(0.95);
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 15px 10px -10px;
+  transform: scale(0.97);
 }
 
 .login-button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
 }
 
-.mensaje {
-  text-align: center;
-  padding: 15px;
-  border-radius: 15px;
-  margin-top: 15px;
-  font-weight: 600;
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-/* Estilos para la sección desplegable */
+/* ─── Sección desplegable ─── */
 .careers-section {
-  margin-top: 30px;
+  margin-top: 24px;
+  border-top: 1px solid #0f1e35;
+  padding-top: 20px;
 }
 
 .toggle-button {
@@ -104,96 +117,98 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
-  color: white;
-  border: none;
-  padding: 15px 25px;
-  border-radius: 20px;
-  font-weight: 900;
-  font-size: 18px;
+  background: #0d1e33;
+  border: 1px solid #1e3a5f;
+  color: #60a5fa;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 10px 10px -5px;
+  transition: all 0.2s;
+  font-family: inherit;
 }
 
 .toggle-button:hover {
-  transform: translateY(-2px);
-  box-shadow: rgba(133, 189, 215, 0.88) 0px 15px 15px -5px;
+  background: #122240;
+  border-color: #2563eb;
 }
 
 .arrow-icon {
-  transition: transform 0.3s ease;
-  color: white;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
 }
 
 .arrow-icon.rotated {
   transform: rotate(180deg);
 }
 
+/* ─── Lista colapsable ─── */
 .careers-list {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease-in-out;
+  transition: max-height 0.35s ease-in-out;
   margin-top: 0;
 }
 
 .careers-list.expanded {
-  max-height: 1000px;
-  margin-top: 15px;
+  max-height: 1200px;
+  margin-top: 12px;
 }
 
+/* ─── Tarjeta de carrera ─── */
 .career-card {
-  background: white;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: rgba(133, 189, 215, 0.3) 0px 8px 15px -5px;
+  background: #040c18;
+  border: 1px solid #162030;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease;
-  animation: slideIn 0.3s ease-out;
+  gap: 14px;
+  transition: border-color 0.2s, transform 0.15s;
+  animation: slideIn 0.22s ease-out;
   flex-wrap: wrap;
-  gap: 15px;
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .career-card:hover {
-  transform: translateY(-3px);
-  box-shadow: rgba(133, 189, 215, 0.5) 0px 12px 20px -5px;
+  border-color: #1e3a5f;
+  transform: translateY(-1px);
+}
+
+.career-card:last-child {
+  margin-bottom: 0;
 }
 
 .career-info {
   flex: 1;
-  min-width: 200px;
+  min-width: 160px;
 }
 
 .career-name {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
-  color: #1089d3;
-  margin-bottom: 5px;
+  color: #e2e8f0;
+  margin-bottom: 4px;
 }
 
 .career-duration {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  font-size: 11px;
+  color: #334155;
 }
 
+/* ─── Botones de acción ─── */
 .career-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -201,247 +216,253 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 8px 15px;
+  padding: 7px 13px;
   border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.edit-btn {
-  background: linear-gradient(45deg, #4CAF50 0%, #45a049 100%);
-  color: white;
-}
-
-.edit-btn:hover {
-  transform: scale(1.05);
-  box-shadow: rgba(76, 175, 80, 0.4) 0px 8px 15px -5px;
-}
-
-.delete-btn {
-  background: linear-gradient(45deg, #f44336 0%, #da190b 100%);
-  color: white;
-}
-
-.delete-btn:hover {
-  transform: scale(1.05);
-  box-shadow: rgba(244, 67, 54, 0.4) 0px 8px 15px -5px;
+  transition: all 0.15s;
+  font-family: inherit;
 }
 
 .action-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
+.action-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  flex-shrink: 0;
+}
+
+.edit-btn {
+  background: rgba(5, 46, 22, 0.4);
+  color: #22c55e;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+.edit-btn:hover {
+  background: rgba(5, 46, 22, 0.65);
+  border-color: rgba(22, 163, 74, 0.5);
+}
+
+.delete-btn {
+  background: rgba(69, 10, 10, 0.4);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+}
+.delete-btn:hover {
+  background: rgba(69, 10, 10, 0.65);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+/* ─── Estado vacío ─── */
 .empty-state {
   text-align: center;
-  color: #aaaaaa;
-  padding: 30px;
-  font-size: 16px;
+  color: #1e3a5f;
+  padding: 28px;
+  font-size: 13px;
   font-style: italic;
 }
 
-/* Estilos del Modal */
+/* ─── Modal overlay ─── */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.18s ease;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
+/* ─── Modal contenido ─── */
 .modal-content {
-  background: white;
-  border-radius: 25px;
-  padding: 40px 35px;
-  max-width: 450px;
+  background: #07111f;
+  border: 1px solid #162030;
+  border-radius: 20px;
+  padding: 36px 32px 30px;
+  max-width: 420px;
   width: 90%;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.22s ease;
   text-align: center;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
+.modal-content::-webkit-scrollbar       { width: 4px; }
+.modal-content::-webkit-scrollbar-thumb { background: #162030; border-radius: 4px; }
+
+.modal-success { border-top: 3px solid #16a34a; }
+.modal-error   { border-top: 3px solid #dc2626; }
+.modal-warning { border-top: 3px solid #d97706; }
+.modal-edit    { border-top: 3px solid #2563eb; }
+.modal-delete  { border-top: 3px solid #dc2626; }
+
+/* ─── Icono del modal ─── */
 .modal-icon {
-  margin: 0 auto 20px;
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  margin: 0 auto 18px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.modal-success .modal-icon {
-  color: #4CAF50;
-}
+.modal-icon svg { width: 28px; height: 28px; fill: none; stroke-width: 2; }
 
-.modal-error .modal-icon {
-  color: #f44336;
-}
+.modal-success .modal-icon { background: rgba(22, 163, 74, 0.12);  border: 1px solid rgba(22, 163, 74, 0.22); }
+.modal-error   .modal-icon { background: rgba(220, 38, 38, 0.12);  border: 1px solid rgba(220, 38, 38, 0.22); }
+.modal-warning .modal-icon { background: rgba(217, 119, 6, 0.12);  border: 1px solid rgba(217, 119, 6, 0.22); }
+.modal-edit    .modal-icon { background: rgba(37, 99, 235, 0.12);  border: 1px solid rgba(37, 99, 235, 0.22); }
+.modal-delete  .modal-icon { background: rgba(220, 38, 38, 0.12);  border: 1px solid rgba(220, 38, 38, 0.22); }
 
-.modal-warning .modal-icon {
-  color: #ff9800;
-}
+.modal-success .modal-icon svg { stroke: #22c55e; }
+.modal-error   .modal-icon svg { stroke: #f87171; }
+.modal-warning .modal-icon svg { stroke: #fbbf24; }
+.modal-edit    .modal-icon svg { stroke: #60a5fa; }
+.modal-delete  .modal-icon svg { stroke: #f87171; }
 
-.modal-edit .modal-icon {
-  color: #2196F3;
-}
-
-.modal-delete .modal-icon {
-  color: #f44336;
-}
-
+/* ─── Textos del modal ─── */
 .modal-title {
-  font-size: 24px;
+  font-size: 17px;
   font-weight: 800;
-  margin-bottom: 15px;
-  color: #333;
+  color: #e2e8f0;
+  margin-bottom: 8px;
 }
 
 .modal-message {
-  font-size: 16px;
-  color: #666;
-  margin-bottom: 25px;
-  line-height: 1.5;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.65;
+  margin-bottom: 22px;
 }
 
-.modal-input {
-  width: 100%;
-  background: #f5f5f5;
-  border: 2px solid #e0e0e0;
-  padding: 15px 20px;
-  border-radius: 15px;
-  margin-bottom: 15px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-}
-
-.modal-input:focus {
-  outline: none;
-  border-color: #12b1d1;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(18, 177, 209, 0.1);
-}
-
+/* ─── Formulario en modal ─── */
 .modal-form-group {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-align: left;
 }
 
 .modal-form-group label {
   display: block;
+  font-size: 10px;
   font-weight: 700;
-  font-size: 13px;
-  color: #1089d3;
-  margin-bottom: 6px;
-  margin-left: 5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #3b5170;
+  margin-bottom: 5px;
+  margin-left: 2px;
 }
 
+.modal-input {
+  width: 100%;
+  background: #040c18;
+  border: 1px solid #162030;
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-size: 13px;
+  color: #cbd5e1;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.modal-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ─── Botones del modal ─── */
 .modal-buttons {
   display: flex;
-  gap: 15px;
+  gap: 10px;
   justify-content: center;
-  margin-top: 25px;
+  margin-top: 22px;
 }
 
 .modal-btn {
-  padding: 12px 30px;
-  border: none;
-  border-radius: 15px;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 12px;
   font-weight: 700;
-  font-size: 15px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 120px;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s;
+  min-width: 110px;
 }
+.modal-btn:active { transform: scale(0.97); }
 
 .modal-btn-primary {
-  background: linear-gradient(45deg, #1089d3 0%, #12b1d1 100%);
-  color: white;
-  box-shadow: rgba(18, 177, 209, 0.4) 0px 8px 15px -5px;
+  background: #1d4ed8;
+  color: #bfdbfe;
 }
-
-.modal-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: rgba(18, 177, 209, 0.6) 0px 12px 20px -5px;
-}
+.modal-btn-primary:hover  { background: #2563eb; }
+.modal-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .modal-btn-secondary {
-  background: #f5f5f5;
-  color: #666;
+  background: transparent;
+  color: #475569;
+  border: 1px solid #162030;
 }
-
-.modal-btn-secondary:hover {
-  background: #e0e0e0;
-  transform: translateY(-2px);
-}
+.modal-btn-secondary:hover { border-color: #1e3a5f; color: #64748b; }
 
 .modal-btn-danger {
-  background: linear-gradient(45deg, #f44336 0%, #da190b 100%);
-  color: white;
-  box-shadow: rgba(244, 67, 54, 0.4) 0px 8px 15px -5px;
+  background: #7f1d1d;
+  color: #fecaca;
 }
+.modal-btn-danger:hover { background: #991b1b; }
 
-.modal-btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: rgba(244, 67, 54, 0.6) 0px 12px 20px -5px;
-}
-
-.modal-btn:active {
-  transform: scale(0.95);
-}
-
+/* ─── Cerrar modal ─── */
 .modal-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #f5f5f5;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #162030;
+  background: transparent;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #666;
+  color: #334155;
+  transition: all 0.2s;
+  padding: 0;
 }
+.modal-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+.modal-close:hover { border-color: #1e3a5f; color: #64748b; transform: rotate(90deg); }
 
-.modal-close:hover {
-  background: #e0e0e0;
-  transform: rotate(90deg);
-}
-
-.modal-close svg {
-  width: 20px;
-  height: 20px;
+/* ─── Responsive ─── */
+@media (max-width: 560px) {
+  .form-container { padding: 22px 20px; border-radius: 16px; }
+  .modal-content  { padding: 28px 20px 22px; }
+  .modal-buttons  { flex-direction: column; }
+  .modal-btn      { width: 100%; min-width: unset; }
+  .career-card    { flex-direction: column; align-items: flex-start; }
 }

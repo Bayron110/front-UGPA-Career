@@ -8,6 +8,15 @@ import { AxlesSuperior } from '../../Interface/Alex1';
 import { AxlesSuperiorService } from '../../services/axles/axles-suoerior';
 import { forkJoin } from 'rxjs';
 
+interface ModalNotifState {
+  visible: boolean;
+  tipo: 'success' | 'warning' | 'error' | 'info';
+  icono: string;
+  titulo: string;
+  mensaje: string;
+  confirmacion: boolean;
+}
+
 @Component({
   selector: 'app-guardados',
   standalone: true,
@@ -20,27 +29,33 @@ export class Guardados implements OnInit {
   carreraSeleccionada?: CalCareerView;
   ejesExistentes: AxlesSuperior[] = [];
   modoEdicion: boolean = false;
-  
+
   showModal: boolean = false;
-  
+
   niveles: {
     id?: number;
     nombre: string;
-    ejes: {
-      nombre: string;
-      temas: string[];
-    }[];
+    ejes: { nombre: string; temas: string[]; }[];
   }[] = [];
 
-  // Mapa para saber qué carreras tienen ejes
   carrerasConEjes: Map<string, boolean> = new Map();
-
   currentStep: number = 0;
+
+  modalNotif: ModalNotifState = {
+    visible: false,
+    tipo: 'success',
+    icono: '✅',
+    titulo: '',
+    mensaje: '',
+    confirmacion: false
+  };
+
+  private accionPendienteNotif: (() => void) | null = null;
 
   constructor(
     private calCareerService: CalCareerService,
     private axlesSuperiorService: AxlesSuperiorService,
-    private router: Router, 
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -48,6 +63,39 @@ export class Guardados implements OnInit {
     this.obtenerGuardados();
     this.resetNiveles();
   }
+
+  // ── Modal de notificación ──────────────────────────────────
+
+  mostrarModalNotif(
+    tipo: 'success' | 'warning' | 'error' | 'info',
+    titulo: string,
+    mensaje: string,
+    confirmacion = false,
+    accion?: () => void
+  ): void {
+    const iconos = { success: '✅', warning: '⚠️', error: '❌', info: 'ℹ️' };
+    this.modalNotif = { visible: true, tipo, icono: iconos[tipo], titulo, mensaje, confirmacion };
+    this.accionPendienteNotif = accion ?? null;
+    this.cdr.detectChanges();
+  }
+
+  cerrarModalNotif(): void {
+    this.modalNotif.visible = false;
+    this.accionPendienteNotif = null;
+    this.cdr.detectChanges();
+  }
+
+  confirmarAccionNotif(): void {
+    this.modalNotif.visible = false;
+    if (this.accionPendienteNotif) {
+      const accion = this.accionPendienteNotif;
+      this.accionPendienteNotif = null;
+      accion();
+    }
+    this.cdr.detectChanges();
+  }
+
+  // ── Carga de datos ─────────────────────────────────────────
 
   obtenerGuardados(): void {
     this.calCareerService.getAll().subscribe({
@@ -61,22 +109,16 @@ export class Guardados implements OnInit {
             fechaActual: new Date(item.fechaActual[0], item.fechaActual[1] - 1, item.fechaActual[2]),
             fechaFin: new Date(item.fechaFin[0], item.fechaFin[1] - 1, item.fechaFin[2])
           }));
-        
-        // Verificar cuáles tienen ejes asignados
         this.verificarEjesAsignados();
       },
-      error: (err) => {
-        console.error('Error al obtener registros:', err);
-      }
+      error: (err) => console.error('Error al obtener registros:', err)
     });
   }
 
   verificarEjesAsignados(): void {
-    if (this.calCareers.length === 0) {
-      return;
-    }
+    if (this.calCareers.length === 0) return;
 
-    const observables = this.calCareers.map(carrera => 
+    const observables = this.calCareers.map(carrera =>
       this.axlesSuperiorService.getByCalCareerId(carrera.id!)
     );
 
@@ -88,9 +130,7 @@ export class Guardados implements OnInit {
         });
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error al verificar ejes:', err);
-      }
+      error: (err) => console.error('Error al verificar ejes:', err)
     });
   }
 
@@ -102,6 +142,8 @@ export class Guardados implements OnInit {
     return item.id!;
   }
 
+  // ── Selección y edición ────────────────────────────────────
+
   seleccionar(item: CalCareerView): void {
     this.carreraSeleccionada = item;
     this.modoEdicion = false;
@@ -112,8 +154,7 @@ export class Guardados implements OnInit {
   editarEjes(item: CalCareerView): void {
     this.carreraSeleccionada = item;
     this.modoEdicion = true;
-    
-    // Cargar los ejes existentes
+
     this.axlesSuperiorService.getByCalCareerId(item.id!).subscribe({
       next: (ejes) => {
         this.ejesExistentes = ejes;
@@ -122,14 +163,13 @@ export class Guardados implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar ejes:', err);
-        alert('❌ Error al cargar los ejes existentes');
+        this.mostrarModalNotif('error', 'Error', 'Error al cargar los ejes existentes.');
       }
     });
   }
 
   cargarEjesEnFormulario(ejes: AxlesSuperior[]): void {
     this.resetNiveles();
-    
     ejes.forEach((eje, index) => {
       if (index < 4) {
         this.niveles[index] = {
@@ -148,41 +188,45 @@ export class Guardados implements OnInit {
   }
 
   eliminarEjes(item: CalCareerView): void {
-    const confirmar = confirm(`¿Está seguro de eliminar todos los ejes de "${item.career.nombre}"?\n\nEsta acción no se puede deshacer.`);
-    
-    if (!confirmar) {
-      return;
-    }
+    this.mostrarModalNotif(
+      'warning',
+      'Confirmar eliminación',
+      `¿Está seguro de eliminar todos los ejes de "${item.career.nombre}"? Esta acción no se puede deshacer.`,
+      true,
+      () => {
+        this.axlesSuperiorService.getByCalCareerId(item.id!).subscribe({
+          next: (ejes) => {
+            if (ejes.length === 0) {
+              this.mostrarModalNotif('info', 'Sin ejes', 'No hay ejes para eliminar.');
+              return;
+            }
 
-    this.axlesSuperiorService.getByCalCareerId(item.id!).subscribe({
-      next: (ejes) => {
-        if (ejes.length === 0) {
-          alert('ℹ️ No hay ejes para eliminar');
-          return;
-        }
+            const deleteObservables = ejes.map(eje =>
+              this.axlesSuperiorService.delete(String(eje.id!))
+            );
 
-        const deleteObservables = ejes.map(eje => 
-          this.axlesSuperiorService.delete(String(eje.id!))
-        );
-
-        forkJoin(deleteObservables).subscribe({
-          next: () => {
-            alert('✅ Ejes eliminados exitosamente');
-            this.carrerasConEjes.set(item.id!, false);
-            this.cdr.detectChanges();
+            forkJoin(deleteObservables).subscribe({
+              next: () => {
+                this.mostrarModalNotif('success', 'Eliminado', 'Ejes eliminados exitosamente.');
+                this.carrerasConEjes.set(item.id!, false);
+                this.cdr.detectChanges();
+              },
+              error: (err) => {
+                console.error('Error al eliminar ejes:', err);
+                this.mostrarModalNotif('error', 'Error al eliminar', 'Error al eliminar los ejes. Por favor intente nuevamente.');
+              }
+            });
           },
           error: (err) => {
-            console.error('Error al eliminar ejes:', err);
-            alert('❌ Error al eliminar los ejes. Por favor intente nuevamente.');
+            console.error('Error al obtener ejes:', err);
+            this.mostrarModalNotif('error', 'Error', 'Error al obtener los ejes.');
           }
         });
-      },
-      error: (err) => {
-        console.error('Error al obtener ejes:', err);
-        alert('❌ Error al obtener los ejes');
       }
-    });
+    );
   }
+
+  // ── Modal del formulario ───────────────────────────────────
 
   abrirModal(): void {
     this.showModal = true;
@@ -210,35 +254,24 @@ export class Guardados implements OnInit {
     }));
   }
 
-  nextStep(): void {
-    if (this.currentStep < 3) {
-      this.currentStep++;
-    }
-  }
+  nextStep(): void { if (this.currentStep < 3) this.currentStep++; }
+  prevStep(): void { if (this.currentStep > 0) this.currentStep--; }
+  goToStep(step: number): void { this.currentStep = step; }
 
-  prevStep(): void {
-    if (this.currentStep > 0) {
-      this.currentStep--;
-    }
-  }
-
-  goToStep(step: number): void {
-    this.currentStep = step;
-  }
+  // ── Guardar / actualizar ejes ──────────────────────────────
 
   guardarEjes(): void {
     if (!this.carreraSeleccionada) {
-      alert('❌ No hay carrera seleccionada');
+      this.mostrarModalNotif('error', 'Sin selección', 'No hay carrera seleccionada.');
       return;
     }
 
-    // Validar que al menos un nivel tenga un eje
-    const hayEjes = this.niveles.some(nivel => 
+    const hayEjes = this.niveles.some(nivel =>
       nivel.nombre.trim() !== '' && nivel.ejes.some(eje => eje.nombre.trim() !== '')
     );
 
     if (!hayEjes) {
-      alert('⚠️ Debe completar al menos un nivel con un eje');
+      this.mostrarModalNotif('warning', 'Campos incompletos', 'Debe completar al menos un nivel con un eje.');
       return;
     }
 
@@ -265,20 +298,24 @@ export class Guardados implements OnInit {
       });
 
     if (ejesParaGuardar.length === 0) {
-      alert('⚠️ No hay ejes para guardar');
+      this.mostrarModalNotif('warning', 'Sin datos', 'No hay ejes para guardar.');
       return;
     }
 
     forkJoin(ejesParaGuardar).subscribe({
       next: () => {
-        alert(`✅ Estructura guardada exitosamente para la carrera:\n"${this.carreraSeleccionada!.career.nombre}"`);
+        this.mostrarModalNotif(
+          'success',
+          'Guardado',
+          `Estructura guardada exitosamente para "${this.carreraSeleccionada!.career.nombre}".`
+        );
         this.carrerasConEjes.set(this.carreraSeleccionada!.id!, true);
         this.cerrarModal();
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('❌ Error al guardar:', err);
-        alert('❌ Error al guardar la estructura. Por favor intente nuevamente.');
+        this.mostrarModalNotif('error', 'Error al guardar', 'Error al guardar la estructura. Por favor intente nuevamente.');
       }
     });
   }
@@ -289,19 +326,15 @@ export class Guardados implements OnInit {
       return;
     }
 
-    // Primero eliminar todos los ejes existentes
-    const deleteObservables = this.ejesExistentes.map(eje => 
+    const deleteObservables = this.ejesExistentes.map(eje =>
       this.axlesSuperiorService.delete(String(eje.id!))
     );
 
     forkJoin(deleteObservables).subscribe({
-      next: () => {
-        // Luego crear los nuevos
-        this.crearNuevosEjes();
-      },
+      next: () => { this.crearNuevosEjes(); },
       error: (err) => {
         console.error('❌ Error al actualizar:', err);
-        alert('❌ Error al actualizar los ejes. Por favor intente nuevamente.');
+        this.mostrarModalNotif('error', 'Error al actualizar', 'Error al actualizar los ejes. Por favor intente nuevamente.');
       }
     });
   }
@@ -312,12 +345,8 @@ export class Guardados implements OnInit {
 
   irAAsignarEjes(tipoCarrera: string): void {
     const tipo = tipoCarrera.toLowerCase();
-    if (tipo === 'superior') {
-      this.router.navigate(['/superior']);
-    } else if (tipo === 'tsu') {
-      this.router.navigate(['/tsu']);
-    } else {
-      this.router.navigate(['/']);
-    }
+    if (tipo === 'superior') this.router.navigate(['/superior']);
+    else if (tipo === 'tsu') this.router.navigate(['/tsu']);
+    else this.router.navigate(['/']);
   }
 }

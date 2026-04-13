@@ -1,60 +1,72 @@
-<div class="form-container">
-  <h2 class="heading">Asignación de Contenidos Superior</h2>
+<div>
+  <br><br>
 
-  @if (calCareers.length > 0) {
-    <table class="tabla">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Carrera</th>
-          <th>Tipo de Carrera</th>
-          <th>Fecha Inicio</th>
-          <th>Fecha Fin</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of calCareers; track item.id) {
-          <tr>
-            <td>{{ item.id }}</td>
-            <td>{{ item.career.nombre }}</td>
-            <td>{{ item.typeCareer.tipo }}</td>
-            <td>{{ item.fechaActual | date:'shortDate' }}</td>
-            <td>{{ item.fechaFin | date:'shortDate' }}</td>
-            <td>
-              @if (!tieneEjes(item)) {
-                <button 
-                  class="btn-go" 
-                  (click)="seleccionar(item)"
-                  title="Asignar ejes a esta carrera">
-                  ➕ Asignar Ejes
-                </button>
-              } @else {
-                <div class="action-buttons-group">
-                  <button 
-                    class="btn-edit" 
-                    (click)="editarEjes(item)" 
-                    title="Editar ejes existentes">
-                    ✏️ Editar Ejes
-                  </button>
-                  <button 
-                    class="btn-delete" 
-                    (click)="eliminarEjes(item)" 
-                    title="Eliminar todos los ejes">
-                    🗑️ Eliminar Ejes
-                  </button>
-                </div>
-              }
-            </td>
-          </tr>
+  <!-- MODAL DE NOTIFICACIÓN / CONFIRMACIÓN -->
+  <div class="modal-notif-overlay" [class.active]="modalNotif.visible" (click)="cerrarModalNotif()">
+    <div class="modal-notif-box modal-notif-{{ modalNotif.tipo }}" (click)="$event.stopPropagation()">
+      <div class="modal-notif-icon">{{ modalNotif.icono }}</div>
+      <h3 class="modal-notif-title">{{ modalNotif.titulo }}</h3>
+      <p class="modal-notif-message">{{ modalNotif.mensaje }}</p>
+      <div class="modal-notif-buttons">
+        @if (modalNotif.confirmacion) {
+          <button class="modal-notif-btn modal-notif-btn-cancel" (click)="cerrarModalNotif()">Cancelar</button>
+          <button class="modal-notif-btn modal-notif-btn-danger" (click)="confirmarAccionNotif()">Eliminar</button>
+        } @else {
+          <button class="modal-notif-btn modal-notif-btn-confirm" (click)="cerrarModalNotif()">Aceptar</button>
         }
-      </tbody>
-    </table>
-  } @else {
-    <div class="no-data">
-      <p>📝 No hay registros de tipo Superior guardados todavía.</p>
+      </div>
     </div>
-  }
+  </div>
+
+  <div class="form-container">
+    <h2 class="heading">Asignación de Contenidos Superior</h2>
+
+    @if (calCareers.length > 0) {
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Carrera</th>
+            <th>Tipo de Carrera</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of calCareers; track item.id) {
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.career.nombre }}</td>
+              <td>{{ item.typeCareer.tipo }}</td>
+              <td>{{ item.fechaActual | date:'shortDate' }}</td>
+              <td>{{ item.fechaFin | date:'shortDate' }}</td>
+              <td>
+                @if (!tieneEjes(item)) {
+                  <button class="btn-go" (click)="seleccionar(item)" title="Asignar ejes a esta carrera">
+                    ➕ Asignar Ejes
+                  </button>
+                } @else {
+                  <div class="action-buttons-group">
+                    <button class="btn-edit" (click)="editarEjes(item)" title="Editar ejes existentes">
+                      ✏️ Editar Ejes
+                    </button>
+                    <button class="btn-delete" (click)="eliminarEjes(item)" title="Eliminar todos los ejes">
+                      🗑️ Eliminar Ejes
+                    </button>
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <div class="no-data">
+        <p>📝 No hay registros de tipo Superior guardados todavía.</p>
+      </div>
+    }
+  </div>
 </div>
 
 <!-- MODAL PARA ASIGNAR/EDITAR EJES -->
@@ -87,7 +99,6 @@
         </div>
       }
 
-      <!-- Indicador de progreso -->
       <div class="progress-indicator">
         <div class="step-counter">
           Configurando: Nivel {{ currentStep + 1 }} de {{ niveles.length }}
@@ -97,11 +108,11 @@
         </div>
         <div class="step-indicators">
           @for (nivel of niveles; track $index; let i = $index) {
-            <button 
+            <button
               type="button"
-              class="step-btn" 
+              class="step-btn"
               [class.active]="i === currentStep"
-              [class.completed]="nivel.nombre.trim() !== ''" 
+              [class.completed]="nivel.nombre.trim() !== ''"
               (click)="goToStep(i)"
               [title]="'Ir al nivel ' + (i + 1)">
               {{ i + 1 }}
@@ -110,7 +121,6 @@
         </div>
       </div>
 
-      <!-- Formulario de configuración -->
       <div class="modal-body">
         <form (ngSubmit)="onSubmit()" #estructuraForm="ngForm">
           <div class="nivel-section">
@@ -118,24 +128,22 @@
               <h4>🏗️ Nivel {{ currentStep + 1 }}</h4>
             </div>
 
-            <!-- Nombre del nivel -->
             <div class="input-group">
               <label [for]="'nivel-' + currentStep">
                 <span class="label-icon">🎓</span>
                 Nombre del Nivel {{ currentStep + 1 }}:
               </label>
-              <textarea 
-                [id]="'nivel-' + currentStep" 
+              <textarea
+                [id]="'nivel-' + currentStep"
                 [(ngModel)]="niveles[currentStep].nombre"
-                name="nivel_{{ currentStep }}" 
-                maxlength="100" 
+                name="nivel_{{ currentStep }}"
+                maxlength="100"
                 placeholder="Ej: Primer Semestre, Nivel Básico, Año 1, etc."
-                class="form-textarea nivel-textarea" 
+                class="form-textarea nivel-textarea"
                 rows="2"
                 required></textarea>
             </div>
 
-            <!-- Ejes del nivel -->
             <div class="ejes-section">
               <h5>📌 Ejes del Nivel (máximo 4)</h5>
               <p class="ejes-hint">Complete al menos un eje para este nivel (use Enter para nueva línea)</p>
@@ -146,10 +154,10 @@
                       <label [for]="'eje-' + currentStep + '-' + ejeIndex" class="eje-label">
                         <span class="eje-number-badge">{{ ejeIndex + 1 }}</span>
                       </label>
-                      <textarea 
-                        [(ngModel)]="eje.nombre" 
+                      <textarea
+                        [(ngModel)]="eje.nombre"
                         name="eje_{{ currentStep }}_{{ ejeIndex }}"
-                        [id]="'eje-' + currentStep + '-' + ejeIndex" 
+                        [id]="'eje-' + currentStep + '-' + ejeIndex"
                         placeholder="Escriba el nombre del eje {{ ejeIndex + 1 }}..."
                         maxlength="200"
                         rows="4"
@@ -164,20 +172,19 @@
             </div>
           </div>
 
-          <!-- Botones de navegación y acción -->
           <div class="modal-buttons">
             <div class="navigation-buttons">
-              <button 
-                type="button" 
-                class="btn-nav btn-prev" 
-                (click)="prevStep()" 
+              <button
+                type="button"
+                class="btn-nav btn-prev"
+                (click)="prevStep()"
                 [disabled]="currentStep === 0"
                 title="Ir al nivel anterior">
                 ⬅️ Anterior
               </button>
-              <button 
-                type="button" 
-                class="btn-nav btn-next" 
+              <button
+                type="button"
+                class="btn-nav btn-next"
                 (click)="nextStep()"
                 [disabled]="currentStep === niveles.length - 1"
                 title="Ir al siguiente nivel">
@@ -186,15 +193,15 @@
             </div>
 
             <div class="action-buttons">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 class="btn-save"
                 title="{{ modoEdicion ? 'Actualizar la estructura completa' : 'Guardar la estructura completa' }}">
                 {{ modoEdicion ? '💾 Actualizar Estructura' : '💾 Guardar Estructura Completa' }}
               </button>
-              <button 
-                type="button" 
-                class="btn-cancel" 
+              <button
+                type="button"
+                class="btn-cancel"
                 (click)="cerrarModal()"
                 title="Cancelar y cerrar">
                 ❌ Cancelar
