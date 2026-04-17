@@ -90,5 +90,11 @@ export const HOME_CARDS: HomeCard[] = [
         image: 'https://i.postimg.cc/XqjCL7yt/Asistencia.jpg', 
         action: 'iraControlInd' },
         
+        { badge: 'Documentos Docentes', 
+        title: 'Panel de Administrador', 
+        description: 'Control de los Documentos de la Capacitación Docente.', 
+        footer: 'Documentos Web', 
+        image: 'https://i.postimg.cc/XqjCL7yt/Asistencia.jpg', 
+        action: 'irDocumentosWeb' },
 
 ];

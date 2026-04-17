@@ -15,6 +15,7 @@ import { ReporteAnual } from './components/reporte-anual/reporte-anual';
 import { EventosComponent } from './components/eventos/eventos';
 import { ListadoCapacitaciones } from './components2/listado-capacitaciones/listado-capacitaciones';
 import { DarboardCalidad } from './components/darboard-calidad/darboard-calidad';
+import { DocumentosWebDocente } from './components/documentos-web-docente/documentos-web-docente';
 
 export const routes: Routes = [
 
@@ -32,6 +33,7 @@ export const routes: Routes = [
     {path:"Agenda", component:EventosComponent},
     {path:"Control", component:ListadoCapacitaciones},
     {path:"Dash", component:DarboardCalidad},
+    {path:"Documentos-Web", component:DocumentosWebDocente},
 { path: '', redirectTo: 'Home', pathMatch: 'full' },
 
 ];

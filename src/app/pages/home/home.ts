@@ -72,7 +72,8 @@ export class Home implements OnInit {
       irAAgenda:     () => this.router.navigate(['/Agenda']),
       iraControl:    () => this.router.navigate(['/Control']),
       iraDas:        () => this.router.navigate(['/Dash']),
-      iraControlInd: () => window.location.href = 'https://controlasistenciaitsq.netlify.app/admin/admin',
+      iraControlInd: () => window.location.href = 'https://registroinduccionesitsqmet.netlify.app/admin/admin',
+      irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
     };
     routes[action]?.();
   }
