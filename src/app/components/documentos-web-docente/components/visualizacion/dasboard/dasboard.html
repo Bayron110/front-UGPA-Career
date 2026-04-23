@@ -1,0 +1,507 @@
+<section class="dash-root">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="dash-nav">
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+      <span class="brand-name">DocTrack</span>
+    </div>
+
+    <nav class="nav-items">
+      <button class="nav-item" [class.active]="vistaActiva === 'global'" (click)="cambiarVista('global')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Vista Global</span>
+      </button>
+
+      <button class="nav-item" [class.active]="vistaActiva === 'carrera'" (click)="cambiarVista('carrera')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+          <path d="M12 14l6.16-3.422A12.083 12.083 0 0112 21a12.083 12.083 0 01-6.16-10.422L12 14z"/>
+        </svg>
+        <span>Por Carrera</span>
+      </button>
+
+      <button class="nav-item" [class.active]="vistaActiva === 'tipo'" (click)="cambiarVista('tipo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M7 21h10M12 3v18M3 8l9-5 9 5"/>
+        </svg>
+        <span>Carrera + Tipo</span>
+      </button>
+    </nav>
+
+    <div class="nav-live">
+      <span class="live-pulse"></span>
+      <span>En vivo</span>
+    </div>
+  </aside>
+
+  <!-- ══ CONTENIDO PRINCIPAL ══ -->
+  <main class="dash-main">
+
+    <!-- HEADER -->
+    <header class="dash-header">
+      <div class="header-left">
+        <h1>{{ tituloVista }}</h1>
+        <p>{{ subtituloVista }}</p>
+      </div>
+      <div class="header-right">
+        <div class="header-stat">
+          <span class="hs-label">Última actualización</span>
+          <span class="hs-value">{{ ultimaActualizacion }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════
+         VISTA GLOBAL
+    ══════════════════════════════════════ -->
+    @if (vistaActiva === 'global' && !cargando) {
+      <div class="view-anim">
+
+        <!-- KPI ROW -->
+        <div class="kpi-row">
+
+          <div class="kpi">
+            <div class="kpi-ring">
+              <svg viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="24" class="ring-track"/>
+                <circle cx="30" cy="30" r="24" class="ring-fill ring-blue"
+                  stroke-dasharray="150.7 150.7"/>
+              </svg>
+              <span class="kpi-num">{{ totalDocumentos }}</span>
+            </div>
+            <div class="kpi-meta">
+              <strong>Total</strong>
+              <small>Documentos</small>
+            </div>
+          </div>
+
+          <div class="kpi-divider"></div>
+
+          <div class="kpi">
+            <div class="kpi-ring">
+              <svg viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="24" class="ring-track"/>
+                <circle cx="30" cy="30" r="24" class="ring-fill ring-green"
+                  [attr.stroke-dasharray]="(porcentajeEntregados * 1.507) + ' 150.7'"/>
+              </svg>
+              <span class="kpi-num green">{{ totalEntregados }}</span>
+            </div>
+            <div class="kpi-meta">
+              <strong>Entregados</strong>
+              <small>{{ porcentajeEntregados }}% del total</small>
+            </div>
+          </div>
+
+          <div class="kpi-divider"></div>
+
+          <div class="kpi">
+            <div class="kpi-ring">
+              <svg viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="24" class="ring-track"/>
+                <circle cx="30" cy="30" r="24" class="ring-fill ring-amber"
+                  [attr.stroke-dasharray]="(porcentajePendientes * 1.507) + ' 150.7'"/>
+              </svg>
+              <span class="kpi-num amber">{{ totalPendientes }}</span>
+            </div>
+            <div class="kpi-meta">
+              <strong>Pendientes</strong>
+              <small>{{ porcentajePendientes }}% del total</small>
+            </div>
+          </div>
+
+          <div class="kpi-divider"></div>
+
+          <div class="kpi inline-kpi">
+            <div class="inline-kpi-row">
+              <span class="type-dot blue"></span>
+              <span class="type-label">Patrocinios</span>
+              <span class="type-val">{{ totalPatrocinios }}</span>
+            </div>
+            <div class="inline-kpi-row">
+              <span class="type-dot purple"></span>
+              <span class="type-label">Plan Individual</span>
+              <span class="type-val">{{ totalPlanes }}</span>
+            </div>
+            <div class="inline-kpi-row">
+              <span class="type-dot teal"></span>
+              <span class="type-label">Seguimientos</span>
+              <span class="type-val">{{ totalSeguimientos }}</span>
+            </div>
+          </div>
+
+        </div>
+        <!-- /KPI ROW -->
+
+        <!-- CHARTS ROW -->
+        <div class="charts-row">
+
+          <!-- Donut entregados vs pendientes -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Entregados vs Pendientes</h3>
+              <span class="card-badge">Global</span>
+            </div>
+            <div class="donut-main">
+              <svg viewBox="0 0 200 200" class="donut-svg">
+                <defs>
+                  <linearGradient id="grad-g" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10b981"/>
+                    <stop offset="100%" stop-color="#2ecc9a"/>
+                  </linearGradient>
+                  <linearGradient id="grad-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b"/>
+                    <stop offset="100%" stop-color="#fbbf24"/>
+                  </linearGradient>
+                </defs>
+                <!-- Track -->
+                <circle cx="100" cy="100" r="70" fill="none"
+                  stroke="rgba(255,255,255,0.06)" stroke-width="18"
+                  transform="rotate(-90 100 100)"/>
+                <!-- Entregados -->
+                <circle cx="100" cy="100" r="70" fill="none"
+                  stroke="url(#grad-g)" stroke-width="18" stroke-linecap="round"
+                  [attr.stroke-dasharray]="(porcentajeEntregados * 4.398) + ' 439.8'"
+                  stroke-dashoffset="-109.95"
+                  transform="rotate(-90 100 100)"
+                  style="transition: stroke-dasharray 1.2s cubic-bezier(0.34,1.56,0.64,1)"/>
+                <!-- Pendientes -->
+                <circle cx="100" cy="100" r="70" fill="none"
+                  stroke="url(#grad-a)" stroke-width="18" stroke-linecap="round"
+                  [attr.stroke-dasharray]="(porcentajePendientes * 4.398) + ' 439.8'"
+                  [attr.stroke-dashoffset]="-(109.95 - (porcentajeEntregados * 4.398))"
+                  transform="rotate(-90 100 100)"
+                  style="transition: all 1.2s cubic-bezier(0.34,1.56,0.64,1) 0.1s"/>
+                <!-- Centro -->
+                <text x="100" y="92" text-anchor="middle" class="donut-center-num">
+                  {{ porcentajeEntregados }}%
+                </text>
+                <text x="100" y="112" text-anchor="middle" class="donut-center-sub">
+                  entregado
+                </text>
+              </svg>
+
+              <div class="donut-legend">
+                <div class="legend-row">
+                  <span class="legend-color green-bg"></span>
+                  <div class="legend-text">
+                    <strong>Entregados</strong>
+                    <span>{{ totalEntregados }} docs · {{ porcentajeEntregados }}%</span>
+                  </div>
+                </div>
+                <div class="progress-bar-wrap">
+                  <div class="progress-fill green-fill" [style.width.%]="porcentajeEntregados"></div>
+                </div>
+
+                <div class="legend-row mt12">
+                  <span class="legend-color amber-bg"></span>
+                  <div class="legend-text">
+                    <strong>Pendientes</strong>
+                    <span>{{ totalPendientes }} docs · {{ porcentajePendientes }}%</span>
+                  </div>
+                </div>
+                <div class="progress-bar-wrap">
+                  <div class="progress-fill amber-fill" [style.width.%]="porcentajePendientes"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Barras por tipo -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Documentos por tipo</h3>
+              <span class="card-badge">Distribución</span>
+            </div>
+            <div class="tipo-bars">
+
+              <div class="tipo-row">
+                <div class="tipo-info">
+                  <span class="tipo-icon blue-icon">P</span>
+                  <div>
+                    <strong>Patrocinios</strong>
+                    <small>
+                      {{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
+                    </small>
+                  </div>
+                </div>
+                <div class="tipo-track">
+                  <div class="tipo-prog blue-prog"
+                    [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0">
+                  </div>
+                </div>
+                <span class="tipo-count">{{ totalPatrocinios }}</span>
+              </div>
+
+              <div class="tipo-row">
+                <div class="tipo-info">
+                  <span class="tipo-icon purple-icon">I</span>
+                  <div>
+                    <strong>Plan Individual</strong>
+                    <small>
+                      {{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
+                    </small>
+                  </div>
+                </div>
+                <div class="tipo-track">
+                  <div class="tipo-prog purple-prog"
+                    [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0">
+                  </div>
+                </div>
+                <span class="tipo-count">{{ totalPlanes }}</span>
+              </div>
+
+              <div class="tipo-row">
+                <div class="tipo-info">
+                  <span class="tipo-icon teal-icon">S</span>
+                  <div>
+                    <strong>Seguimientos</strong>
+                    <small>
+                      {{ totalDocumentos ? (totalSeguimientos / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
+                    </small>
+                  </div>
+                </div>
+                <div class="tipo-track">
+                  <div class="tipo-prog teal-prog"
+                    [style.width.%]="totalDocumentos ? (totalSeguimientos / totalDocumentos * 100) : 0">
+                  </div>
+                </div>
+                <span class="tipo-count">{{ totalSeguimientos }}</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+        <!-- /CHARTS ROW -->
+
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════
+         VISTA POR CARRERA
+    ══════════════════════════════════════ -->
+    @if (vistaActiva === 'carrera' && !cargando) {
+      <div class="view-anim">
+
+        <!-- Controles -->
+        <div class="view-controls">
+          <div class="control-group">
+            <label>Ordenar por</label>
+            <div class="btn-group">
+              <button class="btn-sort" [class.active]="sortMode === 'pct'"
+                (click)="setSortMode('pct')">% Entregado</button>
+              <button class="btn-sort" [class.active]="sortMode === 'total'"
+                (click)="setSortMode('total')">Total docs</button>
+              <button class="btn-sort" [class.active]="sortMode === 'name'"
+                (click)="setSortMode('name')">Nombre</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Filtrar</label>
+            <div class="btn-group">
+              <button class="btn-filter" [class.active]="filterMode === 'all'"
+                (click)="setFilterMode('all')">Todas</button>
+              <button class="btn-filter" [class.active]="filterMode === 'alto'"
+                (click)="setFilterMode('alto')">Alto ≥70%</button>
+              <button class="btn-filter" [class.active]="filterMode === 'medio'"
+                (click)="setFilterMode('medio')">Medio 40–69%</button>
+              <button class="btn-filter" [class.active]="filterMode === 'bajo'"
+                (click)="setFilterMode('bajo')">Bajo &lt;40%</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de carreras -->
+        @if (resumenCarrerasFiltrado.length > 0) {
+          <div class="carreras-grid">
+            @for (item of resumenCarrerasFiltrado; track item.carrera; let i = $index) {
+              <div class="carrera-card"
+                [class.alto]="item.porcentajeEntregados >= 70"
+                [class.medio]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
+                [class.bajo]="item.porcentajeEntregados < 40">
+
+                <div class="cc-rank">#{{ i + 1 }}</div>
+
+                <div class="cc-header">
+                  <div class="cc-avatar">{{ item.carrera.charAt(0) }}</div>
+                  <div class="cc-title">
+                    <strong>{{ item.carrera }}</strong>
+                    <small>{{ item.total }} documentos en total</small>
+                  </div>
+                  <div class="cc-pct">
+                    <span class="pct-num">{{ item.porcentajeEntregados }}</span>
+                    <span class="pct-sym">%</span>
+                  </div>
+                </div>
+
+                <div class="cc-mini-chart">
+                  <svg viewBox="0 0 80 80" class="mini-donut">
+                    <circle cx="40" cy="40" r="28" fill="none"
+                      stroke="rgba(255,255,255,0.07)" stroke-width="10"/>
+                    <circle cx="40" cy="40" r="28" fill="none"
+                      [class.stroke-green]="item.porcentajeEntregados >= 70"
+                      [class.stroke-amber]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
+                      [class.stroke-red]="item.porcentajeEntregados < 40"
+                      stroke-width="10" stroke-linecap="round"
+                      [attr.stroke-dasharray]="(item.porcentajeEntregados * 1.759) + ' 175.9'"
+                      stroke-dashoffset="43.98"/>
+                  </svg>
+                  <div class="mini-donut-stats">
+                    <div class="mds-row">
+                      <span class="mds-dot green"></span>
+                      <span>Entregados</span>
+                      <strong>{{ item.entregados }}</strong>
+                    </div>
+                    <div class="mds-row">
+                      <span class="mds-dot amber"></span>
+                      <span>Pendientes</span>
+                      <strong>{{ item.pendientes }}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="cc-bar-wrap">
+                  <div class="cc-bar-fill"
+                    [style.width.%]="item.porcentajeEntregados"
+                    [class.bar-green]="item.porcentajeEntregados >= 70"
+                    [class.bar-amber]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
+                    [class.bar-red]="item.porcentajeEntregados < 40">
+                  </div>
+                </div>
+
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>No hay datos para este filtro</p>
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════
+         VISTA CARRERA + TIPO
+    ══════════════════════════════════════ -->
+    @if (vistaActiva === 'tipo' && !cargando) {
+      <div class="view-anim">
+
+        <!-- Controles -->
+        <div class="view-controls">
+          <div class="control-group">
+            <label>Carrera</label>
+            <select class="dash-select"
+              [(ngModel)]="carreraSeleccionada"
+              (ngModelChange)="filtrarPorCarreraYTipo()">
+              <option value="">Todas las carreras</option>
+              @for (c of resumenCarreras; track c.carrera) {
+                <option [value]="c.carrera">{{ c.carrera }}</option>
+              }
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Tipo de documento</label>
+            <div class="btn-group">
+              <button class="btn-tipo" [class.active]="tipoSeleccionado === 'todos'"
+                (click)="setTipoSeleccionado('todos')">Todos</button>
+              <button class="btn-tipo" [class.active]="tipoSeleccionado === 'patrocinio'"
+                (click)="setTipoSeleccionado('patrocinio')">Patrocinios</button>
+              <button class="btn-tipo" [class.active]="tipoSeleccionado === 'plan'"
+                (click)="setTipoSeleccionado('plan')">Plan Individual</button>
+              <button class="btn-tipo" [class.active]="tipoSeleccionado === 'seguimiento'"
+                (click)="setTipoSeleccionado('seguimiento')">Seguimientos</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados filtrados -->
+        <div class="filter-results">
+
+          <!-- Resumen numérico -->
+          <div class="fr-summary">
+            <div class="fr-stat">
+              <span class="fr-num">{{ registrosFiltrados.length }}</span>
+              <span class="fr-lbl">Documentos</span>
+            </div>
+            <div class="fr-stat">
+              <span class="fr-num green">{{ contarEntregados(registrosFiltrados) }}</span>
+              <span class="fr-lbl">Entregados</span>
+            </div>
+            <div class="fr-stat">
+              <span class="fr-num amber">{{ contarPendientes(registrosFiltrados) }}</span>
+              <span class="fr-lbl">Pendientes</span>
+            </div>
+          </div>
+
+          <!-- Stacked bars por tipo -->
+          <div class="stacked-wrap">
+            @for (grupo of gruposPorTipo; track grupo.tipo) {
+              <div class="stacked-row">
+                <span class="stacked-label">{{ grupo.label }}</span>
+                <div class="stacked-track">
+                  <div class="stacked-ent"  [style.width.%]="grupo.pctEnt"></div>
+                  <div class="stacked-pend" [style.width.%]="grupo.pctPend"></div>
+                </div>
+                <div class="stacked-nums">
+                  <span class="green">{{ grupo.entregados }}</span>
+                  <span class="sep">/</span>
+                  <span class="amber">{{ grupo.pendientes }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Heat matrix (solo sin carrera seleccionada) -->
+          @if (!carreraSeleccionada) {
+            <div class="matrix-wrap">
+              <div class="matrix-title">Mapa de calor — entrega por carrera × tipo</div>
+              <div class="matrix-grid">
+                <div class="matrix-head-row">
+                  <div class="mh-empty"></div>
+                  <div class="mh-col">Patrocinios</div>
+                  <div class="mh-col">Plan Ind.</div>
+                  <div class="mh-col">Seguimientos</div>
+                </div>
+                @for (item of resumenCarreras; track item.carrera) {
+                  <div class="matrix-data-row">
+                    <div class="mr-label">{{ item.carrera }}</div>
+                    @for (tipo of tiposHeat; track tipo) {
+                      <div class="mr-cell" [ngClass]="'heat-' + getHeatLevel(item.carrera, tipo)">
+                        {{ getCellPct(item.carrera, tipo) }}%
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ══ LOADING ══ -->
+    @if (cargando) {
+      <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span>Cargando datos...</span>
+      </div>
+    }
+
+  </main>
+</section>

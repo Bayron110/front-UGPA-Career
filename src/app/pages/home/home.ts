@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HOME_CARDS, HomeCard } from '../Components/cardDescrip';
+import { HOME_CARDS,  } from '../Components/cardDescrip';
+import { HomeCard } from '../../Interface/home/HomeCards';
 
 @Component({
   selector: 'app-home',
@@ -17,7 +18,7 @@ export class Home implements OnInit {
 
   allCards: HomeCard[] = HOME_CARDS;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
     const savedPagination = localStorage.getItem('paginationEnabled');
@@ -61,19 +62,9 @@ export class Home implements OnInit {
 
   navigate(action: string): void {
     const routes: Record<string, () => void> = {
-      irACarrera:    () => this.router.navigate(['/Carrera']),
-      irATipo:       () => this.router.navigate(['/Tipo']),
-      irACalCareer:  () => this.router.navigate(['/Cal']),
-      irAHistory:    () => this.router.navigate(['/history']),
-      irAHistorytsu: () => this.router.navigate(['/history-tsu']),
-      irAGenerar:    () => this.router.navigate(['/generar']),
-      irAReporteA:   () => this.router.navigate(['/reporteA']),
-      irAReporteR:   () => this.router.navigate(['/ReporteR']),
-      irAAgenda:     () => this.router.navigate(['/Agenda']),
-      iraControl:    () => this.router.navigate(['/Control']),
-      iraDas:        () => this.router.navigate(['/Dash']),
       iraControlInd: () => window.location.href = 'https://registroinduccionesitsqmet.netlify.app/admin/admin',
       irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
+      irAAgendar: () => this.router.navigate(['/Agenda'])
     };
     routes[action]?.();
   }

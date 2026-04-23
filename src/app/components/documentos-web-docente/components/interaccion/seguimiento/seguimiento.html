@@ -1,0 +1,107 @@
+<section class="seguimiento-wrap">
+  <!-- Card: Configuración -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h2>Configuración de seguimiento</h2>
+        <p>Edite el código de unidad, año y mes</p>
+      </div>
+    </div>
+
+    <div *ngIf="cargando" class="estado">Cargando configuración...</div>
+
+    <form class="formulario" *ngIf="!cargando" (ngSubmit)="guardarConfiguracion()">
+      <div class="grid-form">
+        <div class="campo">
+          <label for="codigoUnidad">Código de la unidad</label>
+          <input
+            id="codigoUnidad"
+            name="codigoUnidad"
+            type="text"
+            [(ngModel)]="codigoUnidad"
+            (input)="actualizarCodigoPreview()"
+            placeholder="Ej: UGPA-RGI1-01-PRO-251"
+            required
+          />
+        </div>
+
+        <div class="campo">
+          <label for="anio">Año</label>
+          <input
+            id="anio"
+            name="anio"
+            type="text"
+            [(ngModel)]="anio"
+            (input)="actualizarCodigoPreview()"
+            placeholder="Ej: 2026"
+            required
+          />
+        </div>
+
+        <div class="campo">
+          <label for="mes">Mes</label>
+          <input
+            id="mes"
+            name="mes"
+            type="text"
+            [(ngModel)]="mes"
+            (input)="actualizarCodigoPreview()"
+            placeholder="Ej: 03"
+            maxlength="2"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Preview del código -->
+      <div class="preview-box">
+        <span class="preview-label">Código generado</span>
+        <div class="preview-codigo">
+          <span *ngFor="let parte of codigoPreview.split('-'); let i = index">
+            <span class="codigo-parte" [class.codigo-parte--resaltada]="i >= 5">{{ parte }}</span>
+            <span class="codigo-sep" *ngIf="i < codigoPreview.split('-').length - 1">-</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <button type="submit" class="btn-principal" [disabled]="guardando || !formularioValido()">
+          {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+
+      <p class="mensaje" *ngIf="mensaje">{{ mensaje }}</p>
+    </form>
+  </div>
+
+  <!-- Card: Registro actual -->
+  <div class="card card--registro" *ngIf="!cargando">
+    <div class="card-header">
+      <div>
+        <h3>Configuración guardada</h3>
+        <p>Último registro almacenado en Firebase</p>
+      </div>
+    </div>
+
+    <div *ngIf="!registroActual" class="lista-vacia">
+      Aún no hay configuración guardada.
+    </div>
+
+    <div class="registro-actual" *ngIf="registroActual">
+      <div class="registro-fila">
+        <span class="registro-label">Código completo</span>
+        <div class="preview-codigo preview-codigo--sm">
+          <span *ngFor="let parte of registroActual.codigo.split('-'); let i = index">
+            <span class="codigo-parte" [class.codigo-parte--resaltada]="i >= 5">{{ parte }}</span>
+            <span class="codigo-sep" *ngIf="i < registroActual.codigo.split('-').length - 1">-</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="registro-fila">
+        <span class="registro-label">Última actualización</span>
+        <span class="registro-valor">{{ registroActual.fechaGuardado }}</span>
+      </div>
+    </div>
+  </div>
+</section>

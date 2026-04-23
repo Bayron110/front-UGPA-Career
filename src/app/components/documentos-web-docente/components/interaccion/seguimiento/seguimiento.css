@@ -1,0 +1,280 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.seguimiento-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Card ── */
+
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(37, 99, 235, 0.4) 40%,
+        rgba(6, 182, 212, 0.3) 60%,
+        transparent
+    );
+}
+
+.card--registro {
+    border-color: rgba(6, 182, 212, 0.18);
+}
+
+.card--registro::before {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(6, 182, 212, 0.35) 40%,
+        rgba(167, 139, 250, 0.25) 60%,
+        transparent
+    );
+}
+
+/* ── Header ── */
+
+.card-header {
+    margin-bottom: 20px;
+}
+
+.card-header h2,
+.card-header h3 {
+    color: #e2e8f0;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 5px 0;
+}
+
+.card-header p {
+    color: #475569;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* ── Formulario ── */
+
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campo label {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.campo input,
+.campo select {
+    height: 42px;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 8px;
+    padding: 0 12px;
+    outline: none;
+    background: rgba(6, 14, 30, 0.6);
+    color: #e2e8f0;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.campo input::placeholder {
+    color: #334155;
+}
+
+.campo input:focus,
+.campo select:focus {
+    border-color: rgba(37, 99, 235, 0.6);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    background: rgba(6, 14, 30, 0.8);
+}
+
+/* ── Preview del código ── */
+
+.preview-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+    background: rgba(6, 14, 30, 0.5);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 10px;
+}
+
+.preview-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.preview-codigo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1px;
+    font-size: 15px;
+    font-family: var(--font-mono, monospace);
+    letter-spacing: 0.03em;
+}
+
+.preview-codigo--sm {
+    font-size: 13px;
+}
+
+.codigo-parte {
+    color: #64748b;
+    transition: color 0.2s;
+}
+
+.codigo-parte--resaltada {
+    color: #67e8f9;
+    font-weight: 500;
+}
+
+.codigo-sep {
+    color: #334155;
+    margin: 0 1px;
+}
+
+/* ── Botón ── */
+
+.acciones {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-principal {
+    border: 1px solid rgba(37, 99, 235, 0.5);
+    cursor: pointer;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    background: rgba(37, 99, 235, 0.2);
+    color: #93c5fd;
+    letter-spacing: 0.01em;
+}
+
+.btn-principal:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.35);
+    border-color: rgba(37, 99, 235, 0.7);
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+}
+
+.btn-principal:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Mensaje ── */
+
+.mensaje {
+    min-height: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #93c5fd;
+    margin: 0;
+}
+
+/* ── Registro actual ── */
+
+.registro-actual {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.registro-fila {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    background: rgba(6, 14, 30, 0.4);
+    border: 1px solid rgba(6, 182, 212, 0.12);
+    border-radius: 10px;
+}
+
+.registro-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #475569;
+}
+
+.registro-valor {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+/* ── Estados ── */
+
+.estado {
+    text-align: center;
+    color: #334155;
+    padding: 32px 0;
+    font-size: 14px;
+}
+
+.lista-vacia {
+    text-align: center;
+    color: #334155;
+    padding: 32px 0;
+    font-size: 14px;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+    .card {
+        padding: 16px;
+    }
+
+    .grid-form {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-codigo {
+        font-size: 13px;
+    }
+}

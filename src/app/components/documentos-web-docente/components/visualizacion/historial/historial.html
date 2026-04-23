@@ -1,0 +1,170 @@
+<section class="historial-wrap">
+  <div class="card">
+
+    <!-- Decorative orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="header-left">
+        <div class="header-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10,9 9,9 8,9"/>
+          </svg>
+        </div>
+        <div class="header-text">
+          <h2>Historial de documentos</h2>
+          <p>Consulte, descargue y gestione el estado de entrega</p>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">{{ registros.length }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="filtroTexto"
+          placeholder="Cédula, nombres, carrera o código…"
+          class="search-input"
+        />
+      </div>
+
+      <div class="filtros">
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'todos'" (click)="cambiarFiltro('todos')">
+          <span class="chip-dot dot-todos"></span>
+          Todos <span class="chip-badge">{{ registros.length }}</span>
+        </button>
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'patrocinio'" (click)="cambiarFiltro('patrocinio')">
+          <span class="chip-dot dot-patrocinio"></span>
+          Patrocinio <span class="chip-badge">{{ contarPorTipo('patrocinio') }}</span>
+        </button>
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'plan'" (click)="cambiarFiltro('plan')">
+          <span class="chip-dot dot-plan"></span>
+          Plan Individual <span class="chip-badge">{{ contarPorTipo('plan') }}</span>
+        </button>
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'seguimiento'" (click)="cambiarFiltro('seguimiento')">
+          <span class="chip-dot dot-seguimiento"></span>
+          Seguimiento <span class="chip-badge">{{ contarPorTipo('seguimiento') }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mensaje flash -->
+    <div class="mensaje-toast" *ngIf="mensaje">
+      <span class="toast-icon">●</span>
+      {{ mensaje }}
+    </div>
+
+    <!-- Loading -->
+    <div class="estado-wrap" *ngIf="cargando">
+      <div class="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-ring loader-ring-2"></div>
+      </div>
+      <span class="estado-texto">Cargando historial…</span>
+    </div>
+
+    <!-- Empty -->
+    <div class="estado-wrap estado-vacio" *ngIf="!cargando && registrosFiltrados.length === 0">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="estado-texto">No se encontraron registros</span>
+      <span class="estado-sub">Intenta con otro filtro o término de búsqueda</span>
+    </div>
+
+    <!-- Table -->
+    <div class="tabla-wrap" *ngIf="!cargando && registrosFiltrados.length > 0">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Cédula</th>
+            <th>Nombres completos</th>
+            <th>Carrera</th>
+            <th>Código documento</th>
+            <th>Estado entrega</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of registrosFiltrados; let i = index"
+              [class.fila-entregada]="item.entregado"
+              [class.fila-pendiente]="!item.entregado"
+              [style.animation-delay]="(i * 0.04) + 's'">
+
+            <td>
+              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">
+                {{ item.tipoLabel }}
+              </span>
+            </td>
+
+            <td><span class="cedula-text">{{ item.cedula || '—' }}</span></td>
+            <td><span class="nombre-text">{{ item.docente || '—' }}</span></td>
+            <td><span class="carrera-text">{{ item.carrera || '—' }}</span></td>
+            <td><span class="codigo-text">{{ item.codigo || '—' }}</span></td>
+
+            <td>
+              <div class="entrega-cell">
+                <span class="badge-estado" [class.badge-ok]="item.entregado" [class.badge-no]="!item.entregado">
+                  <span class="dot-estado"></span>
+                  {{ item.entregado ? 'Entregado' : 'Pendiente' }}
+                </span>
+                <div class="toggle-group">
+                  <button
+                    type="button"
+                    class="toggle-btn toggle-ok"
+                    [class.on]="item.entregado"
+                    [disabled]="item.actualizandoEstado"
+                    (click)="cambiarEstadoEntrega(item, true)"
+                    title="Marcar como entregado">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="toggle-btn toggle-no"
+                    [class.on]="!item.entregado"
+                    [disabled]="item.actualizandoEstado"
+                    (click)="cambiarEstadoEntrega(item, false)"
+                    title="Marcar como pendiente">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <button type="button" class="btn-dl" (click)="descargarDocumento(item)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Word
+              </button>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
