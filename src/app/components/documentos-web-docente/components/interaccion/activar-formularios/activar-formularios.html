@@ -1,1 +1,96 @@
-<p>activar-formularios works!</p>
+<section class="activar-wrap">
+  <div class="activar-header">
+    <div>
+      <span class="eyebrow">Panel administrador</span>
+      <h2>Activar formularios</h2>
+      <p>Controle qué formularios estarán disponibles para los docentes.</p>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="estado-cargando">
+    Cargando configuración...
+  </div>
+
+  <div *ngIf="!cargando" class="cards-grid">
+
+    <article class="form-card" [class.activo]="patrocinio">
+      <div class="card-info">
+        <div class="icono">📄</div>
+        <div>
+          <h3>Acuerdo de patrocinio</h3>
+          <p>Permite generar el formulario de patrocinio.</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="estado" [class.on]="patrocinio" [class.off]="!patrocinio">
+          {{ patrocinio ? 'Activo' : 'Inactivo' }}
+        </span>
+
+        <button
+          type="button"
+          [disabled]="guardando"
+          (click)="cambiarEstado('patrocinio')"
+          [class.btn-off]="patrocinio"
+        >
+          {{ patrocinio ? 'Desactivar' : 'Activar' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="form-card" [class.activo]="planIndividual">
+      <div class="card-info">
+        <div class="icono">🧾</div>
+        <div>
+          <h3>Plan individual</h3>
+          <p>Permite generar el plan individual docente.</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="estado" [class.on]="planIndividual" [class.off]="!planIndividual">
+          {{ planIndividual ? 'Activo' : 'Inactivo' }}
+        </span>
+
+        <button
+          type="button"
+          [disabled]="guardando"
+          (click)="cambiarEstado('planIndividual')"
+          [class.btn-off]="planIndividual"
+        >
+          {{ planIndividual ? 'Desactivar' : 'Activar' }}
+        </button>
+      </div>
+    </article>
+
+    <article class="form-card" [class.activo]="seguimientoDocente">
+      <div class="card-info">
+        <div class="icono">📊</div>
+        <div>
+          <h3>Seguimiento docente</h3>
+          <p>Permite generar el seguimiento de formación docente.</p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="estado" [class.on]="seguimientoDocente" [class.off]="!seguimientoDocente">
+          {{ seguimientoDocente ? 'Activo' : 'Inactivo' }}
+        </span>
+
+        <button
+          type="button"
+          [disabled]="guardando"
+          (click)="cambiarEstado('seguimientoDocente')"
+          [class.btn-off]="seguimientoDocente"
+        >
+          {{ seguimientoDocente ? 'Desactivar' : 'Activar' }}
+        </button>
+      </div>
+    </article>
+
+  </div>
+
+  <div *ngIf="mensaje" class="toast">
+    {{ mensaje }}
+  </div>
+</section>
