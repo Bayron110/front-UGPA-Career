@@ -4,6 +4,13 @@
   <div class="panel-principal">
 
     <div class="tabs">
+
+      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'Activar'"
+        (click)="cambiarVentana('Activar')">
+        <span class="tab-dot"></span>
+        Activar Formularios
+      </button>
+
       <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'ingreso-carreras'"
         (click)="cambiarVentana('ingreso-carreras')">
         <span class="tab-dot"></span>
@@ -33,6 +40,8 @@
         <span class="tab-dot"></span>
         Estadísticas De Documentos
       </button>
+
+
     </div>
 
     <div class="panel-contenido">
@@ -54,6 +63,10 @@
 
       <ng-container *ngIf="ventanaActiva === 'Dashboard'">
         <app-dasboard></app-dasboard>
+      </ng-container>
+
+      <ng-container *ngIf="ventanaActiva === 'Activar'">
+        <app-activar-formularios></app-activar-formularios>
       </ng-container>
 
     </div>

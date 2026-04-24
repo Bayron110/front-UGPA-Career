@@ -5,8 +5,9 @@ import { PlanIndividual } from "./components/interaccion/plan-individual/plan-in
 import { Seguimiento } from "./components/interaccion/seguimiento/seguimiento";
 import { Historial } from "./components/visualizacion/historial/historial";
 import { Dasboard } from "./components/visualizacion/dasboard/dasboard";
+import { ActivarFormularios } from "./components/interaccion/activar-formularios/activar-formularios";
 
-type VentanaActiva = 'ingreso-carreras' | 'patrocinio' | 'plan-individual' | 'seguimiento' | 'historial' | 'Dashboard';
+type VentanaActiva = 'ingreso-carreras' | 'patrocinio' | 'plan-individual' | 'seguimiento' | 'historial' | 'Dashboard'| 'Activar';
 
 
 @Component({
@@ -18,7 +19,8 @@ type VentanaActiva = 'ingreso-carreras' | 'patrocinio' | 'plan-individual' | 'se
     PlanIndividual,
     Seguimiento,
     Historial,
-    Dasboard
+    Dasboard,
+    ActivarFormularios
 ],
   templateUrl: './documentos-web-docente.html',
   styleUrl: './documentos-web-docente.css'

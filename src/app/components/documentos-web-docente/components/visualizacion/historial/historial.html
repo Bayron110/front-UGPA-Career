@@ -157,7 +157,7 @@
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Word
+                PDF
               </button>
             </td>
 
@@ -168,3 +168,80 @@
 
   </div>
 </section>
+
+<!-- ══════════════════════════════════════════════════
+     OVERLAY GENERANDO DOCUMENTO
+══════════════════════════════════════════════════ -->
+<div class="gen-overlay" [class.oculto]="!mostrandoAnimacion" aria-live="polite" aria-label="Generando documento">
+  <div class="gen-box">
+
+    <div class="gen-header">
+      <p class="gen-title">Generando documento</p>
+      <p class="gen-sub">Por favor espere, esto puede tomar unos segundos…</p>
+    </div>
+
+    <div class="gen-body">
+
+      <!-- Doc visual -->
+      <div class="gen-doc-visual">
+        <div class="gen-doc">
+          <div class="gen-lines">
+            <div class="gen-line"></div>
+            <div class="gen-line"></div>
+            <div class="gen-line"></div>
+            <div class="gen-line"></div>
+            <div class="gen-line"></div>
+            <div class="gen-line"></div>
+          </div>
+        </div>
+        <div class="gen-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="gen-progress-wrap">
+        <div class="gen-progress-label">
+          <span class="gen-progress-txt">{{ genProgressTxt }}</span>
+          <span class="gen-progress-pct">{{ genProgressPct }}%</span>
+        </div>
+        <div class="gen-progress-bar">
+          <div class="gen-progress-fill" [style.width.%]="genProgressPct"></div>
+        </div>
+      </div>
+
+      <!-- Pasos -->
+      <div class="gen-steps">
+        <div
+          *ngFor="let step of GEN_STEPS; let i = index"
+          class="gen-step-row"
+          [class.done]="stepStates[step.id] === 'done'"
+          [class.active]="stepStates[step.id] === 'active'">
+
+          <div class="gen-step-icon">
+            <ng-container *ngIf="stepStates[step.id] === 'idle'">{{ i + 1 }}</ng-container>
+            <ng-container *ngIf="stepStates[step.id] === 'active'">
+              <div class="gen-spinner"></div>
+            </ng-container>
+            <ng-container *ngIf="stepStates[step.id] === 'done'">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </ng-container>
+          </div>
+
+          <span>{{ getStepLabel(i) }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="gen-footer">
+      <p class="gen-footer-txt">La conversión puede tardar hasta 30 segundos en servidores gratuitos</p>
+    </div>
+
+  </div>
+</div>
