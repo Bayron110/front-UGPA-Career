@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HOME_CARDS,  } from '../Components/cardDescrip';
+import { HOME_CARDS } from '../Components/cardDescrip';
 import { HomeCard } from '../../Interface/home/HomeCards';
 
 @Component({
@@ -62,7 +62,7 @@ export class Home implements OnInit {
 
   navigate(action: string): void {
     const routes: Record<string, () => void> = {
-      iraControlInd: () => window.location.href = 'https://registroinduccionesitsqmet.netlify.app/admin/admin',
+      iraControlInd: () => window.open('https://registroinduccionesitsqmet.netlify.app/admin/admin', '_blank'),
       irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
       irAAgendar: () => this.router.navigate(['/Agenda'])
     };

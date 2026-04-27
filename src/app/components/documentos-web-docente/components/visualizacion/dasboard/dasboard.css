@@ -1,46 +1,42 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   DOCTRACK — Paleta celeste · Angular v17+
+   DOCTRACK — Fondo profundo integrado (corregido)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ── Tokens ── */
 :host {
   --nav-w: 220px;
   --r: 14px;
 
-  /* Fondos celeste profundo */
-  --bg:       #0a1e3a;
-  --bg2:      #0d2548;
-  --bg3:      #102e56;
-  --surface:  #163564;
-  --surface2: #1c3e72;
+  --bg:      #09182e;
+  --bg2:     #0c1f3d;
+  --bg3:     #0f2548;
 
-  /* Bordes */
-  --border:    rgba(147, 210, 255, 0.20);
-  --border-hi: rgba(147, 210, 255, 0.45);
+  --surface:  rgba(255, 255, 255, 0.04);
+  --surface2: rgba(255, 255, 255, 0.08);
+  --surface3: rgba(255, 255, 255, 0.12);
 
-  /* Acentos */
+  --border:    rgba(126, 200, 248, 0.15);
+  --border-hi: rgba(126, 200, 248, 0.38);
+
   --blue:     #7ec8f8;
-  --blue-lo:  rgba(126, 200, 248, 0.14);
+  --blue-lo:  rgba(126, 200, 248, 0.12);
 
   --green:    #2ecc9a;
-  --green-lo: rgba(46, 204, 154, 0.14);
+  --green-lo: rgba(46, 204, 154, 0.12);
 
   --amber:    #fbbf24;
-  --amber-lo: rgba(251, 191, 36, 0.14);
+  --amber-lo: rgba(251, 191, 36, 0.12);
 
   --red:      #fb7185;
-  --red-lo:   rgba(251, 113, 133, 0.14);
+  --red-lo:   rgba(251, 113, 133, 0.12);
 
   --purple: #c4b5fd;
   --teal:   #2dd4bf;
-  --cyan:   #38bdf8;
 
-  /* Texto — ALTO CONTRASTE */
-  --text-1: #ffffff;
-  --text-2: #c8e6ff;
-  --text-3: #7aadd4;
+  --text-1: #f0f6ff;
+  --text-2: #a8c8e8;
+  --text-3: #5a8ab0;
 }
 
 *,
@@ -69,7 +65,7 @@
   display: flex;
   flex-direction: column;
   padding: 28px 16px;
-  gap: 8px;
+  gap: 6px;
   position: sticky;
   top: 0;
   flex-shrink: 0;
@@ -88,7 +84,7 @@
   width: 38px;
   height: 38px;
   background: var(--blue-lo);
-  border: 1.5px solid rgba(126, 200, 248, 0.45);
+  border: 1px solid rgba(126, 200, 248, 0.30);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -140,14 +136,14 @@
 }
 
 .nav-item:hover {
-  background: var(--surface);
+  background: var(--surface2);
   color: var(--text-1);
   border-color: var(--border);
 }
 
 .nav-item.active {
-  background: rgba(126, 200, 248, 0.18);
-  border-color: rgba(126, 200, 248, 0.45);
+  background: rgba(126, 200, 248, 0.14);
+  border-color: rgba(126, 200, 248, 0.35);
   color: var(--text-1);
 }
 
@@ -185,11 +181,8 @@
   padding: 32px 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  background:
-    radial-gradient(ellipse 70% 45% at 75% -8%, rgba(126, 200, 248, 0.12) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 35% at 100% 90%, rgba(46, 204, 154, 0.08) 0%, transparent 60%),
-    var(--bg);
+  gap: 22px;
+  background: var(--bg);
 }
 
 /* ━━━ HEADER ━━━ */
@@ -219,11 +212,7 @@
   align-items: center;
 }
 
-.header-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
+.header-stat { display: flex; flex-direction: column; align-items: flex-end; }
 
 .hs-label {
   font-size: 10px;
@@ -239,7 +228,7 @@
   margin-top: 2px;
 }
 
-/* ━━━ ANIMACIÓN DE VISTA ━━━ */
+/* ━━━ ANIMACIÓN ━━━ */
 .view-anim {
   display: flex;
   flex-direction: column;
@@ -259,7 +248,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 24px 28px;
+  padding: 22px 26px;
   overflow: hidden;
 }
 
@@ -272,28 +261,38 @@
 
 .kpi-divider {
   width: 1px;
-  height: 56px;
+  height: 52px;
   background: var(--border);
-  margin: 0 24px;
+  margin: 0 22px;
   flex-shrink: 0;
 }
 
+/* ━━━ KPI RING — FIX NÚMERO GIRADO ━━━ */
+/*
+  El SVG tiene rotate(-90deg) para orientar el arco.
+  El .kpi-num vive FUERA del SVG (posición absoluta sobre él),
+  por lo que NO hereda esa rotación. El bug anterior era usar
+  transform:rotate(90deg) para "compensar", lo cual lo giraba
+  cuando el contenedor padre no tenía perspectiva. La solución
+  es simplemente NO aplicar ninguna rotación al número HTML.
+*/
 .kpi-ring {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   position: relative;
   flex-shrink: 0;
 }
 
 .kpi-ring svg {
-  width: 60px;
-  height: 60px;
-  transform: rotate(-90deg);
+  width: 64px;
+  height: 64px;
+  display: block;
+  transform: rotate(-90deg); /* solo rota el arco SVG */
 }
 
 .ring-track {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.07);
   stroke-width: 5;
 }
 
@@ -308,6 +307,7 @@
 .ring-green { stroke: var(--green); }
 .ring-amber { stroke: var(--amber); }
 
+/* El número flota encima del SVG sin ninguna rotación */
 .kpi-num {
   position: absolute;
   inset: 0;
@@ -315,10 +315,10 @@
   align-items: center;
   justify-content: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-1);
-  transform: rotate(90deg);
+  /* SIN transform — el elemento HTML no está rotado */
 }
 
 .kpi-num.green { color: var(--green); }
@@ -338,7 +338,6 @@
   display: block;
 }
 
-/* Inline KPI */
 .inline-kpi {
   flex-direction: column;
   align-items: flex-start;
@@ -380,15 +379,15 @@
 .charts-row {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 20px;
+  gap: 18px;
 }
 
 .chart-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 24px;
-  transition: border-color 0.3s;
+  padding: 22px;
+  transition: border-color 0.25s;
 }
 
 .chart-card:hover {
@@ -399,11 +398,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .card-header h3 {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text-2);
   text-transform: uppercase;
@@ -417,21 +416,21 @@
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(126, 200, 248, 0.16);
+  background: rgba(126, 200, 248, 0.12);
   color: var(--blue);
-  border: 1px solid rgba(126, 200, 248, 0.35);
+  border: 1px solid rgba(126, 200, 248, 0.28);
 }
 
-/* Donut */
+/* ── Donut ── */
 .donut-main {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 26px;
 }
 
 .donut-svg {
-  width: 180px;
-  height: 180px;
+  width: 175px;
+  height: 175px;
   flex-shrink: 0;
 }
 
@@ -483,23 +482,23 @@
 }
 
 .progress-bar-wrap {
-  height: 5px;
-  border-radius: 3px;
+  height: 4px;
+  border-radius: 2px;
   background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 1s ease;
 }
 
 .green-fill { background: var(--green); }
 .amber-fill { background: var(--amber); }
 
-/* Tipo bars */
+/* ── Tipo bars ── */
 .tipo-bars {
   display: flex;
   flex-direction: column;
@@ -510,7 +509,7 @@
   display: grid;
   grid-template-columns: auto 1fr 40px;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .tipo-info {
@@ -532,9 +531,9 @@
   flex-shrink: 0;
 }
 
-.blue-icon   { background: rgba(126, 200, 248, 0.18); color: var(--blue);   border: 1px solid rgba(126, 200, 248, 0.35); }
-.purple-icon { background: rgba(196, 181, 253, 0.18); color: var(--purple); border: 1px solid rgba(196, 181, 253, 0.35); }
-.teal-icon   { background: rgba(45, 212, 191, 0.18);  color: var(--teal);   border: 1px solid rgba(45, 212, 191, 0.35); }
+.blue-icon   { background: rgba(126, 200, 248, 0.14); color: var(--blue);   border: 1px solid rgba(126, 200, 248, 0.28); }
+.purple-icon { background: rgba(196, 181, 253, 0.14); color: var(--purple); border: 1px solid rgba(196, 181, 253, 0.28); }
+.teal-icon   { background: rgba(45, 212, 191, 0.14);  color: var(--teal);   border: 1px solid rgba(45, 212, 191, 0.28); }
 
 .tipo-info strong {
   display: block;
@@ -551,7 +550,7 @@
 }
 
 .tipo-track {
-  height: 8px;
+  height: 7px;
   background: rgba(255, 255, 255, 0.07);
   border-radius: 4px;
   overflow: hidden;
@@ -578,10 +577,10 @@
 /* ━━━ VIEW CONTROLS ━━━ */
 .view-controls {
   display: flex;
-  gap: 24px;
+  gap: 22px;
   align-items: flex-end;
   flex-wrap: wrap;
-  padding: 18px 20px;
+  padding: 16px 20px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -590,7 +589,7 @@
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .control-group label {
@@ -606,7 +605,7 @@
 .btn-sort,
 .btn-filter,
 .btn-tipo {
-  padding: 7px 14px;
+  padding: 7px 13px;
   border-radius: 8px;
   background: transparent;
   border: 1px solid var(--border);
@@ -629,27 +628,49 @@
 .btn-sort.active,
 .btn-filter.active,
 .btn-tipo.active {
-  background: rgba(126, 200, 248, 0.18);
-  border-color: rgba(126, 200, 248, 0.50);
+  background: rgba(126, 200, 248, 0.14);
+  border-color: rgba(126, 200, 248, 0.42);
   color: var(--text-1);
 }
 
+/* ━━━ SELECT — FIX FONDO BLANCO ━━━ */
+/*
+  Los navegadores aplican estilos nativos al <select> que ignoran
+  background con rgba translúcido. Se fuerza un color sólido
+  equivalente y se añade color-scheme para que el desplegable
+  nativo también adopte el tema oscuro.
+*/
 .dash-select {
   padding: 8px 14px;
   border-radius: 8px;
-  background: var(--surface2);
+  background-color: #1a3560;      /* azul oscuro sólido equivalente */
   border: 1px solid var(--border);
   color: var(--text-1);
   font-family: 'Syne', sans-serif;
   font-size: 12px;
+  font-weight: 600;
   outline: none;
   cursor: pointer;
   min-width: 200px;
   transition: border-color 0.2s;
+  color-scheme: dark;             /* fuerza el dropdown nativo a modo oscuro */
+  -webkit-appearance: none;
+  appearance: none;
+  /* Chevron personalizado */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237ec8f8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 .dash-select:focus {
-  border-color: rgba(126, 200, 248, 0.55);
+  border-color: rgba(126, 200, 248, 0.50);
+  background-color: #1e3e6e;
+}
+
+.dash-select option {
+  background-color: #0f2548;
+  color: #f0f6ff;
 }
 
 /* ━━━ CARRERAS GRID ━━━ */
@@ -671,11 +692,12 @@
 
 .carrera-card:hover {
   transform: translateY(-3px);
+  border-color: var(--border-hi);
 }
 
-.carrera-card.alto  { border-top: 2.5px solid var(--green); }
-.carrera-card.medio { border-top: 2.5px solid var(--amber); }
-.carrera-card.bajo  { border-top: 2.5px solid var(--red); }
+.carrera-card.alto  { border-top: 2px solid var(--green); border-radius: 0 0 var(--r) var(--r); }
+.carrera-card.medio { border-top: 2px solid var(--amber); border-radius: 0 0 var(--r) var(--r); }
+.carrera-card.bajo  { border-top: 2px solid var(--red);   border-radius: 0 0 var(--r) var(--r); }
 
 .cc-rank {
   position: absolute;
@@ -744,10 +766,7 @@
 .carrera-card.medio .pct-num { color: var(--amber); }
 .carrera-card.bajo  .pct-num { color: var(--red); }
 
-.pct-sym {
-  font-size: 13px;
-  color: var(--text-2);
-}
+.pct-sym { font-size: 13px; color: var(--text-2); }
 
 .cc-mini-chart {
   display: flex;
@@ -802,7 +821,7 @@
 
 .cc-bar-wrap {
   height: 4px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -821,13 +840,13 @@
 .filter-results {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .fr-summary {
   display: flex;
   gap: 24px;
-  padding: 20px 28px;
+  padding: 20px 26px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -856,7 +875,7 @@
   letter-spacing: 0.04em;
 }
 
-/* Stacked bars */
+/* ── Stacked bars ── */
 .stacked-wrap {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -883,7 +902,7 @@
 .stacked-track {
   height: 10px;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
   display: flex;
 }
@@ -905,12 +924,12 @@
 .stacked-nums .amber { color: var(--amber); font-weight: 600; }
 .stacked-nums .sep   { color: var(--text-3); }
 
-/* Heat matrix */
+/* ── Heat matrix ── */
 .matrix-wrap {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 24px;
+  padding: 22px;
 }
 
 .matrix-title {
@@ -972,16 +991,15 @@
 }
 
 .heat-0   { background: rgba(255, 255, 255, 0.04); color: var(--text-3); }
-.heat-low { background: rgba(251, 113, 133, 0.18); color: #fda4af; border: 1px solid rgba(251, 113, 133, 0.28); }
-.heat-mid { background: rgba(251, 191, 36,  0.18); color: #fcd34d; border: 1px solid rgba(251, 191, 36,  0.28); }
-.heat-high{ background: rgba(46,  204, 154, 0.18); color: #34d399; border: 1px solid rgba(46,  204, 154, 0.28); }
+.heat-low { background: rgba(251, 113, 133, 0.16); color: #fda4af; border: 1px solid rgba(251, 113, 133, 0.25); }
+.heat-mid { background: rgba(251, 191, 36,  0.16); color: #fcd34d; border: 1px solid rgba(251, 191, 36,  0.25); }
+.heat-high{ background: rgba(46,  204, 154, 0.16); color: #34d399; border: 1px solid rgba(46,  204, 154, 0.25); }
 
 /* ━━━ LOADING ━━━ */
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 30, 58, 0.9);
-  backdrop-filter: blur(6px);
+  background: rgba(9, 24, 46, 0.92);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -996,7 +1014,7 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(126, 200, 248, 0.2);
+  border: 3px solid rgba(126, 200, 248, 0.18);
   border-top-color: var(--blue);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

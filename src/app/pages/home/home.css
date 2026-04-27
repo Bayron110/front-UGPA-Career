@@ -50,14 +50,31 @@ body {
     display: none;
 }
 
+/* ── GRID PRINCIPAL ──────────────────────────────────────────
+   Usamos flex en lugar de grid para poder centrar las cards
+   cuando hay menos de 4 sin afectar el layout de 4+.
+   Cada card-container tiene un ancho fijo máximo de 320px,
+   lo que replica el comportamiento de minmax(280px, 1fr).
+──────────────────────────────────────────────────────────── */
 .views-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 18px;
     margin-bottom: 36px;
+    /* Por defecto: alineación a la izquierda (muchas cards) */
+    justify-content: flex-start;
+}
+
+/* Cuando hay menos de 4 cards → centrar */
+.views-grid--centered {
+    justify-content: center;
 }
 
 .card-container {
+    /* Mismo comportamiento que minmax(280px, 1fr):
+       crece para llenar el espacio pero nunca más de 320px */
+    flex: 1 1 280px;
+    max-width: 320px;
     animation: fadeInUp 0.6s ease-out backwards;
 }
 
@@ -433,12 +450,31 @@ body {
 }
 
 @media (max-width: 768px) {
-    .header h1 { font-size: 2.1rem; }
-    .views-grid { grid-template-columns: 1fr; gap: 14px; }
-    .container { padding: 28px 16px; }
+    .header h1 {
+        font-size: 2.1rem;
+    }
+
+    .views-grid {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .card-container {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .container {
+        padding: 28px 16px;
+    }
 }
 
 @media (max-width: 480px) {
-    .header h1 { font-size: 1.75rem; }
-    .container { padding: 20px 12px; }
+    .header h1 {
+        font-size: 1.75rem;
+    }
+
+    .container {
+        padding: 20px 12px;
+    }
 }

@@ -1,75 +1,81 @@
 .activar-wrap {
   padding: 32px;
   min-height: 100%;
-  color: #e5eefb;
+  color: #e2e8f0;
 }
 
+/* ── Header ─────────────────────────────────────── */
 .activar-header {
-  background: linear-gradient(135deg, #0f172a, #123766);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 22px;
-  padding: 28px;
-  margin-bottom: 24px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.28);
+  background: linear-gradient(135deg, #0f1e38 0%, #112d5a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
 }
 
 .eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.18em;
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #93c5fd;
-  font-weight: 800;
+  color: #60a5fa;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .activar-header h2 {
-  margin: 8px 0 6px;
-  font-size: 30px;
-  font-weight: 850;
-  color: #ffffff;
+  margin: 0 0 6px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #f0f6ff;
 }
 
 .activar-header p {
   margin: 0;
-  color: #cbd5e1;
-  font-size: 15px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
+/* ── Loading ─────────────────────────────────────── */
 .estado-cargando {
-  background: #ffffff;
-  color: #334155;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 18px;
-  padding: 22px;
+  padding: 28px;
   text-align: center;
-  font-weight: 700;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 14px;
 }
 
+/* ── Grid ────────────────────────────────────────── */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 18px;
 }
 
+/* ── Card ────────────────────────────────────────── */
 .form-card {
-  background: #ffffff;
-  color: #0f172a;
-  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
   padding: 22px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
 }
 
 .form-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.22);
 }
 
 .form-card.activo {
-  border-color: #38bdf8;
-  box-shadow: 0 18px 45px rgba(56, 189, 248, 0.18);
+  background: rgba(56, 189, 248, 0.05);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
+/* ── Card info ───────────────────────────────────── */
 .card-info {
   display: flex;
   gap: 14px;
@@ -77,66 +83,73 @@
 }
 
 .icono {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background: #eff6ff;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(96, 165, 250, 0.12);
   display: grid;
   place-items: center;
-  font-size: 24px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 
 .form-card h3 {
-  margin: 0 0 6px;
-  font-size: 18px;
-  color: #0f172a;
+  margin: 0 0 5px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
 .form-card p {
   margin: 0;
   color: #64748b;
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
+/* ── Footer ──────────────────────────────────────── */
 .card-footer {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
+/* ── Estado badge ────────────────────────────────── */
 .estado {
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 7px 12px;
+  padding: 5px 12px;
   border-radius: 999px;
 }
 
 .estado.on {
-  color: #047857;
-  background: #d1fae5;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.25);
 }
 
 .estado.off {
-  color: #b91c1c;
-  background: #fee2e2;
+  background: rgba(220, 38, 38, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
 }
 
+/* ── Botones ─────────────────────────────────────── */
 button {
   border: none;
-  border-radius: 14px;
-  padding: 11px 16px;
-  font-weight: 800;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   color: #ffffff;
-  background: linear-gradient(135deg, #2563eb, #0284c7);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
@@ -145,7 +158,7 @@ button:hover {
 }
 
 button:disabled {
-  opacity: 0.6;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
@@ -154,19 +167,23 @@ button.btn-off {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
 }
 
+/* ── Toast ───────────────────────────────────────── */
 .toast {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  background: #0f172a;
-  color: #ffffff;
-  padding: 14px 18px;
-  border-radius: 16px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
-  font-weight: 700;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  color: #f0f6ff;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
   z-index: 50;
+  backdrop-filter: blur(8px);
 }
 
+/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 980px) {
   .cards-grid {
     grid-template-columns: 1fr;
@@ -175,24 +192,19 @@ button.btn-off {
 
 @media (max-width: 560px) {
   .activar-wrap {
-    padding: 18px;
+    padding: 16px;
   }
-
   .activar-header {
-    padding: 22px;
+    padding: 20px;
   }
-
   .activar-header h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
-
   .card-footer {
     flex-direction: column;
     align-items: stretch;
   }
-
   button {
     width: 100%;
-    justify-content: center;
   }
 }

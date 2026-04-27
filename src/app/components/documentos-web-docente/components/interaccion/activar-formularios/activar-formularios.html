@@ -1,10 +1,8 @@
 <section class="activar-wrap">
   <div class="activar-header">
-    <div>
-      <span class="eyebrow">Panel administrador</span>
-      <h2>Activar formularios</h2>
-      <p>Controle qué formularios estarán disponibles para los docentes.</p>
-    </div>
+    <span class="eyebrow">Panel administrador</span>
+    <h2>Activar formularios</h2>
+    <p>Controle qué formularios estarán disponibles para los docentes.</p>
   </div>
 
   <div *ngIf="cargando" class="estado-cargando">
@@ -21,12 +19,10 @@
           <p>Permite generar el formulario de patrocinio.</p>
         </div>
       </div>
-
       <div class="card-footer">
         <span class="estado" [class.on]="patrocinio" [class.off]="!patrocinio">
           {{ patrocinio ? 'Activo' : 'Inactivo' }}
         </span>
-
         <button
           type="button"
           [disabled]="guardando"
@@ -46,12 +42,10 @@
           <p>Permite generar el plan individual docente.</p>
         </div>
       </div>
-
       <div class="card-footer">
         <span class="estado" [class.on]="planIndividual" [class.off]="!planIndividual">
           {{ planIndividual ? 'Activo' : 'Inactivo' }}
         </span>
-
         <button
           type="button"
           [disabled]="guardando"
@@ -71,12 +65,10 @@
           <p>Permite generar el seguimiento de formación docente.</p>
         </div>
       </div>
-
       <div class="card-footer">
         <span class="estado" [class.on]="seguimientoDocente" [class.off]="!seguimientoDocente">
           {{ seguimientoDocente ? 'Activo' : 'Inactivo' }}
         </span>
-
         <button
           type="button"
           [disabled]="guardando"
@@ -90,7 +82,5 @@
 
   </div>
 
-  <div *ngIf="mensaje" class="toast">
-    {{ mensaje }}
-  </div>
+  <div *ngIf="mensaje" class="toast">{{ mensaje }}</div>
 </section>

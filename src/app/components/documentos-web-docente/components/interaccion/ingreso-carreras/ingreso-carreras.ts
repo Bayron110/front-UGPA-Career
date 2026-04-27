@@ -41,13 +41,12 @@ function temasVacios(n: number): TemaData[] {
 })
 export class IngresoCarrerasComponent implements OnInit, OnDestroy {
 
-  // ── Formulario nueva carrera (solo nombre) ────────────────────────
+  // ── Nueva carrera ─────────────────────────────────────────────────
   nuevaCarrera = '';
 
-  // ── Modal capacitación ────────────────────────────────────────────
+  // ── Modal: agregar capacitación ───────────────────────────────────
   modalCapVisible = false;
   carreraSeleccionada: CarreraItem | null = null;
-
   capNuevaNombre = '';
   capNuevaHoras: number | null = null;
   capNuevaFechaInicio = '';
@@ -57,7 +56,19 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   capNuevaPracticaTemas: TemaData[] = temasVacios(3);
   guardandoCapNueva = false;
 
-  // ── Modal editar nombre carrera ───────────────────────────────────
+  // ── Modal: editar capacitación ────────────────────────────────────
+  modalEditarCapVisible = false;
+  editCapKey = '';
+  editCapNombre = '';
+  editCapHoras: number | null = null;
+  editCapFechaInicio = '';
+  editCapFechaFin = '';
+  editCapTipo = 'Aprobación';
+  editCapTeoriaTemas: TemaData[] = temasVacios(3);
+  editCapPracticaTemas: TemaData[] = temasVacios(3);
+  guardandoEditCap = false;
+
+  // ── Modal: editar nombre carrera ──────────────────────────────────
   modalEditarVisible = false;
   editNombre = '';
 
@@ -75,24 +86,18 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
-    this.escucharCarreras();
-  }
+  ngOnInit(): void { this.escucharCarreras(); }
+  ngOnDestroy(): void { off(this.refCarreras); }
 
-  ngOnDestroy(): void {
-    off(this.refCarreras);
-  }
-
-  // ── Listener Firebase ─────────────────────────────────────────────
+  // ── Firebase listener ─────────────────────────────────────────────
 
   escucharCarreras(): void {
     this.cargando = true;
 
     onValue(this.refCarreras, (snap) => {
-      // Preservar estados UI
       const guardandoIds = new Set(this.carreras.filter(c => c.guardando).map(c => c.id));
       const eliminandoIds = new Set(this.carreras.filter(c => c.eliminando).map(c => c.id));
-      const limpiandoIds = new Set(this.carreras.filter(c => c.limpiando).map(c => c.id));
+      const limpiandoIds  = new Set(this.carreras.filter(c => c.limpiando).map(c => c.id));
 
       if (!snap.exists()) {
         this.carreras = [];
@@ -137,10 +142,9 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         })
         .sort((a, b) => Number(a.id) - Number(b.id));
 
-      // Actualizar referencia del objeto seleccionado si el modal está abierto
       if (this.carreraSeleccionada) {
-        const actualizado = this.carreras.find(c => c.id === this.carreraSeleccionada!.id);
-        if (actualizado) this.carreraSeleccionada = actualizado;
+        const act = this.carreras.find(c => c.id === this.carreraSeleccionada!.id);
+        if (act) this.carreraSeleccionada = act;
       }
 
       this.cargando = false;
@@ -148,12 +152,11 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────
+  // ── Computed ──────────────────────────────────────────────────────
 
   get carrerasFiltradas(): CarreraItem[] {
     const t = this.filtro.trim().toLowerCase();
     if (!t) return this.carreras;
-
     return this.carreras.filter(item =>
       item.nombre.toLowerCase().includes(t) ||
       Object.values(item.capacitaciones).some(c =>
@@ -163,21 +166,31 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────
+
   formularioCapNuevaValido(): boolean {
     const teoriOk = this.capNuevaTeoriaTemas.every(
-      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10
-    );
-    const pracOk = this.capNuevaPracticaTemas.every(
-      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10
-    );
-
+      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
+    const pracOk  = this.capNuevaPracticaTemas.every(
+      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
     return !!(
       this.capNuevaNombre.trim() &&
       this.capNuevaHoras && this.capNuevaHoras > 0 &&
-      this.capNuevaFechaInicio &&
-      this.capNuevaFechaFin &&
-      this.capNuevaTipo.trim() &&
-      teoriOk && pracOk
+      this.capNuevaFechaInicio && this.capNuevaFechaFin &&
+      this.capNuevaTipo.trim() && teoriOk && pracOk
+    );
+  }
+
+  formularioEditCapValido(): boolean {
+    const teoriOk = this.editCapTeoriaTemas.every(
+      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
+    const pracOk  = this.editCapPracticaTemas.every(
+      t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
+    return !!(
+      this.editCapNombre.trim() &&
+      this.editCapHoras && this.editCapHoras > 0 &&
+      this.editCapFechaInicio && this.editCapFechaFin &&
+      this.editCapTipo.trim() && teoriOk && pracOk
     );
   }
 
@@ -200,22 +213,21 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
 
   calcularEstado(fechaInicio: string, fechaFin: string): string {
     if (!fechaInicio || !fechaFin) return 'Pendiente';
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     const inicio = new Date(`${fechaInicio}T00:00:00`);
-    const fin = new Date(`${fechaFin}T00:00:00`);
+    const fin    = new Date(`${fechaFin}T00:00:00`);
     if (hoy < inicio) return 'Pendiente';
-    if (hoy <= fin) return 'Iniciada';
+    if (hoy <= fin)   return 'Iniciada';
     return 'Terminada';
   }
 
   contarPalabras(texto: string): number {
-    if (!texto || !texto.trim()) return 0;
+    if (!texto?.trim()) return 0;
     return texto.trim().split(/\s+/).filter(w => w.length > 0).length;
   }
 
   limitarTituloA10Palabras(texto: string): string {
-    if (!texto || !texto.trim()) return '';
+    if (!texto?.trim()) return '';
     return texto.trim().split(/\s+/).slice(0, 10).join(' ');
   }
 
@@ -233,7 +245,18 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.capNuevaPracticaTemas = temasVacios(3);
   }
 
-  // ── Guardar nueva carrera (solo nombre) ───────────────────────────
+  limpiarFormEditCap(): void {
+    this.editCapKey = '';
+    this.editCapNombre = '';
+    this.editCapHoras = null;
+    this.editCapFechaInicio = '';
+    this.editCapFechaFin = '';
+    this.editCapTipo = 'Aprobación';
+    this.editCapTeoriaTemas = temasVacios(3);
+    this.editCapPracticaTemas = temasVacios(3);
+  }
+
+  // ── Guardar nueva carrera ─────────────────────────────────────────
 
   async guardarCarrera(): Promise<void> {
     const nombreNorm = this.nuevaCarrera.trim();
@@ -252,7 +275,6 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         nombre: nombreNorm,
         capacitaciones: {}
       });
-
       this.nuevaCarrera = '';
       this.mostrarMensaje('✅ Carrera registrada correctamente');
     } catch (e) {
@@ -264,7 +286,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Modal capacitación ────────────────────────────────────────────
+  // ── Modal: agregar capacitación ───────────────────────────────────
 
   abrirModalCapacitacion(item: CarreraItem): void {
     this.carreraSeleccionada = item;
@@ -292,14 +314,13 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   async guardarCapNueva(): Promise<void> {
     if (!this.carreraSeleccionada) return;
 
-    this.capNuevaTeoriaTemas = this.normalizarTemas(this.capNuevaTeoriaTemas);
+    this.capNuevaTeoriaTemas   = this.normalizarTemas(this.capNuevaTeoriaTemas);
     this.capNuevaPracticaTemas = this.normalizarTemas(this.capNuevaPracticaTemas);
 
     if (!this.formularioCapNuevaValido()) {
       this.mostrarMensajeModal('❌ Complete todos los campos requeridos');
       return;
     }
-
     if (this.capNuevaFechaFin < this.capNuevaFechaInicio) {
       this.mostrarMensajeModal('❌ La fecha de fin no puede ser menor a la de inicio');
       return;
@@ -343,13 +364,99 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Limpiar todas las capacitaciones de una carrera ───────────────
+  // ── Modal: editar capacitación ────────────────────────────────────
+
+  abrirModalEditarCapacitacion(item: CarreraItem, capKey: string, capData: CapacitacionData): void {
+    this.carreraSeleccionada  = item;
+    this.editCapKey           = capKey;
+    this.editCapNombre        = capData.capacitacion;
+    this.editCapHoras         = capData.horas;
+    this.editCapFechaInicio   = capData.fechaInicio;
+    this.editCapFechaFin      = capData.fechaFin;
+    this.editCapTipo          = capData.tipo;
+    // Clonar los temas para no mutar el objeto original mientras el usuario edita
+    this.editCapTeoriaTemas   = capData.teoriaTemas.length
+      ? capData.teoriaTemas.map(t => ({ titulo: t.titulo }))
+      : temasVacios(3);
+    this.editCapPracticaTemas = capData.practicaTemas.length
+      ? capData.practicaTemas.map(t => ({ titulo: t.titulo }))
+      : temasVacios(3);
+    this.mensajeModal         = '';
+    this.modalEditarCapVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  cerrarModalEditarCap(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+      this.cerrarModalEditarCapDirecto();
+    }
+  }
+
+  cerrarModalEditarCapDirecto(): void {
+    if (this.guardandoEditCap) return;
+    this.modalEditarCapVisible = false;
+    this.carreraSeleccionada = null;
+    this.limpiarFormEditCap();
+    this.mensajeModal = '';
+    this.cdr.detectChanges();
+  }
+
+  async guardarEditCapacitacion(): Promise<void> {
+    if (!this.carreraSeleccionada || !this.editCapKey) return;
+
+    this.editCapTeoriaTemas   = this.normalizarTemas(this.editCapTeoriaTemas);
+    this.editCapPracticaTemas = this.normalizarTemas(this.editCapPracticaTemas);
+
+    if (!this.formularioEditCapValido()) {
+      this.mostrarMensajeModal('❌ Complete todos los campos requeridos');
+      return;
+    }
+    if (this.editCapFechaFin < this.editCapFechaInicio) {
+      this.mostrarMensajeModal('❌ La fecha de fin no puede ser menor a la de inicio');
+      return;
+    }
+
+    this.guardandoEditCap = true;
+    this.cdr.detectChanges();
+
+    try {
+      const capActualizada: CapacitacionData = {
+        capacitacion: this.editCapNombre.trim(),
+        tipo: this.editCapTipo,
+        horas: this.editCapHoras || 0,
+        fechaInicio: this.editCapFechaInicio,
+        fechaFin: this.editCapFechaFin,
+        estado: this.calcularEstado(this.editCapFechaInicio, this.editCapFechaFin),
+        teoriaTemas: this.editCapTeoriaTemas.map(t => ({
+          titulo: this.limitarTituloA10Palabras(t.titulo)
+        })),
+        practicaTemas: this.editCapPracticaTemas.map(t => ({
+          titulo: this.limitarTituloA10Palabras(t.titulo)
+        }))
+      };
+
+      await set(
+        ref(dbDocente, `carreras/${this.carreraSeleccionada.id}/capacitaciones/${this.editCapKey}`),
+        capActualizada
+      );
+
+      this.modalEditarCapVisible = false;
+      this.limpiarFormEditCap();
+      this.mostrarMensaje('✅ Capacitación actualizada correctamente');
+    } catch (e) {
+      console.error(e);
+      this.mostrarMensajeModal('❌ Error al guardar los cambios');
+    } finally {
+      this.guardandoEditCap = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ── Limpiar capacitaciones ────────────────────────────────────────
 
   async limpiarCapacitaciones(item: CarreraItem): Promise<void> {
-    const total = this.capComoArray(item.capacitaciones).length;
-    if (total === 0) return;
-
-    if (!confirm(`¿Está seguro de borrar todas las capacitaciones de "${item.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (this.capComoArray(item.capacitaciones).length === 0) return;
+    if (!confirm(`¿Borrar todas las capacitaciones de "${item.nombre}"? Esta acción no se puede deshacer.`)) return;
 
     item.limpiando = true;
     this.cdr.detectChanges();
@@ -366,7 +473,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Modal editar nombre carrera ───────────────────────────────────
+  // ── Modal: editar nombre carrera ──────────────────────────────────
 
   abrirModalEditarNombre(item: CarreraItem): void {
     this.carreraSeleccionada = item;
@@ -395,8 +502,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     if (!this.carreraSeleccionada || !this.editNombre.trim()) return;
 
     const nombreNorm = this.editNombre.trim();
-
-    const duplicado = this.carreras.some(
+    const duplicado  = this.carreras.some(
       c => c.id !== this.carreraSeleccionada!.id &&
            c.nombre.toLowerCase() === nombreNorm.toLowerCase()
     );
@@ -410,10 +516,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      await update(ref(dbDocente, `carreras/${this.carreraSeleccionada.id}`), {
-        nombre: nombreNorm
-      });
-
+      await update(ref(dbDocente, `carreras/${this.carreraSeleccionada.id}`), { nombre: nombreNorm });
       this.modalEditarVisible = false;
       this.mostrarMensaje('✅ Nombre actualizado correctamente');
     } catch (e) {
@@ -428,13 +531,10 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   // ── Eliminar carrera ──────────────────────────────────────────────
 
   async eliminarCarrera(id: string): Promise<void> {
-    if (!confirm('¿Está seguro de eliminar esta carrera y todas sus capacitaciones?')) return;
+    if (!confirm('¿Eliminar esta carrera y todas sus capacitaciones?')) return;
 
     const item = this.carreras.find(c => c.id === id);
-    if (item) {
-      item.eliminando = true;
-      this.cdr.detectChanges();
-    }
+    if (item) { item.eliminando = true; this.cdr.detectChanges(); }
 
     try {
       await remove(ref(dbDocente, `carreras/${id}`));
@@ -442,14 +542,11 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error(e);
       this.mostrarMensaje('❌ Error al eliminar');
-      if (item) {
-        item.eliminando = false;
-        this.cdr.detectChanges();
-      }
+      if (item) { item.eliminando = false; this.cdr.detectChanges(); }
     }
   }
 
-  // ── Eliminar capacitación individual ─────────────────────────────
+  // ── Eliminar capacitación ─────────────────────────────────────────
 
   async eliminarCapacitacion(carreraId: string, capKey: string, totalCaps: number): Promise<void> {
     if (!confirm('¿Eliminar esta capacitación?')) return;
@@ -468,18 +565,12 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   private mostrarMensaje(texto: string): void {
     this.mensaje = texto;
     this.cdr.detectChanges();
-    setTimeout(() => {
-      this.mensaje = '';
-      this.cdr.detectChanges();
-    }, 3500);
+    setTimeout(() => { this.mensaje = ''; this.cdr.detectChanges(); }, 3500);
   }
 
   private mostrarMensajeModal(texto: string): void {
     this.mensajeModal = texto;
     this.cdr.detectChanges();
-    setTimeout(() => {
-      this.mensajeModal = '';
-      this.cdr.detectChanges();
-    }, 3500);
+    setTimeout(() => { this.mensajeModal = ''; this.cdr.detectChanges(); }, 3500);
   }
 }

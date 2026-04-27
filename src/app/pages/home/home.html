@@ -1,7 +1,6 @@
 <div>
   <div class="container">
     <div class="header">
-
       <span class="header-sub">Portal de servicios</span>
       <h1>Bienvenido</h1>
       <div class="pagination-toggle">
@@ -17,11 +16,10 @@
       </div>
     </div>
 
-    <div class="views-grid">
+    <div class="views-grid" [class.views-grid--centered]="visibleCards.length < 4">
       <div class="card-container" *ngFor="let card of visibleCards">
         <div class="card-effect">
           <div class="card-inner">
-
             <div class="card__content">
 
               <div class="card__image"
@@ -29,7 +27,6 @@
               </div>
 
               <div class="card__body-inner">
-
                 <div class="card__meta">
                   <span class="card__badge">{{ card.badge }}</span>
                   <span class="card__status-dot"></span>
@@ -41,8 +38,7 @@
                 </div>
 
                 <div class="card__footer">
-                  <div class="card__footer-info">
-                  </div>
+                  <div class="card__footer-info"></div>
                   <button class="card__button" (click)="navigate(card.action)">
                     Acceder
                     <svg viewBox="0 0 24 24">
@@ -50,10 +46,9 @@
                     </svg>
                   </button>
                 </div>
-
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </div>

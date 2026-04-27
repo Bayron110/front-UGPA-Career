@@ -12,7 +12,7 @@ import { dbDocente } from '../../../../../firebase/firebase-docente';
 })
 export class ActivarFormularios implements OnInit, OnDestroy {
   cargando = true;
-  guardando = false;
+  guardando = false; 
   mensaje = '';
 
   patrocinio = false;
