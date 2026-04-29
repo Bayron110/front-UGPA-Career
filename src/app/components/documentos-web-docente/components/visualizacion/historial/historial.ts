@@ -46,7 +46,6 @@ export class Historial implements OnInit, OnDestroy {
   filtroTipo: 'todos' | TipoDocumento = 'todos';
   registros: HistorialRegistro[] = [];
 
-  // ── Animación generando ──
   mostrandoAnimacion = false;
   genProgressPct = 0;
   genProgressTxt = 'Iniciando…';
@@ -84,10 +83,6 @@ export class Historial implements OnInit, OnDestroy {
     clearTimeout(this._genTimer);
   }
 
-  // ─────────────────────────────────────────────────────────
-  // ANIMACIÓN
-  // ─────────────────────────────────────────────────────────
-
   private resetStepStates(): void {
     this.GEN_STEPS.forEach(s => (this.stepStates[s.id] = 'idle'));
   }
@@ -106,6 +101,7 @@ export class Historial implements OnInit, OnDestroy {
       if (idx > 0) {
         this.stepStates[this.GEN_STEPS[idx - 1].id] = 'done';
       }
+
       if (idx < this.GEN_STEPS.length) {
         const cur = this.GEN_STEPS[idx];
         this.stepStates[cur.id] = 'active';
@@ -128,6 +124,7 @@ export class Historial implements OnInit, OnDestroy {
       this.genProgressTxt = '¡Documento listo!';
       this.GEN_STEPS.forEach(s => (this.stepStates[s.id] = 'done'));
       this.cdr.detectChanges();
+
       setTimeout(() => {
         this.mostrandoAnimacion = false;
         this.cdr.detectChanges();
@@ -137,10 +134,6 @@ export class Historial implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
-
-  // ─────────────────────────────────────────────────────────
-  // UTILIDADES
-  // ─────────────────────────────────────────────────────────
 
   private formatoFecha(fechaISO: string): string {
     if (!fechaISO) return '';
@@ -159,104 +152,170 @@ export class Historial implements OnInit, OnDestroy {
     return String(texto || '').trim().toLowerCase();
   }
 
-  // ─────────────────────────────────────────────────────────
-  // RECONSTRUIR DATA SEGUIMIENTO — CORRECCIÓN PRINCIPAL
-  //
-  // El formulario del docente (seguimiento.js) guarda los campos
-  // booleanos de checkboxes, porcentajes y demás en datosDocumento.
-  // Al regenerar desde el historial hay que reconstruirlos igual
-  // que lo hace construirDataDoc() / construirDataDocDesdeRegistro()
-  // en el JS del docente, de lo contrario la plantilla recibe
-  // undefined en todos los booleanos y los checkboxes quedan vacíos.
-  // ─────────────────────────────────────────────────────────
+  private async obtenerImagenSeguimiento(url?: string | null): Promise<{ bytes: Uint8Array; ok: boolean }> {
+    if (!url) return { bytes: this.imagenPlaceholder1x1(), ok: false };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache'
+      });
+
+      if (!response.ok) {
+        console.warn('No se pudo descargar la imagen. Status:', response.status);
+        return { bytes: this.imagenPlaceholder1x1(), ok: false };
+      }
+
+      const blob = await response.blob();
+      const bytesJpg = await this.convertirImagenAJpegBytes(blob);
+
+      if (!bytesJpg || bytesJpg.length < 8) {
+        return { bytes: this.imagenPlaceholder1x1(), ok: false };
+      }
+
+      return { bytes: bytesJpg, ok: true };
+
+    } catch (error) {
+      console.warn('Error descargando/convirtiendo imagen:', error);
+      return { bytes: this.imagenPlaceholder1x1(), ok: false };
+    }
+  }
+
+  private convertirImagenAJpegBytes(blob: Blob): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject('No se pudo crear el canvas');
+          return;
+        }
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob(async (jpgBlob) => {
+          if (!jpgBlob) {
+            reject('No se pudo convertir la imagen a JPG');
+            return;
+          }
+
+          const buffer = await jpgBlob.arrayBuffer();
+          resolve(new Uint8Array(buffer));
+        }, 'image/jpeg', 0.92);
+      };
+
+      img.onerror = () => reject('No se pudo cargar la imagen en canvas');
+      img.src = URL.createObjectURL(blob);
+    });
+  }
+
+  private imagenPlaceholder1x1(): Uint8Array {
+    return new Uint8Array([
+      0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,
+      0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
+      0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,
+      0x08,0x06,0x00,0x00,0x00,0x1F,0x15,0xC4,
+      0x89,0x00,0x00,0x00,0x0D,0x49,0x44,0x41,
+      0x54,0x78,0x9C,0x63,0x00,0x01,0x00,0x00,
+      0x05,0x00,0x01,0x0D,0x0A,0x2D,0xB4,0x00,
+      0x00,0x00,0x00,0x49,0x45,0x4E,0x44,0xAE,
+      0x42,0x60,0x82
+    ]);
+  }
 
   private reconstruirDataSeguimiento(
     registro: HistorialRegistro,
     imagenBytes: Uint8Array,
     tieneFoto: boolean
   ): any {
-    const d  = registro.datosDocumento || {};   // campos ya guardados en Firebase
-    const dd = d;                               // alias legible (mismo objeto)
+    const dd = registro.datosDocumento || {};
 
-    // ── Formación / Curso ──────────────────────────────────
     const formacion = String(dd.formacion || '').trim();
-
-    // ── Modalidad ──────────────────────────────────────────
     const modalidad = String(dd.modalidad || '').trim();
-
-    // ── Financiamiento ─────────────────────────────────────
-    const financ = String(dd.financiamiento || '').trim();
-
-    // ── Tipo de apoyo ──────────────────────────────────────
+    const financ    = String(dd.financiamiento || '').trim();
     const tipoApoyo = String(dd.tipoApoyo || '').trim();
+    const acuerdo   = String(dd.acuerdoPatrocinio || 'Si').trim();
 
-    // ── Acuerdo de patrocinio ──────────────────────────────
-    const acuerdo = String(dd.acuerdoPatrocinio || 'Si').trim();
-
-    // ── Porcentajes: el docente los guarda como "85%" ──────
-    // La plantilla espera el string con %, igual que el formulario.
     const avance   = String(dd.avance   || '0%');
     const restante = String(dd.restante || '100%');
 
-    // ── fechaActual: puede estar ya formateada (dd/mm/yyyy)
-    // o como ISO (yyyy-mm-dd). Normalizamos al formato dd/mm/yyyy.
-    let fechaActual = String(dd.fechaActual || '');
+    let fechaActual = String(dd.fechaActual || registro.fechaGuardado || '');
     if (fechaActual && fechaActual.includes('-') && !fechaActual.includes('/')) {
       fechaActual = this.formatoFecha(fechaActual);
     }
 
-    // ── Fechas inicio/fin: igual que arriba ────────────────
-    // En raíz se guardan como Einicio/Efin (ISO); en datosDoc como Finicio/Ffin
-    let Finicio = String(dd.Finicio || '');
-    let Ffin    = String(dd.Ffin    || '');
+    let Finicio = String(
+      dd.Finicio ||
+      dd.Einicio ||
+      dd._Einicio ||
+      registro.datosDocumento?._Einicio ||
+      ''
+    );
+
+    let Ffin = String(
+      dd.Ffin ||
+      dd.Efin ||
+      dd._Efin ||
+      registro.datosDocumento?._Efin ||
+      ''
+    );
+
     if (Finicio && Finicio.includes('-') && !Finicio.includes('/')) {
       Finicio = this.formatoFecha(Finicio);
     }
+
     if (Ffin && Ffin.includes('-') && !Ffin.includes('/')) {
       Ffin = this.formatoFecha(Ffin);
     }
 
     return {
-      // ── Identificación ──────────────────────────────────
       Codigo:   String(dd.Codigo   || registro.codigo  || ''),
       NombresC: String(dd.NombresC || registro.docente || ''),
       Cedula1:  String(dd.Cedula1  || registro.cedula  || ''),
       Carrera1: String(dd.Carrera1 || registro.carrera || ''),
       Titulo:   String(dd.Titulo   || ''),
 
-      // ── Tipo de formación (checkboxes) ──────────────────
       Tecnologia:   formacion === 'Tecnología Universitaria',
       Licenciatura: formacion === 'Licenciatura',
       Ingenieria:   formacion === 'Ingeniería',
       Maestria:     formacion === 'Maestría',
       Doctorado:    formacion === 'Doctorado',
 
-      CarreraCursando: String(dd.CarreraCursando || ''),
-      instituacion:    String(dd.instituacion    || ''),
+      CarreraCursando: String(
+        dd.CarreraCursando ||
+        registro.datosDocumento?.CarreraCursando ||
+        registro.carrera ||
+        ''
+      ),
 
-      // ── Modalidad (checkboxes) ──────────────────────────
+      instituacion: String(dd.instituacion || ''),
+
       Presencial: modalidad === 'Presencial',
       Virtual:    modalidad === 'Virtual',
       Hibrida:    modalidad === 'Híbrida',
 
-      // ── Fechas ──────────────────────────────────────────
       Finicio,
       Ffin,
 
-      // ── Financiamiento (checkboxes) ─────────────────────
       Total:    financ === 'Total',
       Parcial:  financ === 'Parcial',
       NoAplica: financ === 'No aplica',
 
-      // ── Acuerdo de patrocinio (checkboxes) ──────────────
       Si: acuerdo === 'Si',
       No: acuerdo === 'No',
 
-      // ── Tipo de apoyo (checkboxes) ──────────────────────
       Economico: tipoApoyo === 'Economico',
       Tiempo:    tipoApoyo === 'Tiempo',
 
-      // ── Otros campos de texto ───────────────────────────
       Tdos:           String(dd.Tdos           || ''),
       Estado:         String(dd.Estado         || ''),
       avance,
@@ -267,17 +326,10 @@ export class Historial implements OnInit, OnDestroy {
       observaciones2: String(dd.observaciones2 || ''),
       añoActual:      String(dd.añoActual      || new Date().getFullYear()),
 
-      // ── Imagen ──────────────────────────────────────────
-      // La clave 'image' es lo que el ImageModule de docxtemplater
-      // usa para inyectar la imagen en la plantilla ({%image}).
-      image:     imagenBytes,
+      image: imagenBytes,
       imageMeta: { esPlaceholder: !tieneFoto }
     };
   }
-
-  // ─────────────────────────────────────────────────────────
-  // CONSULTA CARRERAS — reconstruye capacitaciones/teoria/practica
-  // ─────────────────────────────────────────────────────────
 
   private async obtenerCapacitacionesDeCarrera(nombreCarrera: string): Promise<{
     capacitaciones: any[];
@@ -374,10 +426,6 @@ export class Historial implements OnInit, OnDestroy {
     return `${dia} de ${mes} de ${anio}`;
   }
 
-  // ─────────────────────────────────────────────────────────
-  // HISTORIAL — CARGA
-  // ─────────────────────────────────────────────────────────
-
   escucharCambios(): void {
     onValue(this.refPatrocinio,  () => this.cargarHistorial());
     onValue(this.refPlan,        () => this.cargarHistorial());
@@ -397,7 +445,6 @@ export class Historial implements OnInit, OnDestroy {
 
       const registros: HistorialRegistro[] = [];
 
-      // ── PATROCINIO ──────────────────────────────────────────
       if (snapPat.exists()) {
         snapPat.forEach((snapCedula) => {
           const cedulaKey = snapCedula.key || '';
@@ -440,7 +487,6 @@ export class Historial implements OnInit, OnDestroy {
         });
       }
 
-      // ── PLAN INDIVIDUAL ─────────────────────────────────────
       if (snapPlan.exists()) {
         snapPlan.forEach((snapCedula) => {
           const cedulaKey = snapCedula.key || '';
@@ -448,10 +494,10 @@ export class Historial implements OnInit, OnDestroy {
           snapCedula.forEach((snapDoc) => {
             const data = snapDoc.val() || {};
 
-            const nombreDocente  = data.docente    || data.nombre || data.NombresC || '';
-            const carreraDocente = data.carrera    || data.CarreraDocente || '';
-            const cedula         = data.cedula     || cedulaKey;
-            const codigo         = data.codigo     || data.Codigo || '';
+            const nombreDocente  = data.docente || data.nombre || data.NombresC || '';
+            const carreraDocente = data.carrera || data.CarreraDocente || '';
+            const cedula         = data.cedula || cedulaKey;
+            const codigo         = data.codigo || data.Codigo || '';
 
             const dataDoc = {
               Codigo:         codigo,
@@ -504,41 +550,52 @@ export class Historial implements OnInit, OnDestroy {
         });
       }
 
-      // ── SEGUIMIENTO ─────────────────────────────────────────
-      // Se guardan todos los datos crudos de Firebase.
-      // La reconstrucción completa (booleanos, porcentajes, etc.)
-      // se hace en descargarDocumento() → reconstruirDataSeguimiento().
       if (snapSeg.exists()) {
         snapSeg.forEach((snapDoc) => {
           const data     = snapDoc.val() || {};
           const datosDoc = data.datosDocumento || {};
 
           const nombreDocente =
-            data.nombre       || data.docente    ||
-            datosDoc.NombresC || datosDoc.Nombresc || '';
+            data.nombre ||
+            data.docente ||
+            datosDoc.NombresC ||
+            datosDoc.Nombresc ||
+            '';
 
-          const carrera = data.carrera  || datosDoc.Carrera1 || '';
-          const cedula  = data.cedula   || datosDoc.Cedula1  || '';
-          const codigo  = data.codigo   || datosDoc.Codigo   || '';
+          const carrera =
+            data.carrera ||
+            datosDoc.Carrera1 ||
+            datosDoc.CarreraCursando ||
+            '';
+
+          const cedula =
+            data.cedula ||
+            datosDoc.Cedula1 ||
+            '';
+
+          const codigo =
+            data.codigo ||
+            datosDoc.Codigo ||
+            '';
 
           const imagenURL =
-            datosDoc.imagenURL || datosDoc.imageURL  ||
-            data.imagenURL     || data.imageURL      || null;
+            datosDoc.imagenURL ||
+            datosDoc.imageURL ||
+            data.imagenURL ||
+            data.imageURL ||
+            null;
 
-          // Guardamos el objeto crudo de datosDocumento completo.
-          // reconstruirDataSeguimiento() se encarga de mapear todo
-          // correctamente al momento de la descarga.
           const dataDoc = {
             ...datosDoc,
-            // Aseguramos campos raíz importantes que pueden no estar en datosDoc
-            Codigo:          codigo,
-            NombresC:        nombreDocente,
-            Cedula1:         cedula,
-            Carrera1:        carrera,
-            CarreraCursando: data.CarreraCursando || datosDoc.CarreraCursando || '',
-            // Fechas ISO desde raíz (más confiables)
-            _Einicio: data.Einicio || '',
-            _Efin:    data.Efin    || '',
+            Codigo: codigo,
+            NombresC: nombreDocente,
+            Cedula1: cedula,
+            Carrera1: carrera,
+            CarreraCursando: data.CarreraCursando || datosDoc.CarreraCursando || carrera,
+            Einicio: data.Einicio || datosDoc.Einicio || '',
+            Efin: data.Efin || datosDoc.Efin || '',
+            _Einicio: data.Einicio || datosDoc.Einicio || '',
+            _Efin: data.Efin || datosDoc.Efin || '',
             imagenURL
           };
 
@@ -550,7 +607,7 @@ export class Historial implements OnInit, OnDestroy {
             docente:       nombreDocente,
             carrera,
             codigo,
-            fechaGuardado: data.fechaGuardado || data.fecha || '',
+            fechaGuardado: data.fechaGuardado || data.fecha || datosDoc.fechaActual || '',
             timestamp:     Number(data.timestamp || 0),
             datosDocumento: dataDoc,
             entregado:     Boolean(data.entregado),
@@ -576,20 +633,18 @@ export class Historial implements OnInit, OnDestroy {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
-  // FILTROS
-  // ─────────────────────────────────────────────────────────
-
   get registrosFiltrados(): HistorialRegistro[] {
     const texto = this.filtroTexto.trim().toLowerCase();
+
     return this.registros.filter((r) => {
-      const cumpleTipo  = this.filtroTipo === 'todos' || r.tipo === this.filtroTipo;
+      const cumpleTipo = this.filtroTipo === 'todos' || r.tipo === this.filtroTipo;
       const cumpleTexto =
         !texto ||
         String(r.cedula  || '').toLowerCase().includes(texto) ||
         String(r.docente || '').toLowerCase().includes(texto) ||
         String(r.carrera || '').toLowerCase().includes(texto) ||
         String(r.codigo  || '').toLowerCase().includes(texto);
+
       return cumpleTipo && cumpleTexto;
     });
   }
@@ -604,22 +659,20 @@ export class Historial implements OnInit, OnDestroy {
 
   obtenerClaseTipo(tipo: TipoDocumento): string {
     if (tipo === 'patrocinio') return 'tag-patrocinio';
-    if (tipo === 'plan')       return 'tag-plan';
+    if (tipo === 'plan') return 'tag-plan';
     return 'tag-seguimiento';
   }
 
-  // ─────────────────────────────────────────────────────────
-  // ESTADO ENTREGA
-  // ─────────────────────────────────────────────────────────
-
   async cambiarEstadoEntrega(item: HistorialRegistro, nuevoEstado: boolean): Promise<void> {
     if (item.actualizandoEstado || item.entregado === nuevoEstado) return;
+
     item.actualizandoEstado = true;
     this.cdr.detectChanges();
 
     try {
       await update(ref(dbDocente, item.rutaDb), { entregado: nuevoEstado });
       item.entregado = nuevoEstado;
+
       this.mostrarMensaje(
         nuevoEstado
           ? '✅ Documento marcado como entregado'
@@ -633,10 +686,6 @@ export class Historial implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
-
-  // ─────────────────────────────────────────────────────────
-  // DESCARGA — LÓGICA PRINCIPAL CORREGIDA
-  // ─────────────────────────────────────────────────────────
 
   async descargarDocumento(item: HistorialRegistro): Promise<void> {
     if (!item.datosDocumento) {
@@ -655,7 +704,6 @@ export class Historial implements OnInit, OnDestroy {
 
       let dataFinal = { ...item.datosDocumento };
 
-      // ── PLAN: rellenar capacitaciones/Teoria/Practica desde carreras/
       if (item.tipo === 'plan') {
         const carreraNombre = dataFinal._carreraNombre || dataFinal.CarreraDocente || item.carrera || '';
 
@@ -666,7 +714,7 @@ export class Historial implements OnInit, OnDestroy {
           dataFinal = {
             ...dataFinal,
             capacitaciones,
-            Teoria:   teoria,
+            Teoria: teoria,
             Practica: practica
           };
         }
@@ -675,23 +723,25 @@ export class Historial implements OnInit, OnDestroy {
         await this.generarPdfDesdePlantilla(plantillas[item.tipo], dataFinal, item);
       }
 
-      // ── SEGUIMIENTO: reconstruir booleanos + obtener imagen ─
       else if (item.tipo === 'seguimiento') {
         const imagenURL =
-          dataFinal.imagenURL || dataFinal.imageURL  ||
-          dataFinal.ImagenURL || dataFinal.imagen    || null;
+          dataFinal.imagenURL ||
+          dataFinal.imageURL ||
+          dataFinal.ImagenURL ||
+          dataFinal.imagen ||
+          null;
 
-        const imagenBytes = await this.obtenerImagenSeguimiento(imagenURL);
-        const tieneFoto   = Boolean(imagenURL);
+        const resultadoImagen = await this.obtenerImagenSeguimiento(imagenURL);
 
-        // Reconstruir el objeto completo con todos los booleanos,
-        // porcentajes y fechas correctamente formateados.
-        dataFinal = this.reconstruirDataSeguimiento(item, imagenBytes, tieneFoto);
+        dataFinal = this.reconstruirDataSeguimiento(
+          item,
+          resultadoImagen.bytes,
+          resultadoImagen.ok
+        );
 
         await this.generarPdfDesdePlantilla(plantillas[item.tipo], dataFinal, item);
       }
 
-      // ── PATROCINIO: pasa los datos tal cual (no necesita reconstrucción) ─
       else {
         await this.generarPdfDesdePlantilla(plantillas[item.tipo], dataFinal, item);
       }
@@ -706,54 +756,59 @@ export class Historial implements OnInit, OnDestroy {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
-  // GENERACIÓN DOCX → PDF
-  // ─────────────────────────────────────────────────────────
-
   private async generarPdfDesdePlantilla(
     rutaPlantilla: string,
     data: any,
     item: HistorialRegistro
   ): Promise<void> {
     const response = await fetch(rutaPlantilla);
+
     if (!response.ok) {
       throw new Error(`No se pudo cargar la plantilla: ${rutaPlantilla}`);
     }
 
     const content = await response.arrayBuffer();
-    const bytes   = new Uint8Array(content.slice(0, 8));
+    const bytes = new Uint8Array(content.slice(0, 8));
+
     if (bytes[0] !== 80 || bytes[1] !== 75) {
       throw new Error(`La plantilla no es un .docx válido: ${rutaPlantilla}`);
     }
 
-    const zip       = new PizZip(content);
+    const zip = new PizZip(content);
     const dataFinal = { ...data };
     const modules: any[] = [];
 
-    // Para seguimiento el ImageModule ya fue procesado antes de llamar a este método
-    // y dataFinal.image ya contiene el Uint8Array. Aquí solo registramos el módulo
-    // para que docxtemplater sepa manejar el tag {%image}.
     if (item.tipo === 'seguimiento') {
       const ImageModuleImport: any = await import('docxtemplater-image-module-free');
       const ImageModule = ImageModuleImport.default || ImageModuleImport;
 
-      const imagenBytes  = dataFinal.image as Uint8Array;
-      const esPlaceholder = dataFinal.imageMeta?.esPlaceholder === true;
+      const imagenBytes: Uint8Array = dataFinal.image instanceof Uint8Array
+        ? dataFinal.image
+        : this.imagenPlaceholder1x1();
+
+      const esPlaceholder: boolean = dataFinal.imageMeta?.esPlaceholder === true;
+
+      const bytesFinales: Uint8Array =
+        imagenBytes instanceof Uint8Array && imagenBytes.length >= 8
+          ? imagenBytes
+          : this.imagenPlaceholder1x1();
 
       const imageModule = new ImageModule({
-        centered:  true,
-        getImage:  () => imagenBytes,
-        getSize:   () => (esPlaceholder ? [1, 1] : [420, 300])
+        centered: true,
+        getImage: (_tagValue: string) => bytesFinales,
+        getSize: (_img: Uint8Array, _tagValue: string) =>
+          esPlaceholder ? [1, 1] : [480, 320]
       });
 
       modules.push(imageModule);
-      // 'image' en dataFinal debe ser un string para que docxtemplater
-      // lo pase al getImage() del módulo; el módulo ignora el valor,
-      // solo necesita que la clave exista.
       dataFinal['image'] = 'ok';
     }
 
-    const doc = new Docxtemplater(zip, { modules, paragraphLoop: true, linebreaks: true });
+    const doc = new Docxtemplater(zip, {
+      modules,
+      paragraphLoop: true,
+      linebreaks: true
+    });
 
     try {
       doc.render(dataFinal);
@@ -763,13 +818,14 @@ export class Historial implements OnInit, OnDestroy {
     }
 
     const blobDocx = doc.getZip().generate({
-      type:     'blob',
+      type: 'blob',
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     });
 
     const nombreBase = this.limpiarNombreArchivo(
       `${item.codigo || 'documento'}-${item.docente || 'docente'}`
     );
+
     await this.convertirDocxAPdf(blobDocx, nombreBase, item.tipo);
   }
 
@@ -779,58 +835,28 @@ export class Historial implements OnInit, OnDestroy {
     tipoDocumento: TipoDocumento
   ): Promise<void> {
     const formData = new FormData();
-    formData.append('file',           blobDocx, `${nombreBase}.docx`);
+    formData.append('file', blobDocx, `${nombreBase}.docx`);
     formData.append('tipo_documento', tipoDocumento);
 
     const response = await fetch(`${this.API_BASE}/convertir-pdf`, {
       method: 'POST',
-      body:   formData
+      body: formData
     });
 
     if (!response.ok) {
       let msg = 'No se pudo convertir el documento a PDF';
+
       try {
         const err = await response.json();
         msg = err.detail || msg;
       } catch {}
+
       throw new Error(msg);
     }
 
     const blobPdf = await response.blob();
     saveAs(blobPdf, `${nombreBase}.pdf`);
   }
-
-  private async obtenerImagenSeguimiento(url?: string | null): Promise<Uint8Array> {
-    if (!url) return this.imagenPlaceholder1x1();
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) return this.imagenPlaceholder1x1();
-      const buffer = await response.arrayBuffer();
-      const bytes  = new Uint8Array(buffer);
-      return bytes.length ? bytes : this.imagenPlaceholder1x1();
-    } catch {
-      return this.imagenPlaceholder1x1();
-    }
-  }
-
-  private imagenPlaceholder1x1(): Uint8Array {
-    return new Uint8Array([
-      0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,
-      0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
-      0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,
-      0x08,0x06,0x00,0x00,0x00,0x1F,0x15,0xC4,
-      0x89,0x00,0x00,0x00,0x0D,0x49,0x44,0x41,
-      0x54,0x78,0x9C,0x63,0x00,0x01,0x00,0x00,
-      0x05,0x00,0x01,0x0D,0x0A,0x2D,0xB4,0x00,
-      0x00,0x00,0x00,0x49,0x45,0x4E,0x44,0xAE,
-      0x42,0x60,0x82
-    ]);
-  }
-
-  // ─────────────────────────────────────────────────────────
-  // HELPERS UI
-  // ─────────────────────────────────────────────────────────
 
   getStepLabel(index: number): string {
     const labels = [
@@ -841,12 +867,14 @@ export class Historial implements OnInit, OnDestroy {
       'Convirtiendo a PDF',
       'Descargando documento'
     ];
+
     return labels[index] ?? '';
   }
 
   private mostrarMensaje(texto: string): void {
     this.mensaje = texto;
     this.cdr.detectChanges();
+
     setTimeout(() => {
       this.mensaje = '';
       this.cdr.detectChanges();
