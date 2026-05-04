@@ -697,9 +697,9 @@ export class Historial implements OnInit, OnDestroy {
 
     try {
       const plantillas: Record<TipoDocumento, string> = {
-        patrocinio:  '/assets/docs/patrocinio.docx',
-        plan:        '/assets/docs/individual.docx',
-        seguimiento: '/assets/docs/seguimiento.docx'
+        patrocinio:  'assets/docs/patrocinio.docx',
+        plan:        'assets/docs/individual.docx',
+        seguimiento: 'assets/docs/seguimiento.docx'
       };
 
       let dataFinal = { ...item.datosDocumento };
