@@ -89,7 +89,7 @@
     @if (vistaActiva === 'global' && !cargando) {
       <div class="view-anim">
 
-        <!-- ── KPI CARDS (nuevo diseño: 4 tarjetas individuales) ── -->
+        <!-- ── KPI CARDS ── -->
         <div class="kpi-row">
 
           <!-- Total -->
@@ -133,82 +133,15 @@
             </div>
           </div>
 
-          <!-- Por tipo -->
-          <div class="kpi-card">
-            <div class="kpi-card-header">
-              <span class="kpi-label">Por tipo</span>
-            </div>
-
-            @if (contextoDashboard === 'documentos') {
-              <div class="kpi-tipo-item">
-                <div class="kpi-tipo-header">
-                  <span class="kpi-tipo-label">Patrocinios</span>
-                  <span class="kpi-tipo-val" style="color: var(--blue)">{{ totalPatrocinios }}</span>
-                </div>
-                <div class="kpi-bar">
-                  <div class="kpi-bar-fill" style="background: var(--blue)"
-                    [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
-                </div>
-                <div class="kpi-tipo-sub">
-                  {{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
-                </div>
-              </div>
-              <div class="kpi-tipo-item" style="margin-top: 10px">
-                <div class="kpi-tipo-header">
-                  <span class="kpi-tipo-label">Plan Individual</span>
-                  <span class="kpi-tipo-val" style="color: var(--purple)">{{ totalPlanes }}</span>
-                </div>
-                <div class="kpi-bar">
-                  <div class="kpi-bar-fill" style="background: var(--purple)"
-                    [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
-                </div>
-                <div class="kpi-tipo-sub">
-                  {{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
-                </div>
-              </div>
-            }
-
-            @if (contextoDashboard === 'seguimiento') {
-              <div class="kpi-tipo-item">
-                <div class="kpi-tipo-header">
-                  <span class="kpi-tipo-label">Seguimientos</span>
-                  <span class="kpi-tipo-val" style="color: var(--teal)">{{ totalSeguimientos }}</span>
-                </div>
-                <div class="kpi-bar">
-                  <div class="kpi-bar-fill" style="background: var(--teal); width: 100%"></div>
-                </div>
-                <div class="kpi-tipo-sub">100% del total</div>
-              </div>
-            }
-
-            @if (contextoDashboard === 'sinFormacion') {
-              <div class="kpi-tipo-item">
-                <div class="kpi-tipo-header">
-                  <span class="kpi-tipo-label">Sin formación</span>
-                  <span class="kpi-tipo-val" style="color: var(--amber)">{{ totalSinFormacion }}</span>
-                </div>
-                <div class="kpi-bar">
-                  <div class="kpi-bar-fill" style="background: var(--amber); width: 100%"></div>
-                </div>
-                <div class="kpi-tipo-sub">100% del total</div>
-              </div>
-            }
-          </div>
+          <!-- ── NUEVO KPI: Versus Formación ── -->
+     
 
         </div>
 
-        <!-- ── CHARTS ── -->
+        <!-- ── CHARTS (donut + versus grande) ── -->
         <div class="charts-row">
 
-          <!-- Donut — CORREGIDO: sin hueco gris -->
-          <!--
-            FÓRMULA CORRECTA DEL DONUT:
-            Circunferencia = 2 × π × r = 2 × π × 70 ≈ 439.82
-            Arco verde  → dasharray = (pctEnt/100 × 439.82)  dashoffset = 0
-            Arco amarillo → dasharray = (pctPend/100 × 439.82)
-                            dashoffset = -(pctEnt/100 × 439.82)
-            Así el amarillo empieza exactamente donde termina el verde, sin huecos.
-          -->
+          <!-- Donut -->
           <div class="chart-card">
             <div class="card-header">
               <h3>Entregados vs Pendientes</h3>
@@ -218,36 +151,21 @@
                 @if (contextoDashboard === 'sinFormacion') { Sin formación }
               </span>
             </div>
-
             <div class="donut-main">
               <svg viewBox="0 0 200 200" class="donut-svg">
-                <!-- pista gris de fondo -->
                 <circle cx="100" cy="100" r="70"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.06)"
-                  stroke-width="18"
+                  fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="18"
                   transform="rotate(-90 100 100)" />
-
-                <!-- arco VERDE — entregados, offset = 0 (empieza en la cima) -->
                 <circle cx="100" cy="100" r="70"
-                  fill="none"
-                  stroke="#2ecc9a"
-                  stroke-width="18"
-                  stroke-linecap="round"
+                  fill="none" stroke="#2ecc9a" stroke-width="18" stroke-linecap="round"
                   [attr.stroke-dasharray]="(porcentajeEntregados / 100 * 439.82).toFixed(2) + ' 439.82'"
                   stroke-dashoffset="0"
                   transform="rotate(-90 100 100)" />
-
-                <!-- arco AMARILLO — pendientes, offset = -(arcVerde) para encadenar sin hueco -->
                 <circle cx="100" cy="100" r="70"
-                  fill="none"
-                  stroke="#fbbf24"
-                  stroke-width="18"
-                  stroke-linecap="round"
+                  fill="none" stroke="#fbbf24" stroke-width="18" stroke-linecap="round"
                   [attr.stroke-dasharray]="(porcentajePendientes / 100 * 439.82).toFixed(2) + ' 439.82'"
                   [attr.stroke-dashoffset]="-(porcentajeEntregados / 100 * 439.82)"
                   transform="rotate(-90 100 100)" />
-
                 <text x="100" y="94" text-anchor="middle" class="donut-center-num">
                   {{ porcentajeEntregados }}%
                 </text>
@@ -255,7 +173,6 @@
                   entregado
                 </text>
               </svg>
-
               <div class="donut-legend">
                 <div class="legend-row">
                   <span class="legend-color green-bg"></span>
@@ -267,7 +184,6 @@
                 <div class="progress-bar-wrap">
                   <div class="progress-fill green-fill" [style.width.%]="porcentajeEntregados"></div>
                 </div>
-
                 <div class="legend-row mt12">
                   <span class="legend-color amber-bg"></span>
                   <div class="legend-text">
@@ -282,20 +198,193 @@
             </div>
           </div>
 
-          <!-- Segundo chart: VERSUS para seguimiento, tipo-bars para el resto -->
-          @if (contextoDashboard === 'seguimiento') {
+          <!-- ── VERSUS GRANDE: Con formación vs Sin formación ── -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Versus — Con formación vs Sin formación</h3>
+              <span class="card-badge versus-badge">Versus</span>
+            </div>
 
-            <!-- ── GRÁFICO VERSUS DOCENTES ── -->
+            <!-- Barra split global -->
+            <div class="versus-global-bar">
+              <div class="vgb-seg vgb-con"
+                [style.width.%]="pctConFormacion"
+                [title]="'Con formación: ' + pctConFormacion + '%'">
+                @if (pctConFormacion > 10) { {{ pctConFormacion }}% }
+              </div>
+              <div class="vgb-seg vgb-sin"
+                [style.width.%]="pctSinFormacion"
+                [title]="'Sin formación: ' + pctSinFormacion + '%'">
+                @if (pctSinFormacion > 10) { {{ pctSinFormacion }}% }
+              </div>
+            </div>
+
+            <!-- Leyenda global -->
+            <div class="versus-global-legend">
+              <div class="vgl-item">
+                <div class="vgl-dot vgl-dot-con"></div>
+                <span>Con formación</span>
+                <strong>{{ totalConFormacion }}</strong>
+                <span class="vgl-pct">({{ pctConFormacion }}%)</span>
+              </div>
+              <div class="vgl-item">
+                <div class="vgl-dot vgl-dot-sin"></div>
+                <span>Sin formación</span>
+                <strong>{{ totalSinFormacion }}</strong>
+                <span class="vgl-pct">({{ pctSinFormacion }}%)</span>
+              </div>
+            </div>
+
+            <!-- Filas versus por tipo -->
+            <div class="versus-tipo-title">Desglose por tipo de registro</div>
+            <div class="versus-tipo-rows">
+
+              @if (contextoDashboard === 'documentos') {
+                <div class="vt-row">
+                  <span class="vt-label" style="color: var(--blue)">Patrocinios</span>
+                  <div class="vt-track">
+                    <div class="vt-fill-con" [style.width.%]="totalDocumentos ? (totalPatrociniosEntregados / totalPatrocinios * 100) : 0"></div>
+                    <div class="vt-fill-sin" [style.width.%]="totalDocumentos ? ((totalPatrocinios - totalPatrociniosEntregados) / totalPatrocinios * 100) : 0"></div>
+                  </div>
+                  <div class="vt-nums">
+                    <span class="vt-con">{{ totalPatrociniosEntregados }}</span>
+                    <span class="vt-sep">/</span>
+                    <span class="vt-sin">{{ totalPatrocinios - totalPatrociniosEntregados }}</span>
+                  </div>
+                </div>
+                <div class="vt-row">
+                  <span class="vt-label" style="color: var(--purple)">Plan Individual</span>
+                  <div class="vt-track">
+                    <div class="vt-fill-con" [style.width.%]="totalDocumentos ? (totalPlanesEntregados / totalPlanes * 100) : 0"></div>
+                    <div class="vt-fill-sin" [style.width.%]="totalDocumentos ? ((totalPlanes - totalPlanesEntregados) / totalPlanes * 100) : 0"></div>
+                  </div>
+                  <div class="vt-nums">
+                    <span class="vt-con">{{ totalPlanesEntregados }}</span>
+                    <span class="vt-sep">/</span>
+                    <span class="vt-sin">{{ totalPlanes - totalPlanesEntregados }}</span>
+                  </div>
+                </div>
+              }
+
+              @if (contextoDashboard === 'seguimiento') {
+                <div class="vt-row">
+                  <span class="vt-label" style="color: var(--teal)">Seguimientos</span>
+                  <div class="vt-track">
+                    <div class="vt-fill-con" [style.width.%]="porcentajeEntregados"></div>
+                    <div class="vt-fill-sin" [style.width.%]="porcentajePendientes"></div>
+                  </div>
+                  <div class="vt-nums">
+                    <span class="vt-con">{{ totalEntregados }}</span>
+                    <span class="vt-sep">/</span>
+                    <span class="vt-sin">{{ totalPendientes }}</span>
+                  </div>
+                </div>
+              }
+
+              @if (contextoDashboard === 'sinFormacion') {
+                <div class="vt-row">
+                  <span class="vt-label" style="color: var(--amber)">Sin formación</span>
+                  <div class="vt-track">
+                    <div class="vt-fill-con" [style.width.%]="porcentajeEntregados"></div>
+                    <div class="vt-fill-sin" [style.width.%]="porcentajePendientes"></div>
+                  </div>
+                  <div class="vt-nums">
+                    <span class="vt-con">{{ totalEntregados }}</span>
+                    <span class="vt-sep">/</span>
+                    <span class="vt-sin">{{ totalPendientes }}</span>
+                  </div>
+                </div>
+              }
+
+            </div>
+
+            <!-- Leyenda filas -->
+            <div class="vt-legend">
+              <span class="vt-leg-item"><span class="vt-dot-con"></span>Entregados / Con formación</span>
+              <span class="vt-leg-item"><span class="vt-dot-sin"></span>Pendientes / Sin formación</span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ── SEGUNDA FILA: Distribución por tipo + Versus docentes ── -->
+        <div class="charts-row-secondary">
+
+          <!-- Distribución por tipo -->
+          <div class="chart-card">
+            <div class="card-header">
+              <h3>Distribución por tipo</h3>
+              <span class="card-badge">Resumen</span>
+            </div>
+            <div class="tipo-bars">
+
+              @if (contextoDashboard === 'documentos') {
+                <div class="tipo-row">
+                  <div class="tipo-info">
+                    <span class="tipo-icon blue-icon">P</span>
+                    <div>
+                      <strong>Patrocinios</strong>
+                      <small>{{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                    </div>
+                  </div>
+                  <div class="tipo-track">
+                    <div class="tipo-prog blue-prog" [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
+                  </div>
+                  <span class="tipo-count">{{ totalPatrocinios }}</span>
+                </div>
+                <div class="tipo-row">
+                  <div class="tipo-info">
+                    <span class="tipo-icon purple-icon">I</span>
+                    <div>
+                      <strong>Plan Individual</strong>
+                      <small>{{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                    </div>
+                  </div>
+                  <div class="tipo-track">
+                    <div class="tipo-prog purple-prog" [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
+                  </div>
+                  <span class="tipo-count">{{ totalPlanes }}</span>
+                </div>
+              }
+
+              @if (contextoDashboard === 'seguimiento') {
+                <div class="tipo-row">
+                  <div class="tipo-info">
+                    <span class="tipo-icon teal-icon">S</span>
+                    <div><strong>Seguimientos</strong><small>100% del total</small></div>
+                  </div>
+                  <div class="tipo-track">
+                    <div class="tipo-prog teal-prog" style="width: 100%"></div>
+                  </div>
+                  <span class="tipo-count">{{ totalSeguimientos }}</span>
+                </div>
+              }
+
+              @if (contextoDashboard === 'sinFormacion') {
+                <div class="tipo-row">
+                  <div class="tipo-info">
+                    <span class="tipo-icon amber-icon">SF</span>
+                    <div><strong>Sin formación</strong><small>100% del total</small></div>
+                  </div>
+                  <div class="tipo-track">
+                    <div class="tipo-prog amber-prog" style="width: 100%"></div>
+                  </div>
+                  <span class="tipo-count">{{ totalSinFormacion }}</span>
+                </div>
+              }
+
+            </div>
+          </div>
+
+          <!-- Versus docentes (seguimiento) o resumen por carrera (otros) -->
+          @if (contextoDashboard === 'seguimiento') {
             <div class="chart-card">
               <div class="card-header">
                 <h3>Distribución de seguimientos por docente</h3>
                 <span class="card-badge teal-badge">Versus</span>
               </div>
-              <p class="chart-sub">
-                Cada docente representa su % del total ({{ totalDocumentos }} seguimientos)
-              </p>
-
-              <!-- Leyenda de colores -->
+              <p class="chart-sub">Cada docente representa su % del total ({{ totalDocumentos }} seguimientos)</p>
               <div class="versus-legend">
                 @for (d of docentesVersus; track d.nombre; let i = $index) {
                   <div class="vleg-item">
@@ -304,37 +393,25 @@
                   </div>
                 }
               </div>
-
-              <!-- Barra apilada: cada segmento = un docente -->
               <div class="versus-stacked">
                 @for (d of docentesVersus; track d.nombre; let i = $index) {
                   <div class="versus-stacked-seg"
                     [style.width.%]="d.pctDelTotal"
                     [style.background]="paleta[i % paleta.length]"
                     [title]="d.nombre + ': ' + d.pctDelTotal + '% (' + d.total + ' seguimientos)'">
-                    @if (d.pctDelTotal > 6) {
-                      <span class="versus-stacked-lbl">{{ d.pctDelTotal | number:'1.0-0' }}%</span>
-                    }
+                    @if (d.pctDelTotal > 6) { <span class="versus-stacked-lbl">{{ d.pctDelTotal | number:'1.0-0' }}%</span> }
                   </div>
                 }
               </div>
-
-              <!-- Filas individuales: entregados vs pendientes de cada docente -->
               <div class="versus-rows">
                 @for (d of docentesVersus; track d.nombre; let i = $index) {
                   <div class="versus-bar-row">
-                    <div class="versus-name"
-                      [style.color]="paleta[i % paleta.length]"
-                      [title]="d.nombre + ' · ' + d.carrera">
+                    <div class="versus-name" [style.color]="paleta[i % paleta.length]" [title]="d.nombre + ' · ' + d.carrera">
                       {{ d.nombre }}
                     </div>
                     <div class="versus-track">
-                      <div class="versus-seg-fill"
-                        [style.width.%]="d.pctEntregado"
-                        [style.background]="paleta[i % paleta.length]">
-                        @if (d.pctEntregado > 20) {
-                          <span class="versus-seg-label">{{ d.pctEntregado }}%</span>
-                        }
+                      <div class="versus-seg-fill" [style.width.%]="d.pctEntregado" [style.background]="paleta[i % paleta.length]">
+                        @if (d.pctEntregado > 20) { <span class="versus-seg-label">{{ d.pctEntregado }}%</span> }
                       </div>
                       <div class="versus-seg-rest" [style.width.%]="100 - d.pctEntregado"></div>
                     </div>
@@ -347,69 +424,36 @@
                 }
               </div>
             </div>
-
           } @else {
-
-            <!-- ── DISTRIBUCIÓN POR TIPO (documentos / sinFormacion) ── -->
+            <!-- Top carreras resumido en vista global -->
             <div class="chart-card">
               <div class="card-header">
-                <h3>Distribución por tipo</h3>
+                <h3>Top carreras por entrega</h3>
                 <span class="card-badge">Resumen</span>
               </div>
-
-              <div class="tipo-bars">
-
-                @if (contextoDashboard === 'documentos') {
-                  <div class="tipo-row">
-                    <div class="tipo-info">
-                      <span class="tipo-icon blue-icon">P</span>
-                      <div>
-                        <strong>Patrocinios</strong>
-                        <small>{{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+              <div class="top-carreras-list">
+                @for (item of resumenCarrerasFiltrado.slice(0, 5); track item.carrera; let i = $index) {
+                  <div class="tc-row">
+                    <div class="tc-rank">#{{ i + 1 }}</div>
+                    <div class="tc-name">{{ item.carrera }}</div>
+                    <div class="tc-track">
+                      <div class="tc-fill"
+                        [style.width.%]="item.porcentajeEntregados"
+                        [class.bar-green]="item.porcentajeEntregados >= 70"
+                        [class.bar-amber]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
+                        [class.bar-red]="item.porcentajeEntregados < 40">
                       </div>
                     </div>
-                    <div class="tipo-track">
-                      <div class="tipo-prog blue-prog"
-                        [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
+                    <div class="tc-pct"
+                      [class.color-green]="item.porcentajeEntregados >= 70"
+                      [class.color-amber]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
+                      [class.color-red]="item.porcentajeEntregados < 40">
+                      {{ item.porcentajeEntregados }}%
                     </div>
-                    <span class="tipo-count">{{ totalPatrocinios }}</span>
-                  </div>
-
-                  <div class="tipo-row">
-                    <div class="tipo-info">
-                      <span class="tipo-icon purple-icon">I</span>
-                      <div>
-                        <strong>Plan Individual</strong>
-                        <small>{{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
-                      </div>
-                    </div>
-                    <div class="tipo-track">
-                      <div class="tipo-prog purple-prog"
-                        [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
-                    </div>
-                    <span class="tipo-count">{{ totalPlanes }}</span>
                   </div>
                 }
-
-                @if (contextoDashboard === 'sinFormacion') {
-                  <div class="tipo-row">
-                    <div class="tipo-info">
-                      <span class="tipo-icon amber-icon">SF</span>
-                      <div>
-                        <strong>Sin formación</strong>
-                        <small>100% del total</small>
-                      </div>
-                    </div>
-                    <div class="tipo-track">
-                      <div class="tipo-prog amber-prog" style="width: 100%"></div>
-                    </div>
-                    <span class="tipo-count">{{ totalSinFormacion }}</span>
-                  </div>
-                }
-
               </div>
             </div>
-
           }
 
         </div>
@@ -432,7 +476,6 @@
               <button class="btn-sort" [class.active]="sortMode === 'name'"  (click)="setSortMode('name')">Nombre</button>
             </div>
           </div>
-
           <div class="control-group">
             <label>Filtrar</label>
             <div class="btn-group">
@@ -451,9 +494,7 @@
                 [class.alto]="item.porcentajeEntregados >= 70"
                 [class.medio]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
                 [class.bajo]="item.porcentajeEntregados < 40">
-
                 <div class="cc-rank">#{{ i + 1 }}</div>
-
                 <div class="cc-header">
                   <div class="cc-avatar">{{ item.carrera.charAt(0) }}</div>
                   <div class="cc-title">
@@ -465,8 +506,6 @@
                     <span class="pct-sym">%</span>
                   </div>
                 </div>
-
-                <!-- Stats individuales claros -->
                 <div class="cc-stats">
                   <div class="cc-stat">
                     <span class="cc-stat-n green">{{ item.entregados }}</span>
@@ -481,7 +520,17 @@
                     <span class="cc-stat-l">Total</span>
                   </div>
                 </div>
-
+                <!-- Mini versus con/sin formación por carrera -->
+                <div class="cc-versus-mini">
+                  <div class="ccv-bar">
+                    <div class="ccv-seg-con" [style.width.%]="getCarreraConFormacionPct(item.carrera)"></div>
+                    <div class="ccv-seg-sin" [style.width.%]="getCarreraSinFormacionPct(item.carrera)"></div>
+                  </div>
+                  <div class="ccv-labels">
+                    <span class="ccv-con">Con formación: {{ getCarreraConFormacion(item.carrera) }}</span>
+                    <span class="ccv-sin">Sin formación: {{ getCarreraSinFormacion(item.carrera) }}</span>
+                  </div>
+                </div>
                 <div class="cc-bar-wrap">
                   <div class="cc-bar-fill"
                     [style.width.%]="item.porcentajeEntregados"
@@ -490,7 +539,6 @@
                     [class.bar-red]="item.porcentajeEntregados < 40">
                   </div>
                 </div>
-
               </div>
             }
           </div>
@@ -522,7 +570,6 @@
               }
             </select>
           </div>
-
           <div class="control-group">
             <label>Tipo de registro</label>
             <div class="btn-group">
@@ -542,7 +589,6 @@
         </div>
 
         <div class="filter-results">
-
           <div class="fr-summary">
             <div class="fr-stat">
               <span class="fr-num">{{ registrosFiltrados.length }}</span>
@@ -561,6 +607,18 @@
                 {{ registrosFiltrados.length ? (contarEntregados(registrosFiltrados) / registrosFiltrados.length * 100 | number:'1.0-0') : 0 }}%
               </span>
               <span class="fr-lbl">Completado</span>
+            </div>
+            <!-- Versus con/sin formación en filtro -->
+            <div class="fr-stat fr-stat-versus">
+              <span class="fr-lbl" style="margin-bottom:6px">Con vs Sin formación</span>
+              <div class="fr-versus-bar">
+                <div class="frv-con" [style.width.%]="pctConFormacion"></div>
+                <div class="frv-sin" [style.width.%]="pctSinFormacion"></div>
+              </div>
+              <div class="fr-versus-labels">
+                <span class="frv-lbl-con">{{ pctConFormacion }}%</span>
+                <span class="frv-lbl-sin">{{ pctSinFormacion }}%</span>
+              </div>
             </div>
           </div>
 
@@ -584,9 +642,7 @@
 
           @if (!carreraSeleccionada) {
             <div class="matrix-wrap">
-              <div class="matrix-title">
-                Mapa de calor — entrega por carrera × tipo
-              </div>
+              <div class="matrix-title">Mapa de calor — entrega por carrera × tipo</div>
               <div class="matrix-grid">
                 <div class="matrix-head-row">
                   <div class="mh-empty"></div>
@@ -594,12 +650,8 @@
                     <div class="mh-col">Patrocinios</div>
                     <div class="mh-col">Plan Ind.</div>
                   }
-                  @if (contextoDashboard === 'seguimiento') {
-                    <div class="mh-col">Seguimientos</div>
-                  }
-                  @if (contextoDashboard === 'sinFormacion') {
-                    <div class="mh-col">Sin formación</div>
-                  }
+                  @if (contextoDashboard === 'seguimiento') { <div class="mh-col">Seguimientos</div> }
+                  @if (contextoDashboard === 'sinFormacion') { <div class="mh-col">Sin formación</div> }
                 </div>
                 @for (item of resumenCarreras; track item.carrera) {
                   <div class="matrix-data-row">
@@ -614,7 +666,6 @@
               </div>
             </div>
           }
-
         </div>
       </div>
     }
