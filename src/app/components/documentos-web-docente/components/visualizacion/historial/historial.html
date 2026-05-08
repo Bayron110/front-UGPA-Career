@@ -9,12 +9,13 @@
     <div class="card-header">
       <div class="header-left">
         <div class="header-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14,2 14,8 20,8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10,9 9,9 8,9"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10,9 9,9 8,9" />
           </svg>
         </div>
         <div class="header-text">
@@ -31,15 +32,13 @@
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="search-wrap">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.5">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input
-          type="text"
-          [(ngModel)]="filtroTexto"
-          placeholder="Cédula, nombres, carrera o código…"
-          class="search-input"
-        />
+        <input type="text" [(ngModel)]="filtroTexto" placeholder="Cédula, nombres, carrera o código…"
+          class="search-input" />
       </div>
 
       <div class="filtros">
@@ -47,7 +46,8 @@
           <span class="chip-dot dot-todos"></span>
           Todos <span class="chip-badge">{{ registros.length }}</span>
         </button>
-        <button type="button" class="chip" [class.activo]="filtroTipo === 'patrocinio'" (click)="cambiarFiltro('patrocinio')">
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'patrocinio'"
+          (click)="cambiarFiltro('patrocinio')">
           <span class="chip-dot dot-patrocinio"></span>
           Patrocinio <span class="chip-badge">{{ contarPorTipo('patrocinio') }}</span>
         </button>
@@ -55,9 +55,15 @@
           <span class="chip-dot dot-plan"></span>
           Plan Individual <span class="chip-badge">{{ contarPorTipo('plan') }}</span>
         </button>
-        <button type="button" class="chip" [class.activo]="filtroTipo === 'seguimiento'" (click)="cambiarFiltro('seguimiento')">
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'seguimiento'"
+          (click)="cambiarFiltro('seguimiento')">
           <span class="chip-dot dot-seguimiento"></span>
           Seguimiento <span class="chip-badge">{{ contarPorTipo('seguimiento') }}</span>
+        </button>
+        <button type="button" class="chip" [class.activo]="filtroTipo === 'sinFormación'"
+          (click)="cambiarFiltro('sinFormación')">
+          <span class="chip-dot dot-sin-formacion"></span>
+          Sin seguimiento <span class="chip-badge">{{ contarPorTipo('sinFormación') }}</span>
         </button>
       </div>
     </div>
@@ -79,15 +85,63 @@
 
     <!-- Empty -->
     <div class="estado-wrap estado-vacio" *ngIf="!cargando && registrosFiltrados.length === 0">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"
+        stroke-linecap="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
       <span class="estado-texto">No se encontraron registros</span>
       <span class="estado-sub">Intenta con otro filtro o término de búsqueda</span>
     </div>
+    <!-- Table sin Formación -->
+    <div class="tabla-wrap" *ngIf="!cargando && filtroTipo === 'sinFormación' && registrosFiltrados.length > 0">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Nombre</th>
+            <th>Cédula</th>
+            <th>Fecha de registro</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+  *ngFor="let item of registrosFiltrados; let i = index"
+  class="sin-formacion-row">
+
+            <td>
+              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">
+                {{ item.tipoLabel }}
+              </span>
+            </td>
+
+            <td>{{ item.docente || '—' }}</td>
+            <td>{{ item.cedula || '—' }}</td>
+            <td>{{ item.fechaGuardado || '—' }}</td>
+            <td>
+              <button type="button" class="btn-observacion"
+                (click)="abrirModalObservacion(item.datosDocumento?.observacion)">
+
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
+                  stroke-linecap="round" stroke-linejoin="round">
+
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+
+                Ver observación
+              </button>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Table -->
-    <div class="tabla-wrap" *ngIf="!cargando && registrosFiltrados.length > 0">
+    <div class="tabla-wrap" *ngIf="!cargando && filtroTipo !== 'sinFormación' && registrosFiltrados.length > 0">
       <table class="tabla">
         <thead>
           <tr>
@@ -101,10 +155,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of registrosFiltrados; let i = index"
-              [class.fila-entregada]="item.entregado"
-              [class.fila-pendiente]="!item.entregado"
-              [style.animation-delay]="(i * 0.04) + 's'">
+          <tr *ngFor="let item of registrosFiltrados; let i = index" [class.fila-entregada]="item.entregado"
+            [class.fila-pendiente]="!item.entregado" [style.animation-delay]="(i * 0.04) + 's'">
 
             <td>
               <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">
@@ -124,26 +176,21 @@
                   {{ item.entregado ? 'Entregado' : 'Pendiente' }}
                 </span>
                 <div class="toggle-group">
-                  <button
-                    type="button"
-                    class="toggle-btn toggle-ok"
-                    [class.on]="item.entregado"
-                    [disabled]="item.actualizandoEstado"
-                    (click)="cambiarEstadoEntrega(item, true)"
+                  <button type="button" class="toggle-btn toggle-ok" [class.on]="item.entregado"
+                    [disabled]="item.actualizandoEstado" (click)="cambiarEstadoEntrega(item, true)"
                     title="Marcar como entregado">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </button>
-                  <button
-                    type="button"
-                    class="toggle-btn toggle-no"
-                    [class.on]="!item.entregado"
-                    [disabled]="item.actualizandoEstado"
-                    (click)="cambiarEstadoEntrega(item, false)"
+                  <button type="button" class="toggle-btn toggle-no" [class.on]="!item.entregado"
+                    [disabled]="item.actualizandoEstado" (click)="cambiarEstadoEntrega(item, false)"
                     title="Marcar como pendiente">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                      stroke-linecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                   </button>
                 </div>
@@ -152,10 +199,11 @@
 
             <td>
               <button type="button" class="btn-dl" (click)="descargarDocumento(item)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 PDF
               </button>
@@ -195,9 +243,10 @@
           </div>
         </div>
         <div class="gen-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round">
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
         </div>
       </div>
@@ -215,11 +264,8 @@
 
       <!-- Pasos -->
       <div class="gen-steps">
-        <div
-          *ngFor="let step of GEN_STEPS; let i = index"
-          class="gen-step-row"
-          [class.done]="stepStates[step.id] === 'done'"
-          [class.active]="stepStates[step.id] === 'active'">
+        <div *ngFor="let step of GEN_STEPS; let i = index" class="gen-step-row"
+          [class.done]="stepStates[step.id] === 'done'" [class.active]="stepStates[step.id] === 'active'">
 
           <div class="gen-step-icon">
             <ng-container *ngIf="stepStates[step.id] === 'idle'">{{ i + 1 }}</ng-container>
@@ -227,8 +273,9 @@
               <div class="gen-spinner"></div>
             </ng-container>
             <ng-container *ngIf="stepStates[step.id] === 'done'">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-                <polyline points="20 6 9 17 4 12"/>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                stroke-linecap="round">
+                <polyline points="20 6 9 17 4 12" />
               </svg>
             </ng-container>
           </div>
@@ -241,6 +288,56 @@
 
     <div class="gen-footer">
       <p class="gen-footer-txt">La conversión puede tardar hasta 30 segundos en servidores gratuitos</p>
+    </div>
+
+  </div>
+</div>
+<!-- ═══════════════════════════════════════
+     MODAL OBSERVACIÓN
+═══════════════════════════════════════ -->
+<div
+  class="modal-observacion-overlay"
+  *ngIf="modalObservacionAbierto"
+  (click)="cerrarModalObservacion()">
+
+  <div
+    class="modal-observacion"
+    (click)="$event.stopPropagation()">
+
+    <div class="modal-observacion-header">
+
+      <div class="modal-observacion-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+
+      <div>
+        <h3>Observación completa</h3>
+        <p>Detalle registrado por el docente</p>
+      </div>
+
+    </div>
+
+    <div class="modal-observacion-body">
+      {{ observacionSeleccionada }}
+    </div>
+
+    <div class="modal-observacion-footer">
+      <button
+        type="button"
+        class="btn-cerrar-modal"
+        (click)="cerrarModalObservacion()">
+
+        Cerrar
+      </button>
     </div>
 
   </div>

@@ -7,7 +7,8 @@ import { dbDocente } from '../../../../../firebase/firebase-docente';
 /* ─── Interfaces ─────────────────────────────────────────── */
 
 interface RegistroBase {
-  tipo: 'patrocinio' | 'plan' | 'seguimiento';
+  tipo: 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
+
   carrera: string;
   entregado: boolean;
 }
@@ -42,46 +43,49 @@ interface GrupoTipo {
 export class Dasboard implements OnInit, OnDestroy {
 
   /* ── Estado general ── */
-  cargando     = true;
+  cargando = true;
   vistaActiva: 'global' | 'carrera' | 'tipo' = 'global';
   ultimaActualizacion = '—';
 
-  tituloVista   = 'Vista Global';
+  tituloVista = 'Vista Global';
   subtituloVista = 'Resumen general de documentos entregados y pendientes';
 
   /* ── KPIs globales ── */
-  totalDocumentos      = 0;
-  totalEntregados      = 0;
-  totalPendientes      = 0;
+  totalDocumentos = 0;
+  totalEntregados = 0;
+  totalPendientes = 0;
   porcentajeEntregados = 0;
   porcentajePendientes = 0;
 
   /* ── Por tipo ── */
-  totalPatrocinios  = 0;
-  totalPlanes       = 0;
+  totalPatrocinios = 0;
+  totalPlanes = 0;
   totalSeguimientos = 0;
+  totalSinFormacion = 0;
+  contextoDashboard: 'documentos' | 'seguimiento' | 'sinFormacion' = 'documentos';
 
   /* ── Vista Carrera ── */
-  resumenCarreras:        CarreraResumen[] = [];
+  resumenCarreras: CarreraResumen[] = [];
   resumenCarrerasFiltrado: CarreraResumen[] = [];
-  sortMode   = 'pct';
+  sortMode = 'pct';
   filterMode = 'all';
 
   /* ── Vista Carrera + Tipo ── */
   carreraSeleccionada = '';
-  tipoSeleccionado    = 'todos';
+  tipoSeleccionado = 'todos';
   registrosFiltrados: RegistroBase[] = [];
   gruposPorTipo: GrupoTipo[] = [];
 
-  private matrizData    = new Map<string, Map<string, { ent: number; total: number }>>();
+  private matrizData = new Map<string, Map<string, { ent: number; total: number }>>();
   private todosRegistros: RegistroBase[] = [];
 
-  private refPatrocinio  = ref(dbDocente, 'patrociniosGenerados');
-  private refPlan        = ref(dbDocente, 'planesGenerados');
+  private refPatrocinio = ref(dbDocente, 'patrociniosGenerados');
+  private refPlan = ref(dbDocente, 'planesGenerados');
   private refSeguimiento = ref(dbDocente, 'seguimientoGenerados');
+  private refSinFormacion = ref(dbDocente, 'docentesSinFormacion');
 
-  constructor(private cdr: ChangeDetectorRef) {}
-  tiposHeat: string[] = ['patrocinio', 'plan', 'seguimiento'];
+  constructor(private cdr: ChangeDetectorRef) { }
+  tiposHeat: string[] = ['patrocinio', 'plan'];
 
   ngOnInit(): void {
     this.cargarDashboard();
@@ -92,6 +96,7 @@ export class Dasboard implements OnInit, OnDestroy {
     off(this.refPatrocinio);
     off(this.refPlan);
     off(this.refSeguimiento);
+    off(this.refSinFormacion);
   }
 
   /* ══ Navegación ══ */
@@ -100,21 +105,53 @@ export class Dasboard implements OnInit, OnDestroy {
     this.vistaActiva = vista;
 
     const titulos: Record<string, string> = {
-      global:  'Vista Global',
+      global: 'Vista Global',
       carrera: 'Entregados por Carrera',
-      tipo:    'Análisis Carrera × Tipo'
+      tipo: 'Análisis Carrera × Tipo'
     };
     const subtitulos: Record<string, string> = {
-      global:  'Resumen general de documentos entregados y pendientes',
+      global: 'Resumen general de documentos entregados y pendientes',
       carrera: 'Comparativo de entrega agrupado por carrera académica',
-      tipo:    'Filtra y cruza datos por carrera y tipo de documento'
+      tipo: 'Filtra y cruza datos por carrera y tipo de documento'
     };
 
-    this.tituloVista    = titulos[vista];
+    this.tituloVista = titulos[vista];
     this.subtituloVista = subtitulos[vista];
     this.cdr.detectChanges();
   }
+  cambiarContextoDashboard(contexto: 'documentos' | 'seguimiento' | 'sinFormacion'): void {
 
+    this.contextoDashboard = contexto;
+
+    if (contexto === 'documentos') {
+      this.tiposHeat = ['patrocinio', 'plan'];
+      this.tipoSeleccionado = 'todos';
+
+      this.tituloVista = 'Documentos por carrera';
+      this.subtituloVista =
+        'Patrocinio y plan individual agrupados por carreras configuradas por el administrador';
+    }
+
+    if (contexto === 'seguimiento') {
+      this.tiposHeat = ['seguimiento'];
+      this.tipoSeleccionado = 'seguimiento';
+
+      this.tituloVista = 'Seguimiento docente';
+      this.subtituloVista =
+        'Seguimientos agrupados por la carrera ingresada por el docente';
+    }
+
+    if (contexto === 'sinFormacion') {
+      this.tiposHeat = ['sinFormacion'];
+      this.tipoSeleccionado = 'sinFormacion';
+
+      this.tituloVista = 'Docentes sin formación';
+      this.subtituloVista =
+        'Docentes que registraron no estar en proceso de formación';
+    }
+
+    this.procesarRegistros(this.obtenerRegistrosPorContexto());
+  }
   /* ══ Sort / Filter — Vista Carrera ══ */
 
   setSortMode(mode: string): void {
@@ -131,14 +168,14 @@ export class Dasboard implements OnInit, OnDestroy {
     let lista = [...this.resumenCarreras];
 
     /* Filtro por nivel */
-    if (this.filterMode === 'alto')  lista = lista.filter(i => i.porcentajeEntregados >= 70);
+    if (this.filterMode === 'alto') lista = lista.filter(i => i.porcentajeEntregados >= 70);
     if (this.filterMode === 'medio') lista = lista.filter(i => i.porcentajeEntregados >= 40 && i.porcentajeEntregados < 70);
-    if (this.filterMode === 'bajo')  lista = lista.filter(i => i.porcentajeEntregados < 40);
+    if (this.filterMode === 'bajo') lista = lista.filter(i => i.porcentajeEntregados < 40);
 
     /* Ordenamiento */
-    if (this.sortMode === 'pct')   lista.sort((a, b) => b.porcentajeEntregados - a.porcentajeEntregados);
+    if (this.sortMode === 'pct') lista.sort((a, b) => b.porcentajeEntregados - a.porcentajeEntregados);
     if (this.sortMode === 'total') lista.sort((a, b) => b.total - a.total);
-    if (this.sortMode === 'name')  lista.sort((a, b) => a.carrera.localeCompare(b.carrera));
+    if (this.sortMode === 'name') lista.sort((a, b) => a.carrera.localeCompare(b.carrera));
 
     this.resumenCarrerasFiltrado = lista;
     this.cdr.detectChanges();
@@ -165,28 +202,46 @@ export class Dasboard implements OnInit, OnDestroy {
     this.registrosFiltrados = base;
 
     const tipos: { key: 'patrocinio' | 'plan' | 'seguimiento'; label: string }[] = [
-      { key: 'patrocinio',  label: 'Patrocinios' },
-      { key: 'plan',        label: 'Plan Individual' },
+      { key: 'patrocinio', label: 'Patrocinios' },
+      { key: 'plan', label: 'Plan Individual' },
       { key: 'seguimiento', label: 'Seguimientos' }
     ];
 
     this.gruposPorTipo = tipos.map(t => {
-      const sub   = base.filter(r => r.tipo === t.key);
-      const ent   = sub.filter(r => r.entregado).length;
-      const pend  = sub.length - ent;
+      const sub = base.filter(r => r.tipo === t.key);
+      const ent = sub.filter(r => r.entregado).length;
+      const pend = sub.length - ent;
       const total = sub.length;
       return {
-        label:      t.label,
-        tipo:       t.key,
+        label: t.label,
+        tipo: t.key,
         total,
         entregados: ent,
         pendientes: pend,
-        pctEnt:     total ? Math.round((ent  / total) * 100) : 0,
-        pctPend:    total ? Math.round((pend / total) * 100) : 0
+        pctEnt: total ? Math.round((ent / total) * 100) : 0,
+        pctPend: total ? Math.round((pend / total) * 100) : 0
       };
     }).filter(g => g.total > 0);
 
     this.cdr.detectChanges();
+  }
+  private obtenerRegistrosPorContexto(): RegistroBase[] {
+
+    if (this.contextoDashboard === 'documentos') {
+      return this.todosRegistros.filter(r =>
+        r.tipo === 'patrocinio' || r.tipo === 'plan'
+      );
+    }
+
+    if (this.contextoDashboard === 'seguimiento') {
+      return this.todosRegistros.filter(r =>
+        r.tipo === 'seguimiento'
+      );
+    }
+
+    return this.todosRegistros.filter(r =>
+      r.tipo === 'sinFormación'
+    );
   }
 
   /* ══ Helpers para el template ══ */
@@ -218,9 +273,10 @@ export class Dasboard implements OnInit, OnDestroy {
   /* ══ Firebase ══ */
 
   escucharCambios(): void {
-    onValue(this.refPatrocinio,  () => this.cargarDashboard());
-    onValue(this.refPlan,        () => this.cargarDashboard());
+    onValue(this.refPatrocinio, () => this.cargarDashboard());
+    onValue(this.refPlan, () => this.cargarDashboard());
     onValue(this.refSeguimiento, () => this.cargarDashboard());
+    onValue(this.refSinFormacion, () => this.cargarDashboard());
   }
 
   cargarDashboard(): void {
@@ -228,63 +284,76 @@ export class Dasboard implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     Promise.all([
-      new Promise<any>(res => onValue(this.refPatrocinio,  s => res(s.val()), { onlyOnce: true })),
-      new Promise<any>(res => onValue(this.refPlan,        s => res(s.val()), { onlyOnce: true })),
-      new Promise<any>(res => onValue(this.refSeguimiento, s => res(s.val()), { onlyOnce: true }))
+      new Promise<any>(res => onValue(this.refPatrocinio, s => res(s.val()), { onlyOnce: true })),
+      new Promise<any>(res => onValue(this.refPlan, s => res(s.val()), { onlyOnce: true })),
+      new Promise<any>(res => onValue(this.refSeguimiento, s => res(s.val()), { onlyOnce: true })),
+      new Promise<any>(res => onValue(this.refSinFormacion, s => res(s.val()), { onlyOnce: true }))
     ])
-    .then(([patrocinios, planes, seguimientos]) => {
-      const registros: RegistroBase[] = [];
+      .then(([patrocinios, planes, seguimientos, sinFormacion]) => {
+        const registros: RegistroBase[] = [];
 
-      if (patrocinios) {
-        Object.values(patrocinios).forEach((docs: any) => {
-          if (!docs || typeof docs !== 'object') return;
-          Object.values(docs).forEach((doc: any) => {
-            registros.push({ tipo: 'patrocinio', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+        if (patrocinios) {
+          Object.values(patrocinios).forEach((docs: any) => {
+            if (!docs || typeof docs !== 'object') return;
+            Object.values(docs).forEach((doc: any) => {
+              registros.push({ tipo: 'patrocinio', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+            });
           });
-        });
-      }
+        }
 
-      if (planes) {
-        Object.values(planes).forEach((docs: any) => {
-          if (!docs || typeof docs !== 'object') return;
-          Object.values(docs).forEach((doc: any) => {
-            registros.push({ tipo: 'plan', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+        if (planes) {
+          Object.values(planes).forEach((docs: any) => {
+            if (!docs || typeof docs !== 'object') return;
+            Object.values(docs).forEach((doc: any) => {
+              registros.push({ tipo: 'plan', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+            });
           });
-        });
-      }
+        }
 
-      if (seguimientos) {
-        Object.values(seguimientos).forEach((doc: any) => {
-          registros.push({ tipo: 'seguimiento', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
-        });
-      }
+        if (seguimientos) {
+          Object.values(seguimientos).forEach((doc: any) => {
+            registros.push({ tipo: 'seguimiento', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+          });
+        }
+        if (sinFormacion) {
+          Object.values(sinFormacion).forEach((doc: any) => {
 
-      this.todosRegistros = registros;
-      this.procesarRegistros(registros);
+            registros.push({
+              tipo: 'sinFormación',
+              carrera: doc?.carrera ?? 'Sin carrera',
+              entregado: Boolean(doc?.entregado)
+            });
 
-      const now = new Date();
-      this.ultimaActualizacion = now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-    })
-    .catch(err => {
-      console.error('Error cargando dashboard:', err);
-      this.cargando = false;
-      this.cdr.detectChanges();
-    });
+          });
+        }
+
+        this.todosRegistros = registros;
+        this.procesarRegistros(this.obtenerRegistrosPorContexto());
+
+        const now = new Date();
+        this.ultimaActualizacion = now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+      })
+      .catch(err => {
+        console.error('Error cargando dashboard:', err);
+        this.cargando = false;
+        this.cdr.detectChanges();
+      });
   }
 
   procesarRegistros(registros: RegistroBase[]): void {
     /* KPIs globales */
-    this.totalDocumentos      = registros.length;
-    this.totalEntregados      = registros.filter(r => r.entregado).length;
-    this.totalPendientes      = this.totalDocumentos - this.totalEntregados;
+    this.totalDocumentos = registros.length;
+    this.totalEntregados = registros.filter(r => r.entregado).length;
+    this.totalPendientes = this.totalDocumentos - this.totalEntregados;
     this.porcentajeEntregados = this.totalDocumentos
       ? Math.round((this.totalEntregados / this.totalDocumentos) * 100) : 0;
     this.porcentajePendientes = 100 - this.porcentajeEntregados;
 
     /* Por tipo */
-    this.totalPatrocinios  = registros.filter(r => r.tipo === 'patrocinio').length;
-    this.totalPlanes       = registros.filter(r => r.tipo === 'plan').length;
+    this.totalPatrocinios = registros.filter(r => r.tipo === 'patrocinio').length;
+    this.totalPlanes = registros.filter(r => r.tipo === 'plan').length;
     this.totalSeguimientos = registros.filter(r => r.tipo === 'seguimiento').length;
+    this.totalSinFormacion = registros.filter(r => r.tipo === 'sinFormación').length;
 
     /* Por carrera */
     const mapa = new Map<string, CarreraResumen>();

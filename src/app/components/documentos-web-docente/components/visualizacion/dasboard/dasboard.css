@@ -1051,3 +1051,109 @@
   .donut-main { flex-direction: column; align-items: center; }
   .matrix-wrap { overflow-x: auto; }
 }
+/* ══════════════════════════════════════
+   CONTEXTO PRINCIPAL DASHBOARD
+══════════════════════════════════════ */
+.context-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0 28px;
+  padding: 14px;
+  background: rgba(8, 18, 34, 0.78);
+  border: 1px solid rgba(0, 212, 255, 0.14);
+  border-radius: 18px;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.context-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.82);
+  color: rgba(226, 232, 240, 0.72);
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .22s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.context-tab:hover {
+  transform: translateY(-2px);
+  color: #fff;
+  border-color: rgba(0, 212, 255, 0.34);
+  box-shadow: 0 10px 24px rgba(0,0,0,.26);
+}
+
+.context-tab.active {
+  color: #03111e;
+  border-color: transparent;
+  background: linear-gradient(135deg, #00d4ff, #38bdf8);
+  box-shadow:
+    0 0 24px rgba(0, 212, 255, .35),
+    0 10px 26px rgba(0,0,0,.28);
+}
+
+.ctx-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ctx-docs {
+  background: #a78bfa;
+  box-shadow: 0 0 12px rgba(167,139,250,.7);
+}
+
+.ctx-seg {
+  background: #2dd4bf;
+  box-shadow: 0 0 12px rgba(45,212,191,.7);
+}
+
+.ctx-sin {
+  background: #f59e0b;
+  box-shadow: 0 0 12px rgba(245,158,11,.7);
+}
+
+.context-tab.active .ctx-dot {
+  background: rgba(3, 17, 30, .5);
+  box-shadow: none;
+  animation: ctxPulse 1.3s ease infinite;
+}
+
+@keyframes ctxPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.6); }
+}
+
+/* Color extra para sin formación */
+.amber-icon {
+  background: rgba(245, 158, 11, .14);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, .28);
+}
+
+.amber-prog {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 18px rgba(245, 158, 11, .25);
+}
+
+/* Ajustes responsive */
+@media (max-width: 768px) {
+  .context-tabs {
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .context-tab {
+    width: 100%;
+    justify-content: center;
+  }
+}

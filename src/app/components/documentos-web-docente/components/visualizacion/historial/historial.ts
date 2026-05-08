@@ -8,7 +8,7 @@ import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
 import { dbDocente } from '../../../../../firebase/firebase-docente';
 
-type TipoDocumento = 'patrocinio' | 'plan' | 'seguimiento';
+type TipoDocumento = 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
 
 interface HistorialRegistro {
   id: string;
@@ -42,6 +42,8 @@ interface GenStep {
 export class Historial implements OnInit, OnDestroy {
   cargando = true;
   mensaje = '';
+  modalObservacionAbierto = false;
+observacionSeleccionada = '';
   filtroTexto = '';
   filtroTipo: 'todos' | TipoDocumento = 'todos';
   registros: HistorialRegistro[] = [];
@@ -51,12 +53,12 @@ export class Historial implements OnInit, OnDestroy {
   genProgressTxt = 'Iniciando…';
 
   readonly GEN_STEPS: GenStep[] = [
-    { id: 'gstep1', txt: 'Validando datos…',           pct: 10 },
+    { id: 'gstep1', txt: 'Validando datos…', pct: 10 },
     { id: 'gstep2', txt: 'Consultando base de datos…', pct: 28 },
     { id: 'gstep3', txt: 'Generando código del plan…', pct: 46 },
-    { id: 'gstep4', txt: 'Construyendo documento…',    pct: 64 },
-    { id: 'gstep5', txt: 'Convirtiendo a PDF…',        pct: 82 },
-    { id: 'gstep6', txt: 'Descargando…',               pct: 95 }
+    { id: 'gstep4', txt: 'Construyendo documento…', pct: 64 },
+    { id: 'gstep5', txt: 'Convirtiendo a PDF…', pct: 82 },
+    { id: 'gstep6', txt: 'Descargando…', pct: 95 }
   ];
 
   stepStates: Record<string, 'idle' | 'active' | 'done'> = {};
@@ -64,11 +66,12 @@ export class Historial implements OnInit, OnDestroy {
   private _genTimer: any = null;
   private readonly API_BASE = 'https://backen-pdf-trabajo.onrender.com';
 
-  private refPatrocinio  = ref(dbDocente, 'patrociniosGenerados');
-  private refPlan        = ref(dbDocente, 'planesGenerados');
+  private refPatrocinio = ref(dbDocente, 'patrociniosGenerados');
+  private refPlan = ref(dbDocente, 'planesGenerados');
   private refSeguimiento = ref(dbDocente, 'seguimientoGenerados');
+  private refDocentesSinFormacion = ref(dbDocente, 'docentesSinFormacion');
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.cargarHistorial();
@@ -80,6 +83,7 @@ export class Historial implements OnInit, OnDestroy {
     off(this.refPatrocinio);
     off(this.refPlan);
     off(this.refSeguimiento);
+    off(this.refDocentesSinFormacion);
     clearTimeout(this._genTimer);
   }
 
@@ -220,15 +224,15 @@ export class Historial implements OnInit, OnDestroy {
 
   private imagenPlaceholder1x1(): Uint8Array {
     return new Uint8Array([
-      0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,
-      0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
-      0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,
-      0x08,0x06,0x00,0x00,0x00,0x1F,0x15,0xC4,
-      0x89,0x00,0x00,0x00,0x0D,0x49,0x44,0x41,
-      0x54,0x78,0x9C,0x63,0x00,0x01,0x00,0x00,
-      0x05,0x00,0x01,0x0D,0x0A,0x2D,0xB4,0x00,
-      0x00,0x00,0x00,0x49,0x45,0x4E,0x44,0xAE,
-      0x42,0x60,0x82
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+      0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+      0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
+      0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+      0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+      0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+      0x42, 0x60, 0x82
     ]);
   }
 
@@ -241,11 +245,11 @@ export class Historial implements OnInit, OnDestroy {
 
     const formacion = String(dd.formacion || '').trim();
     const modalidad = String(dd.modalidad || '').trim();
-    const financ    = String(dd.financiamiento || '').trim();
+    const financ = String(dd.financiamiento || '').trim();
     const tipoApoyo = String(dd.tipoApoyo || '').trim();
-    const acuerdo   = String(dd.acuerdoPatrocinio || 'Si').trim();
+    const acuerdo = String(dd.acuerdoPatrocinio || 'Si').trim();
 
-    const avance   = String(dd.avance   || '0%');
+    const avance = String(dd.avance || '0%');
     const restante = String(dd.restante || '100%');
 
     let fechaActual = String(dd.fechaActual || registro.fechaGuardado || '');
@@ -278,17 +282,17 @@ export class Historial implements OnInit, OnDestroy {
     }
 
     return {
-      Codigo:   String(dd.Codigo   || registro.codigo  || ''),
+      Codigo: String(dd.Codigo || registro.codigo || ''),
       NombresC: String(dd.NombresC || registro.docente || ''),
-      Cedula1:  String(dd.Cedula1  || registro.cedula  || ''),
+      Cedula1: String(dd.Cedula1 || registro.cedula || ''),
       Carrera1: String(dd.Carrera1 || registro.carrera || ''),
-      Titulo:   String(dd.Titulo   || ''),
+      Titulo: String(dd.Titulo || ''),
 
-      Tecnologia:   formacion === 'Tecnología Universitaria',
+      Tecnologia: formacion === 'Tecnología Universitaria',
       Licenciatura: formacion === 'Licenciatura',
-      Ingenieria:   formacion === 'Ingeniería',
-      Maestria:     formacion === 'Maestría',
-      Doctorado:    formacion === 'Doctorado',
+      Ingenieria: formacion === 'Ingeniería',
+      Maestria: formacion === 'Maestría',
+      Doctorado: formacion === 'Doctorado',
 
       CarreraCursando: String(
         dd.CarreraCursando ||
@@ -300,31 +304,31 @@ export class Historial implements OnInit, OnDestroy {
       instituacion: String(dd.instituacion || ''),
 
       Presencial: modalidad === 'Presencial',
-      Virtual:    modalidad === 'Virtual',
-      Hibrida:    modalidad === 'Híbrida',
+      Virtual: modalidad === 'Virtual',
+      Hibrida: modalidad === 'Híbrida',
 
       Finicio,
       Ffin,
 
-      Total:    financ === 'Total',
-      Parcial:  financ === 'Parcial',
+      Total: financ === 'Total',
+      Parcial: financ === 'Parcial',
       NoAplica: financ === 'No aplica',
 
       Si: acuerdo === 'Si',
       No: acuerdo === 'No',
 
       Economico: tipoApoyo === 'Economico',
-      Tiempo:    tipoApoyo === 'Tiempo',
+      Tiempo: tipoApoyo === 'Tiempo',
 
-      Tdos:           String(dd.Tdos           || ''),
-      Estado:         String(dd.Estado         || ''),
+      Tdos: String(dd.Tdos || ''),
+      Estado: String(dd.Estado || ''),
       avance,
       restante,
-      observaciones:  String(dd.observaciones  || ''),
+      observaciones: String(dd.observaciones || ''),
       fechaActual,
-      evidencia:      String(dd.evidencia      || ''),
+      evidencia: String(dd.evidencia || ''),
       observaciones2: String(dd.observaciones2 || ''),
-      añoActual:      String(dd.añoActual      || new Date().getFullYear()),
+      añoActual: String(dd.añoActual || new Date().getFullYear()),
 
       image: imagenBytes,
       imageMeta: { esPlaceholder: !tieneFoto }
@@ -362,21 +366,21 @@ export class Historial implements OnInit, OnDestroy {
         .sort((a: any, b: any) => Number(a.key) - Number(b.key));
 
       const capacitaciones = capsRaw.map((cap: any, index: number) => ({
-        contador:    index + 1,
-        nombre:      cap.capacitacion   || '',
-        horas:       Number(cap.horas   || 0),
+        contador: index + 1,
+        nombre: cap.capacitacion || '',
+        horas: Number(cap.horas || 0),
         fechaInicio: this.formatoFecha(cap.fechaInicio || ''),
-        fechaFin:    this.formatoFecha(cap.fechaFin    || ''),
-        tipo:        cap.tipo           || 'Aprobación',
-        estado:      cap.estado         || '-',
-        fecha:       this.construirRangoFechaTexto(cap.fechaInicio || '', cap.fechaFin || '')
+        fechaFin: this.formatoFecha(cap.fechaFin || ''),
+        tipo: cap.tipo || 'Aprobación',
+        estado: cap.estado || '-',
+        fecha: this.construirRangoFechaTexto(cap.fechaInicio || '', cap.fechaFin || '')
       }));
 
-      const teoriaSet   = new Set<string>();
+      const teoriaSet = new Set<string>();
       const practicaSet = new Set<string>();
 
       capsRaw.forEach((cap: any) => {
-        const teoriaTemas   = Array.isArray(cap.teoriaTemas)   ? cap.teoriaTemas   : [];
+        const teoriaTemas = Array.isArray(cap.teoriaTemas) ? cap.teoriaTemas : [];
         const practicaTemas = Array.isArray(cap.practicaTemas) ? cap.practicaTemas : [];
 
         teoriaTemas.forEach((tema: any) => {
@@ -392,7 +396,7 @@ export class Historial implements OnInit, OnDestroy {
 
       return {
         capacitaciones,
-        teoria:   Array.from(teoriaSet),
+        teoria: Array.from(teoriaSet),
         practica: Array.from(practicaSet)
       };
 
@@ -404,32 +408,33 @@ export class Historial implements OnInit, OnDestroy {
 
   private construirRangoFechaTexto(fechaInicio: string, fechaFin: string): string {
     const inicio = this.formatearFechaLarga(fechaInicio);
-    const fin    = this.formatearFechaLarga(fechaFin);
+    const fin = this.formatearFechaLarga(fechaFin);
     if (inicio && fin) return `desde el ${inicio} hasta el ${fin}`;
     if (inicio) return `desde el ${inicio}`;
-    if (fin)    return `hasta el ${fin}`;
+    if (fin) return `hasta el ${fin}`;
     return '';
   }
 
   private formatearFechaLarga(fechaISO: string): string {
     if (!fechaISO) return '';
     const meses = [
-      'enero','febrero','marzo','abril','mayo','junio',
-      'julio','agosto','septiembre','octubre','noviembre','diciembre'
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
     const partes = String(fechaISO).split('-');
     if (partes.length !== 3) return '';
     const anio = partes[0];
-    const mes  = meses[Number(partes[1]) - 1] || '';
-    const dia  = Number(partes[2]);
+    const mes = meses[Number(partes[1]) - 1] || '';
+    const dia = Number(partes[2]);
     if (!anio || !mes || !dia) return '';
     return `${dia} de ${mes} de ${anio}`;
   }
 
   escucharCambios(): void {
-    onValue(this.refPatrocinio,  () => this.cargarHistorial());
-    onValue(this.refPlan,        () => this.cargarHistorial());
+    onValue(this.refPatrocinio, () => this.cargarHistorial());
+    onValue(this.refPlan, () => this.cargarHistorial());
     onValue(this.refSeguimiento, () => this.cargarHistorial());
+    onValue(this.refDocentesSinFormacion, () => this.cargarHistorial());
   }
 
   async cargarHistorial(): Promise<void> {
@@ -437,10 +442,11 @@ export class Historial implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      const [snapPat, snapPlan, snapSeg] = await Promise.all([
+      const [snapPat, snapPlan, snapSeg, snapSinFormacion] = await Promise.all([
         get(this.refPatrocinio),
         get(this.refPlan),
-        get(this.refSeguimiento)
+        get(this.refSeguimiento),
+        get(this.refDocentesSinFormacion),
       ]);
 
       const registros: HistorialRegistro[] = [];
@@ -453,19 +459,19 @@ export class Historial implements OnInit, OnDestroy {
             const data = snapDoc.val() || {};
 
             const nombreDocente = data.docente || data.nombre || data.NombresC || '';
-            const carrera       = data.carrera || data.Carrera1 || '';
-            const cedula        = data.cedula  || data.Cedula1  || cedulaKey;
-            const capacitacion  = data.capacitacion || data.NombreCA || '';
-            const codigo        = data.codigo  || data.Codigo  || '';
-            const fechaTexto    = data.fechaTexto || data.fecha || data.Fecha1 || '';
+            const carrera = data.carrera || data.Carrera1 || '';
+            const cedula = data.cedula || data.Cedula1 || cedulaKey;
+            const capacitacion = data.capacitacion || data.NombreCA || '';
+            const codigo = data.codigo || data.Codigo || '';
+            const fechaTexto = data.fechaTexto || data.fecha || data.Fecha1 || '';
 
             const dataDoc = {
               NombresC: nombreDocente,
               Carrera1: carrera,
-              Cedula1:  cedula,
+              Cedula1: cedula,
               NombreCA: capacitacion,
-              Codigo:   codigo,
-              Fecha1:   fechaTexto
+              Codigo: codigo,
+              Fecha1: fechaTexto
             };
 
             registros.push({
@@ -473,14 +479,14 @@ export class Historial implements OnInit, OnDestroy {
               tipo: 'patrocinio',
               tipoLabel: 'Patrocinio',
               cedula,
-              docente:       nombreDocente,
+              docente: nombreDocente,
               carrera,
               codigo,
               fechaGuardado: data.fechaGuardado || data.fecha || '',
-              timestamp:     Number(data.timestamp || 0),
+              timestamp: Number(data.timestamp || 0),
               datosDocumento: dataDoc,
-              entregado:     Boolean(data.entregado),
-              rutaDb:        `patrociniosGenerados/${cedulaKey}/${snapDoc.key}`,
+              entregado: Boolean(data.entregado),
+              rutaDb: `patrociniosGenerados/${cedulaKey}/${snapDoc.key}`,
               actualizandoEstado: false
             });
           });
@@ -494,15 +500,15 @@ export class Historial implements OnInit, OnDestroy {
           snapCedula.forEach((snapDoc) => {
             const data = snapDoc.val() || {};
 
-            const nombreDocente  = data.docente || data.nombre || data.NombresC || '';
+            const nombreDocente = data.docente || data.nombre || data.NombresC || '';
             const carreraDocente = data.carrera || data.CarreraDocente || '';
-            const cedula         = data.cedula || cedulaKey;
-            const codigo         = data.codigo || data.Codigo || '';
+            const cedula = data.cedula || cedulaKey;
+            const codigo = data.codigo || data.Codigo || '';
 
             const dataDoc = {
-              Codigo:         codigo,
-              NombresC:       nombreDocente,
-              Nombresc:       nombreDocente,
+              Codigo: codigo,
+              NombresC: nombreDocente,
+              Nombresc: nombreDocente,
               CarreraDocente: carreraDocente,
               Carreradocente: carreraDocente,
               Respuesta1: data.respuesta1 || '',
@@ -514,20 +520,20 @@ export class Historial implements OnInit, OnDestroy {
               Respuesta7: data.respuesta7 || '',
               Respuesta8: data.respuesta8 || '',
               capacitaciones: [],
-              Teoria:         [],
-              Practica:       [],
+              Teoria: [],
+              Practica: [],
               NombreFormacionEspecifica: data.nombreFormacionEspecifica || '',
-              NivelFormacionEspecifica:  data.nivelFormacionEspecifica  || '',
+              NivelFormacionEspecifica: data.nivelFormacionEspecifica || '',
               FechaInicioE: this.formatoFecha(data.fechaInicioE || ''),
-              FechaFinE:    this.formatoFecha(data.fechaFinE    || ''),
+              FechaFinE: this.formatoFecha(data.fechaFinE || ''),
               NombreFormacionGenerica: data.nombreFormacionGenerica || '',
-              NivelFormacionGenerica:  data.nivelFormacionGenerica  || '',
+              NivelFormacionGenerica: data.nivelFormacionGenerica || '',
               FechaInicioG: this.formatoFecha(data.fechaInicioG || ''),
-              FechaFinG:    this.formatoFecha(data.fechaFinG    || ''),
+              FechaFinG: this.formatoFecha(data.fechaFinG || ''),
               'NombreFormaciónEspecifica': data.nombreFormacionEspecifica || '',
-              'NivelFormaciónEspecifica':  data.nivelFormacionEspecifica  || '',
-              'NombreFormaciónGenerica':   data.nombreFormacionGenerica   || '',
-              'NivelFormaciónGenerica':    data.nivelFormacionGenerica    || '',
+              'NivelFormaciónEspecifica': data.nivelFormacionEspecifica || '',
+              'NombreFormaciónGenerica': data.nombreFormacionGenerica || '',
+              'NivelFormaciónGenerica': data.nivelFormacionGenerica || '',
               _carreraNombre: carreraDocente
             };
 
@@ -536,14 +542,14 @@ export class Historial implements OnInit, OnDestroy {
               tipo: 'plan',
               tipoLabel: 'Plan Individual',
               cedula,
-              docente:       nombreDocente,
-              carrera:       carreraDocente,
+              docente: nombreDocente,
+              carrera: carreraDocente,
               codigo,
               fechaGuardado: data.fechaGuardado || data.fecha || '',
-              timestamp:     Number(data.timestamp || 0),
+              timestamp: Number(data.timestamp || 0),
               datosDocumento: dataDoc,
-              entregado:     Boolean(data.entregado),
-              rutaDb:        `planesGenerados/${cedulaKey}/${snapDoc.key}`,
+              entregado: Boolean(data.entregado),
+              rutaDb: `planesGenerados/${cedulaKey}/${snapDoc.key}`,
               actualizandoEstado: false
             });
           });
@@ -552,7 +558,7 @@ export class Historial implements OnInit, OnDestroy {
 
       if (snapSeg.exists()) {
         snapSeg.forEach((snapDoc) => {
-          const data     = snapDoc.val() || {};
+          const data = snapDoc.val() || {};
           const datosDoc = data.datosDocumento || {};
 
           const nombreDocente =
@@ -604,14 +610,55 @@ export class Historial implements OnInit, OnDestroy {
             tipo: 'seguimiento',
             tipoLabel: 'Seguimiento',
             cedula,
-            docente:       nombreDocente,
+            docente: nombreDocente,
             carrera,
             codigo,
             fechaGuardado: data.fechaGuardado || data.fecha || datosDoc.fechaActual || '',
-            timestamp:     Number(data.timestamp || 0),
+            timestamp: Number(data.timestamp || 0),
             datosDocumento: dataDoc,
-            entregado:     Boolean(data.entregado),
-            rutaDb:        `seguimientoGenerados/${snapDoc.key}`,
+            entregado: Boolean(data.entregado),
+            rutaDb: `seguimientoGenerados/${snapDoc.key}`,
+            actualizandoEstado: false
+          });
+        });
+      }
+
+      if (snapSinFormacion.exists()) {
+        snapSinFormacion.forEach((snapDoc) => {
+          const data = snapDoc.val() || {};
+
+          const cedula = data.cedula || '';
+          const nombre = data.nombre || '';
+          const carrera = data.carrera || '';
+          const anio = data.anio || '';
+          const mes = data.mes || '';
+          const observacion = data.observacion || '';
+          const titulo = data.titulo || '';
+
+          registros.push({
+            id: snapDoc.key || `${cedula}_${anio}_${mes}`,
+            tipo: 'sinFormación',
+            tipoLabel: 'Sin Formación',
+            cedula,
+            docente: nombre,
+            carrera,
+            codigo: 'SIN FORMACIÓN',
+            fechaGuardado: data.fecha || '',
+            timestamp: data.registradoEn ? new Date(data.registradoEn).getTime() : 0,
+            datosDocumento: {
+              cedula,
+              nombre,
+              carrera,
+              anio,
+              mes,
+              fecha: data.fecha || '',
+              hora: data.hora || '',
+              observacion,
+              titulo,
+              enProcesoFormacion: Boolean(data.enProcesoFormacion)
+            },
+            entregado: Boolean(data.entregado),
+            rutaDb: `docentesSinFormacion/${snapDoc.key}`,
             actualizandoEstado: false
           });
         });
@@ -627,23 +674,35 @@ export class Historial implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error cargando historial:', error);
       this.mostrarMensaje('❌ Error al cargar el historial');
+      
     } finally {
       this.cargando = false;
       this.cdr.detectChanges();
     }
   }
+abrirModalObservacion(texto: string): void {
+  this.observacionSeleccionada = texto || 'Sin observación';
+  this.modalObservacionAbierto = true;
+}
 
+cerrarModalObservacion(): void {
+  this.modalObservacionAbierto = false;
+  this.observacionSeleccionada = '';
+}
   get registrosFiltrados(): HistorialRegistro[] {
     const texto = this.filtroTexto.trim().toLowerCase();
 
     return this.registros.filter((r) => {
-      const cumpleTipo = this.filtroTipo === 'todos' || r.tipo === this.filtroTipo;
+      const cumpleTipo =
+        this.filtroTipo === 'todos'
+          ? r.tipo !== 'sinFormación'
+          : r.tipo === this.filtroTipo;
       const cumpleTexto =
         !texto ||
-        String(r.cedula  || '').toLowerCase().includes(texto) ||
+        String(r.cedula || '').toLowerCase().includes(texto) ||
         String(r.docente || '').toLowerCase().includes(texto) ||
         String(r.carrera || '').toLowerCase().includes(texto) ||
-        String(r.codigo  || '').toLowerCase().includes(texto);
+        String(r.codigo || '').toLowerCase().includes(texto);
 
       return cumpleTipo && cumpleTexto;
     });
@@ -660,7 +719,8 @@ export class Historial implements OnInit, OnDestroy {
   obtenerClaseTipo(tipo: TipoDocumento): string {
     if (tipo === 'patrocinio') return 'tag-patrocinio';
     if (tipo === 'plan') return 'tag-plan';
-    return 'tag-seguimiento';
+    if (tipo === 'seguimiento') return 'tag-seguimiento';
+    return 'tag-sin-formacion';
   }
 
   async cambiarEstadoEntrega(item: HistorialRegistro, nuevoEstado: boolean): Promise<void> {
@@ -678,6 +738,7 @@ export class Historial implements OnInit, OnDestroy {
           ? '✅ Documento marcado como entregado'
           : '✅ Documento marcado como pendiente'
       );
+      
     } catch (error) {
       console.error('Error actualizando estado:', error);
       this.mostrarMensaje('❌ No se pudo actualizar el estado');
@@ -696,10 +757,16 @@ export class Historial implements OnInit, OnDestroy {
     this.mostrarAnimacionGenerando();
 
     try {
+      if (item.tipo === 'sinFormación') {
+        this.mostrarMensaje('⚠️ Este registro no tiene documento para descargar');
+        this.ocultarAnimacionGenerando(false);
+        return;
+      }
       const plantillas: Record<TipoDocumento, string> = {
-        patrocinio:  'assets/docs/patrocinio.docx',
-        plan:        'assets/docs/individual.docx',
-        seguimiento: 'assets/docs/seguimiento.docx'
+        patrocinio: 'assets/docs/patrocinio.docx',
+        plan: 'assets/docs/individual.docx',
+        seguimiento: 'assets/docs/seguimiento.docx',
+        sinFormación: ''
       };
 
       let dataFinal = { ...item.datosDocumento };
@@ -849,7 +916,7 @@ export class Historial implements OnInit, OnDestroy {
       try {
         const err = await response.json();
         msg = err.detail || msg;
-      } catch {}
+      } catch { }
 
       throw new Error(msg);
     }
@@ -874,6 +941,7 @@ export class Historial implements OnInit, OnDestroy {
   private mostrarMensaje(texto: string): void {
     this.mensaje = texto;
     this.cdr.detectChanges();
+    
 
     setTimeout(() => {
       this.mensaje = '';
