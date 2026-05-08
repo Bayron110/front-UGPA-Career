@@ -93,7 +93,8 @@
       <span class="estado-texto">No se encontraron registros</span>
       <span class="estado-sub">Intenta con otro filtro o término de búsqueda</span>
     </div>
-    <!-- Table sin Formación -->
+
+    <!-- Tabla Sin Formación -->
     <div class="tabla-wrap" *ngIf="!cargando && filtroTipo === 'sinFormación' && registrosFiltrados.length > 0">
       <table class="tabla">
         <thead>
@@ -105,42 +106,31 @@
             <th>Observación</th>
           </tr>
         </thead>
-
         <tbody>
-          <tr
-  *ngFor="let item of registrosFiltrados; let i = index"
-  class="sin-formacion-row">
-
+          <tr *ngFor="let item of registrosFiltrados; let i = index" class="sin-formacion-row">
             <td>
-              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">
-                {{ item.tipoLabel }}
-              </span>
+              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">{{ item.tipoLabel }}</span>
             </td>
-
             <td>{{ item.docente || '—' }}</td>
-            <td>{{ item.cedula || '—' }}</td>
+            <td>{{ item.cedula  || '—' }}</td>
             <td>{{ item.fechaGuardado || '—' }}</td>
             <td>
               <button type="button" class="btn-observacion"
                 (click)="abrirModalObservacion(item.datosDocumento?.observacion)">
-
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
                   stroke-linecap="round" stroke-linejoin="round">
-
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-
                 Ver observación
               </button>
             </td>
-
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Table -->
+    <!-- Tabla Principal -->
     <div class="tabla-wrap" *ngIf="!cargando && filtroTipo !== 'sinFormación' && registrosFiltrados.length > 0">
       <table class="tabla">
         <thead>
@@ -155,19 +145,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of registrosFiltrados; let i = index" [class.fila-entregada]="item.entregado"
-            [class.fila-pendiente]="!item.entregado" [style.animation-delay]="(i * 0.04) + 's'">
+          <tr *ngFor="let item of registrosFiltrados; let i = index"
+            [class.fila-entregada]="item.entregado"
+            [class.fila-pendiente]="!item.entregado"
+            [style.animation-delay]="(i * 0.04) + 's'">
 
             <td>
-              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">
-                {{ item.tipoLabel }}
-              </span>
+              <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">{{ item.tipoLabel }}</span>
             </td>
-
-            <td><span class="cedula-text">{{ item.cedula || '—' }}</span></td>
+            <td><span class="cedula-text">{{ item.cedula  || '—' }}</span></td>
             <td><span class="nombre-text">{{ item.docente || '—' }}</span></td>
             <td><span class="carrera-text">{{ item.carrera || '—' }}</span></td>
-            <td><span class="codigo-text">{{ item.codigo || '—' }}</span></td>
+            <td><span class="codigo-text">{{ item.codigo  || '—' }}</span></td>
 
             <td>
               <div class="entrega-cell">
@@ -218,14 +207,14 @@
 </section>
 
 <!-- ══════════════════════════════════════════════════
-     OVERLAY GENERANDO DOCUMENTO
+     OVERLAY GENERANDO DOCUMENTO (con reintentos)
 ══════════════════════════════════════════════════ -->
 <div class="gen-overlay" [class.oculto]="!mostrandoAnimacion" aria-live="polite" aria-label="Generando documento">
   <div class="gen-box">
 
     <div class="gen-header">
       <p class="gen-title">Generando documento</p>
-      <p class="gen-sub">Por favor espere, esto puede tomar unos segundos…</p>
+      <p class="gen-sub">{{ genSubtitulo }}</p>
     </div>
 
     <div class="gen-body">
@@ -262,10 +251,23 @@
         </div>
       </div>
 
+      <!-- Indicador de reintento -->
+      <div class="gen-reintento" *ngIf="mostrandoReintento">
+        <div class="gen-reintento-icono">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+          </svg>
+        </div>
+        <span>{{ reintentoTexto }}</span>
+      </div>
+
       <!-- Pasos -->
       <div class="gen-steps">
         <div *ngFor="let step of GEN_STEPS; let i = index" class="gen-step-row"
-          [class.done]="stepStates[step.id] === 'done'" [class.active]="stepStates[step.id] === 'active'">
+          [class.done]="stepStates[step.id] === 'done'"
+          [class.active]="stepStates[step.id] === 'active'">
 
           <div class="gen-step-icon">
             <ng-container *ngIf="stepStates[step.id] === 'idle'">{{ i + 1 }}</ng-container>
@@ -287,43 +289,99 @@
     </div>
 
     <div class="gen-footer">
-      <p class="gen-footer-txt">La conversión puede tardar hasta 30 segundos en servidores gratuitos</p>
+      <p class="gen-footer-txt">{{ genFooterTxt }}</p>
     </div>
 
   </div>
 </div>
-<!-- ═══════════════════════════════════════
-     MODAL OBSERVACIÓN
-═══════════════════════════════════════ -->
-<div
-  class="modal-observacion-overlay"
-  *ngIf="modalObservacionAbierto"
-  (click)="cerrarModalObservacion()">
 
-  <div
-    class="modal-observacion"
-    (click)="$event.stopPropagation()">
+<!-- ══════════════════════════════════════════════════
+     MODAL ÉXITO — DOCUMENTO DESCARGADO
+══════════════════════════════════════════════════ -->
+<div class="modal-exito-overlay" *ngIf="modalExitoAbierto" (click)="cerrarModalExito()">
+  <div class="modal-exito" (click)="$event.stopPropagation()">
 
-    <div class="modal-observacion-header">
+    <div class="modal-exito-header">
+      <div class="exito-icono-wrap">
+        <div class="exito-circulo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <div class="exito-ondas">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="modal-exito-header-text">
+        <h3>¡Documento generado exitosamente!</h3>
+        <p>El PDF fue creado y descargado en su equipo</p>
+      </div>
+    </div>
 
-      <div class="modal-observacion-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round">
-
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
+    <div class="modal-exito-body">
+      <div class="exito-grid">
+        <div class="exito-dato">
+          <span class="exito-dato-label">Código del documento</span>
+          <span class="exito-dato-valor exito-dato-codigo">{{ exitoCodigo }}</span>
+        </div>
+        <div class="exito-dato">
+          <span class="exito-dato-label">Fecha y hora</span>
+          <span class="exito-dato-valor">{{ exitoFecha }}</span>
+        </div>
+        <div class="exito-dato exito-dato--full">
+          <span class="exito-dato-label">Docente</span>
+          <span class="exito-dato-valor exito-dato-nombre">{{ exitoNombre }}</span>
+        </div>
       </div>
 
+      <div class="exito-info-banner">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span>El PDF fue descargado automáticamente. Encuéntrelo en la carpeta de descargas.
+          Si necesita otra copia, use <strong>Re-descargar</strong>.</span>
+      </div>
+    </div>
+
+    <div class="modal-exito-footer">
+      <button type="button" class="btn-exito-redescargar" (click)="reDescargarDesdeExito()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        Re-descargar
+      </button>
+      <button type="button" class="btn-exito-cerrar" (click)="cerrarModalExito()">
+        Cerrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL OBSERVACIÓN
+══════════════════════════════════════════════════ -->
+<div class="modal-observacion-overlay" *ngIf="modalObservacionAbierto" (click)="cerrarModalObservacion()">
+  <div class="modal-observacion" (click)="$event.stopPropagation()">
+
+    <div class="modal-observacion-header">
+      <div class="modal-observacion-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </div>
       <div>
         <h3>Observación completa</h3>
         <p>Detalle registrado por el docente</p>
       </div>
-
     </div>
 
     <div class="modal-observacion-body">
@@ -331,11 +389,7 @@
     </div>
 
     <div class="modal-observacion-footer">
-      <button
-        type="button"
-        class="btn-cerrar-modal"
-        (click)="cerrarModalObservacion()">
-
+      <button type="button" class="btn-cerrar-modal" (click)="cerrarModalObservacion()">
         Cerrar
       </button>
     </div>

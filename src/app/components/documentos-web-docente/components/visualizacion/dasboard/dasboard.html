@@ -53,7 +53,6 @@
         <h1>{{ tituloVista }}</h1>
         <p>{{ subtituloVista }}</p>
       </div>
-
       <div class="header-right">
         <div class="header-stat">
           <span class="hs-label">Última actualización</span>
@@ -64,34 +63,24 @@
 
     <!-- FILTRO PRINCIPAL DEL DASHBOARD -->
     <div class="context-tabs">
-
-      <button
-        type="button"
-        class="context-tab"
+      <button type="button" class="context-tab"
         [class.active]="contextoDashboard === 'documentos'"
         (click)="cambiarContextoDashboard('documentos')">
         <span class="ctx-dot ctx-docs"></span>
         Patrocinio / Plan Individual
       </button>
-
-      <button
-        type="button"
-        class="context-tab"
+      <button type="button" class="context-tab"
         [class.active]="contextoDashboard === 'seguimiento'"
         (click)="cambiarContextoDashboard('seguimiento')">
         <span class="ctx-dot ctx-seg"></span>
         Seguimiento docente
       </button>
-
-      <button
-        type="button"
-        class="context-tab"
+      <button type="button" class="context-tab"
         [class.active]="contextoDashboard === 'sinFormacion'"
         (click)="cambiarContextoDashboard('sinFormacion')">
         <span class="ctx-dot ctx-sin"></span>
         Docentes sin formación
       </button>
-
     </div>
 
     <!-- ══════════════════════════════════════
@@ -100,100 +89,126 @@
     @if (vistaActiva === 'global' && !cargando) {
       <div class="view-anim">
 
+        <!-- ── KPI CARDS (nuevo diseño: 4 tarjetas individuales) ── -->
         <div class="kpi-row">
 
-          <div class="kpi">
-            <div class="kpi-ring">
-              <svg viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="24" class="ring-track" />
-                <circle cx="30" cy="30" r="24" class="ring-fill ring-blue" stroke-dasharray="150.7 150.7" />
-              </svg>
-              <span class="kpi-num">{{ totalDocumentos }}</span>
-            </div>
-            <div class="kpi-meta">
-              <strong>Total</strong>
-              <small>
+          <!-- Total -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <span class="kpi-label">
+                Total
                 @if (contextoDashboard === 'documentos') { Documentos }
                 @if (contextoDashboard === 'seguimiento') { Seguimientos }
                 @if (contextoDashboard === 'sinFormacion') { Registros }
-              </small>
+              </span>
+              <div class="kpi-icon kpi-icon-blue">∑</div>
+            </div>
+            <div class="kpi-number">{{ totalDocumentos }}</div>
+            <div class="kpi-sub">{{ resumenCarreras.length }} carreras registradas</div>
+          </div>
+
+          <!-- Entregados -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <span class="kpi-label">Entregados</span>
+              <div class="kpi-icon kpi-icon-green">✓</div>
+            </div>
+            <div class="kpi-number kpi-green">{{ totalEntregados }}</div>
+            <div class="kpi-sub">{{ porcentajeEntregados }}% del total</div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill kpi-bar-green" [style.width.%]="porcentajeEntregados"></div>
             </div>
           </div>
 
-          <div class="kpi-divider"></div>
-
-          <div class="kpi">
-            <div class="kpi-ring">
-              <svg viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="24" class="ring-track" />
-                <circle cx="30" cy="30" r="24" class="ring-fill ring-green"
-                  [attr.stroke-dasharray]="(porcentajeEntregados * 1.507) + ' 150.7'" />
-              </svg>
-              <span class="kpi-num green">{{ totalEntregados }}</span>
+          <!-- Pendientes -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <span class="kpi-label">Pendientes</span>
+              <div class="kpi-icon kpi-icon-amber">⏳</div>
             </div>
-            <div class="kpi-meta">
-              <strong>Entregados</strong>
-              <small>{{ porcentajeEntregados }}% del total</small>
+            <div class="kpi-number kpi-amber">{{ totalPendientes }}</div>
+            <div class="kpi-sub">{{ porcentajePendientes }}% del total</div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill kpi-bar-amber" [style.width.%]="porcentajePendientes"></div>
             </div>
           </div>
 
-          <div class="kpi-divider"></div>
-
-          <div class="kpi">
-            <div class="kpi-ring">
-              <svg viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="24" class="ring-track" />
-                <circle cx="30" cy="30" r="24" class="ring-fill ring-amber"
-                  [attr.stroke-dasharray]="(porcentajePendientes * 1.507) + ' 150.7'" />
-              </svg>
-              <span class="kpi-num amber">{{ totalPendientes }}</span>
+          <!-- Por tipo -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <span class="kpi-label">Por tipo</span>
             </div>
-            <div class="kpi-meta">
-              <strong>Pendientes</strong>
-              <small>{{ porcentajePendientes }}% del total</small>
-            </div>
-          </div>
-
-          <div class="kpi-divider"></div>
-
-          <div class="kpi inline-kpi">
 
             @if (contextoDashboard === 'documentos') {
-              <div class="inline-kpi-row">
-                <span class="type-dot blue"></span>
-                <span class="type-label">Patrocinios</span>
-                <span class="type-val">{{ totalPatrocinios }}</span>
+              <div class="kpi-tipo-item">
+                <div class="kpi-tipo-header">
+                  <span class="kpi-tipo-label">Patrocinios</span>
+                  <span class="kpi-tipo-val" style="color: var(--blue)">{{ totalPatrocinios }}</span>
+                </div>
+                <div class="kpi-bar">
+                  <div class="kpi-bar-fill" style="background: var(--blue)"
+                    [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
+                </div>
+                <div class="kpi-tipo-sub">
+                  {{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
+                </div>
               </div>
-
-              <div class="inline-kpi-row">
-                <span class="type-dot purple"></span>
-                <span class="type-label">Plan Individual</span>
-                <span class="type-val">{{ totalPlanes }}</span>
+              <div class="kpi-tipo-item" style="margin-top: 10px">
+                <div class="kpi-tipo-header">
+                  <span class="kpi-tipo-label">Plan Individual</span>
+                  <span class="kpi-tipo-val" style="color: var(--purple)">{{ totalPlanes }}</span>
+                </div>
+                <div class="kpi-bar">
+                  <div class="kpi-bar-fill" style="background: var(--purple)"
+                    [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
+                </div>
+                <div class="kpi-tipo-sub">
+                  {{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total
+                </div>
               </div>
             }
 
             @if (contextoDashboard === 'seguimiento') {
-              <div class="inline-kpi-row">
-                <span class="type-dot teal"></span>
-                <span class="type-label">Seguimientos</span>
-                <span class="type-val">{{ totalSeguimientos }}</span>
+              <div class="kpi-tipo-item">
+                <div class="kpi-tipo-header">
+                  <span class="kpi-tipo-label">Seguimientos</span>
+                  <span class="kpi-tipo-val" style="color: var(--teal)">{{ totalSeguimientos }}</span>
+                </div>
+                <div class="kpi-bar">
+                  <div class="kpi-bar-fill" style="background: var(--teal); width: 100%"></div>
+                </div>
+                <div class="kpi-tipo-sub">100% del total</div>
               </div>
             }
 
             @if (contextoDashboard === 'sinFormacion') {
-              <div class="inline-kpi-row">
-                <span class="type-dot amber"></span>
-                <span class="type-label">Sin formación</span>
-                <span class="type-val">{{ totalSinFormacion }}</span>
+              <div class="kpi-tipo-item">
+                <div class="kpi-tipo-header">
+                  <span class="kpi-tipo-label">Sin formación</span>
+                  <span class="kpi-tipo-val" style="color: var(--amber)">{{ totalSinFormacion }}</span>
+                </div>
+                <div class="kpi-bar">
+                  <div class="kpi-bar-fill" style="background: var(--amber); width: 100%"></div>
+                </div>
+                <div class="kpi-tipo-sub">100% del total</div>
               </div>
             }
-
           </div>
 
         </div>
 
+        <!-- ── CHARTS ── -->
         <div class="charts-row">
 
+          <!-- Donut — CORREGIDO: sin hueco gris -->
+          <!--
+            FÓRMULA CORRECTA DEL DONUT:
+            Circunferencia = 2 × π × r = 2 × π × 70 ≈ 439.82
+            Arco verde  → dasharray = (pctEnt/100 × 439.82)  dashoffset = 0
+            Arco amarillo → dasharray = (pctPend/100 × 439.82)
+                            dashoffset = -(pctEnt/100 × 439.82)
+            Así el amarillo empieza exactamente donde termina el verde, sin huecos.
+          -->
           <div class="chart-card">
             <div class="card-header">
               <h3>Entregados vs Pendientes</h3>
@@ -206,34 +221,34 @@
 
             <div class="donut-main">
               <svg viewBox="0 0 200 200" class="donut-svg">
-                <defs>
-                  <linearGradient id="grad-g" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#10b981" />
-                    <stop offset="100%" stop-color="#2ecc9a" />
-                  </linearGradient>
-                  <linearGradient id="grad-a" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#f59e0b" />
-                    <stop offset="100%" stop-color="#fbbf24" />
-                  </linearGradient>
-                </defs>
-
-                <circle cx="100" cy="100" r="70" fill="none"
-                  stroke="rgba(255,255,255,0.06)" stroke-width="18"
+                <!-- pista gris de fondo -->
+                <circle cx="100" cy="100" r="70"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.06)"
+                  stroke-width="18"
                   transform="rotate(-90 100 100)" />
 
-                <circle cx="100" cy="100" r="70" fill="none"
-                  stroke="url(#grad-g)" stroke-width="18" stroke-linecap="round"
-                  [attr.stroke-dasharray]="(porcentajeEntregados * 4.398) + ' 439.8'"
-                  stroke-dashoffset="-109.95"
+                <!-- arco VERDE — entregados, offset = 0 (empieza en la cima) -->
+                <circle cx="100" cy="100" r="70"
+                  fill="none"
+                  stroke="#2ecc9a"
+                  stroke-width="18"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="(porcentajeEntregados / 100 * 439.82).toFixed(2) + ' 439.82'"
+                  stroke-dashoffset="0"
                   transform="rotate(-90 100 100)" />
 
-                <circle cx="100" cy="100" r="70" fill="none"
-                  stroke="url(#grad-a)" stroke-width="18" stroke-linecap="round"
-                  [attr.stroke-dasharray]="(porcentajePendientes * 4.398) + ' 439.8'"
-                  [attr.stroke-dashoffset]="-(109.95 - (porcentajeEntregados * 4.398))"
+                <!-- arco AMARILLO — pendientes, offset = -(arcVerde) para encadenar sin hueco -->
+                <circle cx="100" cy="100" r="70"
+                  fill="none"
+                  stroke="#fbbf24"
+                  stroke-width="18"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="(porcentajePendientes / 100 * 439.82).toFixed(2) + ' 439.82'"
+                  [attr.stroke-dashoffset]="-(porcentajeEntregados / 100 * 439.82)"
                   transform="rotate(-90 100 100)" />
 
-                <text x="100" y="92" text-anchor="middle" class="donut-center-num">
+                <text x="100" y="94" text-anchor="middle" class="donut-center-num">
                   {{ porcentajeEntregados }}%
                 </text>
                 <text x="100" y="112" text-anchor="middle" class="donut-center-sub">
@@ -245,11 +260,10 @@
                 <div class="legend-row">
                   <span class="legend-color green-bg"></span>
                   <div class="legend-text">
-                    <strong>Entregados</strong>
-                    <span>{{ totalEntregados }} · {{ porcentajeEntregados }}%</span>
+                    <strong>{{ totalEntregados }} entregados</strong>
+                    <span>{{ porcentajeEntregados }}% del total · listos</span>
                   </div>
                 </div>
-
                 <div class="progress-bar-wrap">
                   <div class="progress-fill green-fill" [style.width.%]="porcentajeEntregados"></div>
                 </div>
@@ -257,11 +271,10 @@
                 <div class="legend-row mt12">
                   <span class="legend-color amber-bg"></span>
                   <div class="legend-text">
-                    <strong>Pendientes</strong>
-                    <span>{{ totalPendientes }} · {{ porcentajePendientes }}%</span>
+                    <strong>{{ totalPendientes }} pendientes</strong>
+                    <span>{{ porcentajePendientes }}% del total · por entregar</span>
                   </div>
                 </div>
-
                 <div class="progress-bar-wrap">
                   <div class="progress-fill amber-fill" [style.width.%]="porcentajePendientes"></div>
                 </div>
@@ -269,78 +282,135 @@
             </div>
           </div>
 
-          <div class="chart-card">
-            <div class="card-header">
-              <h3>Distribución por tipo</h3>
-              <span class="card-badge">Resumen</span>
+          <!-- Segundo chart: VERSUS para seguimiento, tipo-bars para el resto -->
+          @if (contextoDashboard === 'seguimiento') {
+
+            <!-- ── GRÁFICO VERSUS DOCENTES ── -->
+            <div class="chart-card">
+              <div class="card-header">
+                <h3>Distribución de seguimientos por docente</h3>
+                <span class="card-badge teal-badge">Versus</span>
+              </div>
+              <p class="chart-sub">
+                Cada docente representa su % del total ({{ totalDocumentos }} seguimientos)
+              </p>
+
+              <!-- Leyenda de colores -->
+              <div class="versus-legend">
+                @for (d of docentesVersus; track d.nombre; let i = $index) {
+                  <div class="vleg-item">
+                    <div class="vleg-dot" [style.background]="paleta[i % paleta.length]"></div>
+                    {{ d.nombre }}
+                  </div>
+                }
+              </div>
+
+              <!-- Barra apilada: cada segmento = un docente -->
+              <div class="versus-stacked">
+                @for (d of docentesVersus; track d.nombre; let i = $index) {
+                  <div class="versus-stacked-seg"
+                    [style.width.%]="d.pctDelTotal"
+                    [style.background]="paleta[i % paleta.length]"
+                    [title]="d.nombre + ': ' + d.pctDelTotal + '% (' + d.total + ' seguimientos)'">
+                    @if (d.pctDelTotal > 6) {
+                      <span class="versus-stacked-lbl">{{ d.pctDelTotal | number:'1.0-0' }}%</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Filas individuales: entregados vs pendientes de cada docente -->
+              <div class="versus-rows">
+                @for (d of docentesVersus; track d.nombre; let i = $index) {
+                  <div class="versus-bar-row">
+                    <div class="versus-name"
+                      [style.color]="paleta[i % paleta.length]"
+                      [title]="d.nombre + ' · ' + d.carrera">
+                      {{ d.nombre }}
+                    </div>
+                    <div class="versus-track">
+                      <div class="versus-seg-fill"
+                        [style.width.%]="d.pctEntregado"
+                        [style.background]="paleta[i % paleta.length]">
+                        @if (d.pctEntregado > 20) {
+                          <span class="versus-seg-label">{{ d.pctEntregado }}%</span>
+                        }
+                      </div>
+                      <div class="versus-seg-rest" [style.width.%]="100 - d.pctEntregado"></div>
+                    </div>
+                    <div class="versus-nums">
+                      <span class="vn-green">{{ d.ent }}</span>
+                      <span class="vn-sep">/</span>
+                      <span class="vn-amber">{{ d.pend }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
 
-            <div class="tipo-bars">
+          } @else {
 
-              @if (contextoDashboard === 'documentos') {
-                <div class="tipo-row">
-                  <div class="tipo-info">
-                    <span class="tipo-icon blue-icon">P</span>
-                    <div>
-                      <strong>Patrocinios</strong>
-                      <small>{{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+            <!-- ── DISTRIBUCIÓN POR TIPO (documentos / sinFormacion) ── -->
+            <div class="chart-card">
+              <div class="card-header">
+                <h3>Distribución por tipo</h3>
+                <span class="card-badge">Resumen</span>
+              </div>
+
+              <div class="tipo-bars">
+
+                @if (contextoDashboard === 'documentos') {
+                  <div class="tipo-row">
+                    <div class="tipo-info">
+                      <span class="tipo-icon blue-icon">P</span>
+                      <div>
+                        <strong>Patrocinios</strong>
+                        <small>{{ totalDocumentos ? (totalPatrocinios / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                      </div>
                     </div>
-                  </div>
-                  <div class="tipo-track">
-                    <div class="tipo-prog blue-prog" [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
-                  </div>
-                  <span class="tipo-count">{{ totalPatrocinios }}</span>
-                </div>
-
-                <div class="tipo-row">
-                  <div class="tipo-info">
-                    <span class="tipo-icon purple-icon">I</span>
-                    <div>
-                      <strong>Plan Individual</strong>
-                      <small>{{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                    <div class="tipo-track">
+                      <div class="tipo-prog blue-prog"
+                        [style.width.%]="totalDocumentos ? (totalPatrocinios / totalDocumentos * 100) : 0"></div>
                     </div>
+                    <span class="tipo-count">{{ totalPatrocinios }}</span>
                   </div>
-                  <div class="tipo-track">
-                    <div class="tipo-prog purple-prog" [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
-                  </div>
-                  <span class="tipo-count">{{ totalPlanes }}</span>
-                </div>
-              }
 
-              @if (contextoDashboard === 'seguimiento') {
-                <div class="tipo-row">
-                  <div class="tipo-info">
-                    <span class="tipo-icon teal-icon">S</span>
-                    <div>
-                      <strong>Seguimientos</strong>
-                      <small>{{ totalDocumentos ? (totalSeguimientos / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                  <div class="tipo-row">
+                    <div class="tipo-info">
+                      <span class="tipo-icon purple-icon">I</span>
+                      <div>
+                        <strong>Plan Individual</strong>
+                        <small>{{ totalDocumentos ? (totalPlanes / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                      </div>
                     </div>
-                  </div>
-                  <div class="tipo-track">
-                    <div class="tipo-prog teal-prog" [style.width.%]="totalDocumentos ? (totalSeguimientos / totalDocumentos * 100) : 0"></div>
-                  </div>
-                  <span class="tipo-count">{{ totalSeguimientos }}</span>
-                </div>
-              }
-
-              @if (contextoDashboard === 'sinFormacion') {
-                <div class="tipo-row">
-                  <div class="tipo-info">
-                    <span class="tipo-icon amber-icon">SF</span>
-                    <div>
-                      <strong>Sin formación</strong>
-                      <small>{{ totalDocumentos ? (totalSinFormacion / totalDocumentos * 100 | number:'1.0-0') : 0 }}% del total</small>
+                    <div class="tipo-track">
+                      <div class="tipo-prog purple-prog"
+                        [style.width.%]="totalDocumentos ? (totalPlanes / totalDocumentos * 100) : 0"></div>
                     </div>
+                    <span class="tipo-count">{{ totalPlanes }}</span>
                   </div>
-                  <div class="tipo-track">
-                    <div class="tipo-prog amber-prog" [style.width.%]="totalDocumentos ? (totalSinFormacion / totalDocumentos * 100) : 0"></div>
-                  </div>
-                  <span class="tipo-count">{{ totalSinFormacion }}</span>
-                </div>
-              }
+                }
 
+                @if (contextoDashboard === 'sinFormacion') {
+                  <div class="tipo-row">
+                    <div class="tipo-info">
+                      <span class="tipo-icon amber-icon">SF</span>
+                      <div>
+                        <strong>Sin formación</strong>
+                        <small>100% del total</small>
+                      </div>
+                    </div>
+                    <div class="tipo-track">
+                      <div class="tipo-prog amber-prog" style="width: 100%"></div>
+                    </div>
+                    <span class="tipo-count">{{ totalSinFormacion }}</span>
+                  </div>
+                }
+
+              </div>
             </div>
-          </div>
+
+          }
 
         </div>
 
@@ -357,19 +427,19 @@
           <div class="control-group">
             <label>Ordenar por</label>
             <div class="btn-group">
-              <button class="btn-sort" [class.active]="sortMode === 'pct'" (click)="setSortMode('pct')">% Entregado</button>
+              <button class="btn-sort" [class.active]="sortMode === 'pct'"   (click)="setSortMode('pct')">% Entregado</button>
               <button class="btn-sort" [class.active]="sortMode === 'total'" (click)="setSortMode('total')">Total docs</button>
-              <button class="btn-sort" [class.active]="sortMode === 'name'" (click)="setSortMode('name')">Nombre</button>
+              <button class="btn-sort" [class.active]="sortMode === 'name'"  (click)="setSortMode('name')">Nombre</button>
             </div>
           </div>
 
           <div class="control-group">
             <label>Filtrar</label>
             <div class="btn-group">
-              <button class="btn-filter" [class.active]="filterMode === 'all'" (click)="setFilterMode('all')">Todas</button>
-              <button class="btn-filter" [class.active]="filterMode === 'alto'" (click)="setFilterMode('alto')">Alto ≥70%</button>
+              <button class="btn-filter" [class.active]="filterMode === 'all'"   (click)="setFilterMode('all')">Todas</button>
+              <button class="btn-filter" [class.active]="filterMode === 'alto'"  (click)="setFilterMode('alto')">Alto ≥70%</button>
               <button class="btn-filter" [class.active]="filterMode === 'medio'" (click)="setFilterMode('medio')">Medio 40–69%</button>
-              <button class="btn-filter" [class.active]="filterMode === 'bajo'" (click)="setFilterMode('bajo')">Bajo &lt;40%</button>
+              <button class="btn-filter" [class.active]="filterMode === 'bajo'"  (click)="setFilterMode('bajo')">Bajo &lt;40%</button>
             </div>
           </div>
         </div>
@@ -396,29 +466,19 @@
                   </div>
                 </div>
 
-                <div class="cc-mini-chart">
-                  <svg viewBox="0 0 80 80" class="mini-donut">
-                    <circle cx="40" cy="40" r="28" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" />
-                    <circle cx="40" cy="40" r="28" fill="none"
-                      [class.stroke-green]="item.porcentajeEntregados >= 70"
-                      [class.stroke-amber]="item.porcentajeEntregados >= 40 && item.porcentajeEntregados < 70"
-                      [class.stroke-red]="item.porcentajeEntregados < 40"
-                      stroke-width="10" stroke-linecap="round"
-                      [attr.stroke-dasharray]="(item.porcentajeEntregados * 1.759) + ' 175.9'"
-                      stroke-dashoffset="43.98" />
-                  </svg>
-
-                  <div class="mini-donut-stats">
-                    <div class="mds-row">
-                      <span class="mds-dot green"></span>
-                      <span>Entregados</span>
-                      <strong>{{ item.entregados }}</strong>
-                    </div>
-                    <div class="mds-row">
-                      <span class="mds-dot amber"></span>
-                      <span>Pendientes</span>
-                      <strong>{{ item.pendientes }}</strong>
-                    </div>
+                <!-- Stats individuales claros -->
+                <div class="cc-stats">
+                  <div class="cc-stat">
+                    <span class="cc-stat-n green">{{ item.entregados }}</span>
+                    <span class="cc-stat-l">Entregados</span>
+                  </div>
+                  <div class="cc-stat">
+                    <span class="cc-stat-n amber">{{ item.pendientes }}</span>
+                    <span class="cc-stat-l">Pendientes</span>
+                  </div>
+                  <div class="cc-stat">
+                    <span class="cc-stat-n blue">{{ item.total }}</span>
+                    <span class="cc-stat-l">Total</span>
                   </div>
                 </div>
 
@@ -466,21 +526,17 @@
           <div class="control-group">
             <label>Tipo de registro</label>
             <div class="btn-group">
-
               @if (contextoDashboard === 'documentos') {
-                <button class="btn-tipo" [class.active]="tipoSeleccionado === 'todos'" (click)="setTipoSeleccionado('todos')">Todos</button>
+                <button class="btn-tipo" [class.active]="tipoSeleccionado === 'todos'"      (click)="setTipoSeleccionado('todos')">Todos</button>
                 <button class="btn-tipo" [class.active]="tipoSeleccionado === 'patrocinio'" (click)="setTipoSeleccionado('patrocinio')">Patrocinios</button>
-                <button class="btn-tipo" [class.active]="tipoSeleccionado === 'plan'" (click)="setTipoSeleccionado('plan')">Plan Individual</button>
+                <button class="btn-tipo" [class.active]="tipoSeleccionado === 'plan'"       (click)="setTipoSeleccionado('plan')">Plan Individual</button>
               }
-
               @if (contextoDashboard === 'seguimiento') {
                 <button class="btn-tipo" [class.active]="tipoSeleccionado === 'seguimiento'" (click)="setTipoSeleccionado('seguimiento')">Seguimientos</button>
               }
-
               @if (contextoDashboard === 'sinFormacion') {
                 <button class="btn-tipo" [class.active]="tipoSeleccionado === 'sinFormacion'" (click)="setTipoSeleccionado('sinFormacion')">Sin formación</button>
               }
-
             </div>
           </div>
         </div>
@@ -500,14 +556,21 @@
               <span class="fr-num amber">{{ contarPendientes(registrosFiltrados) }}</span>
               <span class="fr-lbl">Pendientes</span>
             </div>
+            <div class="fr-stat">
+              <span class="fr-num blue">
+                {{ registrosFiltrados.length ? (contarEntregados(registrosFiltrados) / registrosFiltrados.length * 100 | number:'1.0-0') : 0 }}%
+              </span>
+              <span class="fr-lbl">Completado</span>
+            </div>
           </div>
 
           <div class="stacked-wrap">
+            <div class="stacked-title">Entregados vs Pendientes por tipo</div>
             @for (grupo of gruposPorTipo; track grupo.tipo) {
               <div class="stacked-row">
                 <span class="stacked-label">{{ grupo.label }}</span>
                 <div class="stacked-track">
-                  <div class="stacked-ent" [style.width.%]="grupo.pctEnt"></div>
+                  <div class="stacked-ent"  [style.width.%]="grupo.pctEnt"></div>
                   <div class="stacked-pend" [style.width.%]="grupo.pctPend"></div>
                 </div>
                 <div class="stacked-nums">
@@ -524,29 +587,23 @@
               <div class="matrix-title">
                 Mapa de calor — entrega por carrera × tipo
               </div>
-
               <div class="matrix-grid">
                 <div class="matrix-head-row">
                   <div class="mh-empty"></div>
-
                   @if (contextoDashboard === 'documentos') {
                     <div class="mh-col">Patrocinios</div>
                     <div class="mh-col">Plan Ind.</div>
                   }
-
                   @if (contextoDashboard === 'seguimiento') {
                     <div class="mh-col">Seguimientos</div>
                   }
-
                   @if (contextoDashboard === 'sinFormacion') {
                     <div class="mh-col">Sin formación</div>
                   }
                 </div>
-
                 @for (item of resumenCarreras; track item.carrera) {
                   <div class="matrix-data-row">
                     <div class="mr-label">{{ item.carrera }}</div>
-
                     @for (tipo of tiposHeat; track tipo) {
                       <div class="mr-cell" [ngClass]="'heat-' + getHeatLevel(item.carrera, tipo)">
                         {{ getCellPct(item.carrera, tipo) }}%
@@ -559,7 +616,6 @@
           }
 
         </div>
-
       </div>
     }
 

@@ -4,13 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { off, onValue, ref } from 'firebase/database';
 import { dbDocente } from '../../../../../firebase/firebase-docente';
 
-/* ─── Interfaces ─────────────────────────────────────────── */
+type TipoRegistro = 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormacion';
+type ContextoDashboard = 'documentos' | 'seguimiento' | 'sinFormacion';
+type VistaDashboard = 'global' | 'carrera' | 'tipo';
 
 interface RegistroBase {
-  tipo: 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
-
+  tipo: TipoRegistro;
   carrera: string;
   entregado: boolean;
+  nombre?: string;
 }
 
 interface CarreraResumen {
@@ -31,7 +33,15 @@ interface GrupoTipo {
   pctPend: number;
 }
 
-/* ─── Componente ─────────────────────────────────────────── */
+interface DocenteVersus {
+  nombre: string;
+  carrera: string;
+  total: number;
+  ent: number;
+  pend: number;
+  pctEntregado: number;
+  pctDelTotal: number;
+}
 
 @Component({
   selector: 'app-dasboard',
@@ -42,39 +52,54 @@ interface GrupoTipo {
 })
 export class Dasboard implements OnInit, OnDestroy {
 
-  /* ── Estado general ── */
   cargando = true;
-  vistaActiva: 'global' | 'carrera' | 'tipo' = 'global';
+  vistaActiva: VistaDashboard = 'global';
+  contextoDashboard: ContextoDashboard = 'documentos';
+
   ultimaActualizacion = '—';
 
   tituloVista = 'Vista Global';
   subtituloVista = 'Resumen general de documentos entregados y pendientes';
 
-  /* ── KPIs globales ── */
   totalDocumentos = 0;
   totalEntregados = 0;
   totalPendientes = 0;
   porcentajeEntregados = 0;
   porcentajePendientes = 0;
 
-  /* ── Por tipo ── */
   totalPatrocinios = 0;
   totalPlanes = 0;
   totalSeguimientos = 0;
   totalSinFormacion = 0;
-  contextoDashboard: 'documentos' | 'seguimiento' | 'sinFormacion' = 'documentos';
 
-  /* ── Vista Carrera ── */
   resumenCarreras: CarreraResumen[] = [];
   resumenCarrerasFiltrado: CarreraResumen[] = [];
-  sortMode = 'pct';
-  filterMode = 'all';
 
-  /* ── Vista Carrera + Tipo ── */
+  sortMode: 'pct' | 'total' | 'name' = 'pct';
+  filterMode: 'all' | 'alto' | 'medio' | 'bajo' = 'all';
+
   carreraSeleccionada = '';
-  tipoSeleccionado = 'todos';
+  tipoSeleccionado: 'todos' | TipoRegistro = 'todos';
+
   registrosFiltrados: RegistroBase[] = [];
   gruposPorTipo: GrupoTipo[] = [];
+
+  tiposHeat: TipoRegistro[] = ['patrocinio', 'plan'];
+
+  docentesVersus: DocenteVersus[] = [];
+
+  paleta: string[] = [
+    '#38bdf8',
+    '#a78bfa',
+    '#2ecc9a',
+    '#fbbf24',
+    '#fb7185',
+    '#34d399',
+    '#60a5fa',
+    '#f472b6',
+    '#c084fc',
+    '#22d3ee'
+  ];
 
   private matrizData = new Map<string, Map<string, { ent: number; total: number }>>();
   private todosRegistros: RegistroBase[] = [];
@@ -84,8 +109,7 @@ export class Dasboard implements OnInit, OnDestroy {
   private refSeguimiento = ref(dbDocente, 'seguimientoGenerados');
   private refSinFormacion = ref(dbDocente, 'docentesSinFormacion');
 
-  constructor(private cdr: ChangeDetectorRef) { }
-  tiposHeat: string[] = ['patrocinio', 'plan'];
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.cargarDashboard();
@@ -99,17 +123,16 @@ export class Dasboard implements OnInit, OnDestroy {
     off(this.refSinFormacion);
   }
 
-  /* ══ Navegación ══ */
-
-  cambiarVista(vista: 'global' | 'carrera' | 'tipo'): void {
+  cambiarVista(vista: VistaDashboard): void {
     this.vistaActiva = vista;
 
-    const titulos: Record<string, string> = {
+    const titulos: Record<VistaDashboard, string> = {
       global: 'Vista Global',
       carrera: 'Entregados por Carrera',
       tipo: 'Análisis Carrera × Tipo'
     };
-    const subtitulos: Record<string, string> = {
+
+    const subtitulos: Record<VistaDashboard, string> = {
       global: 'Resumen general de documentos entregados y pendientes',
       carrera: 'Comparativo de entrega agrupado por carrera académica',
       tipo: 'Filtra y cruza datos por carrera y tipo de documento'
@@ -117,82 +140,58 @@ export class Dasboard implements OnInit, OnDestroy {
 
     this.tituloVista = titulos[vista];
     this.subtituloVista = subtitulos[vista];
+
     this.cdr.detectChanges();
   }
-  cambiarContextoDashboard(contexto: 'documentos' | 'seguimiento' | 'sinFormacion'): void {
 
+  cambiarContextoDashboard(contexto: ContextoDashboard): void {
     this.contextoDashboard = contexto;
+    this.carreraSeleccionada = '';
 
     if (contexto === 'documentos') {
       this.tiposHeat = ['patrocinio', 'plan'];
       this.tipoSeleccionado = 'todos';
-
       this.tituloVista = 'Documentos por carrera';
-      this.subtituloVista =
-        'Patrocinio y plan individual agrupados por carreras configuradas por el administrador';
+      this.subtituloVista = 'Patrocinio y plan individual agrupados por carreras configuradas por el administrador';
     }
 
     if (contexto === 'seguimiento') {
       this.tiposHeat = ['seguimiento'];
       this.tipoSeleccionado = 'seguimiento';
-
       this.tituloVista = 'Seguimiento docente';
-      this.subtituloVista =
-        'Seguimientos agrupados por la carrera ingresada por el docente';
+      this.subtituloVista = 'Seguimientos agrupados por la carrera ingresada por el docente';
     }
 
     if (contexto === 'sinFormacion') {
       this.tiposHeat = ['sinFormacion'];
       this.tipoSeleccionado = 'sinFormacion';
-
       this.tituloVista = 'Docentes sin formación';
-      this.subtituloVista =
-        'Docentes que registraron no estar en proceso de formación';
+      this.subtituloVista = 'Docentes que registraron no estar en proceso de formación';
     }
 
     this.procesarRegistros(this.obtenerRegistrosPorContexto());
   }
-  /* ══ Sort / Filter — Vista Carrera ══ */
 
-  setSortMode(mode: string): void {
+  setSortMode(mode: 'pct' | 'total' | 'name'): void {
     this.sortMode = mode;
     this.aplicarSortYFilter();
   }
 
-  setFilterMode(mode: string): void {
+  setFilterMode(mode: 'all' | 'alto' | 'medio' | 'bajo'): void {
     this.filterMode = mode;
     this.aplicarSortYFilter();
   }
 
-  private aplicarSortYFilter(): void {
-    let lista = [...this.resumenCarreras];
-
-    /* Filtro por nivel */
-    if (this.filterMode === 'alto') lista = lista.filter(i => i.porcentajeEntregados >= 70);
-    if (this.filterMode === 'medio') lista = lista.filter(i => i.porcentajeEntregados >= 40 && i.porcentajeEntregados < 70);
-    if (this.filterMode === 'bajo') lista = lista.filter(i => i.porcentajeEntregados < 40);
-
-    /* Ordenamiento */
-    if (this.sortMode === 'pct') lista.sort((a, b) => b.porcentajeEntregados - a.porcentajeEntregados);
-    if (this.sortMode === 'total') lista.sort((a, b) => b.total - a.total);
-    if (this.sortMode === 'name') lista.sort((a, b) => a.carrera.localeCompare(b.carrera));
-
-    this.resumenCarrerasFiltrado = lista;
-    this.cdr.detectChanges();
-  }
-
-  /* ══ Vista Carrera + Tipo ══ */
-
-  setTipoSeleccionado(tipo: string): void {
+  setTipoSeleccionado(tipo: 'todos' | TipoRegistro): void {
     this.tipoSeleccionado = tipo;
     this.filtrarPorCarreraYTipo();
   }
 
   filtrarPorCarreraYTipo(): void {
-    let base = this.todosRegistros;
+    let base = this.obtenerRegistrosPorContexto();
 
     if (this.carreraSeleccionada) {
-      base = base.filter(r => (r.carrera || 'Sin carrera').trim() === this.carreraSeleccionada);
+      base = base.filter(r => this.normalizarCarrera(r.carrera) === this.carreraSeleccionada);
     }
 
     if (this.tipoSeleccionado !== 'todos') {
@@ -200,51 +199,9 @@ export class Dasboard implements OnInit, OnDestroy {
     }
 
     this.registrosFiltrados = base;
-
-    const tipos: { key: 'patrocinio' | 'plan' | 'seguimiento'; label: string }[] = [
-      { key: 'patrocinio', label: 'Patrocinios' },
-      { key: 'plan', label: 'Plan Individual' },
-      { key: 'seguimiento', label: 'Seguimientos' }
-    ];
-
-    this.gruposPorTipo = tipos.map(t => {
-      const sub = base.filter(r => r.tipo === t.key);
-      const ent = sub.filter(r => r.entregado).length;
-      const pend = sub.length - ent;
-      const total = sub.length;
-      return {
-        label: t.label,
-        tipo: t.key,
-        total,
-        entregados: ent,
-        pendientes: pend,
-        pctEnt: total ? Math.round((ent / total) * 100) : 0,
-        pctPend: total ? Math.round((pend / total) * 100) : 0
-      };
-    }).filter(g => g.total > 0);
-
+    this.construirGruposPorTipo(base);
     this.cdr.detectChanges();
   }
-  private obtenerRegistrosPorContexto(): RegistroBase[] {
-
-    if (this.contextoDashboard === 'documentos') {
-      return this.todosRegistros.filter(r =>
-        r.tipo === 'patrocinio' || r.tipo === 'plan'
-      );
-    }
-
-    if (this.contextoDashboard === 'seguimiento') {
-      return this.todosRegistros.filter(r =>
-        r.tipo === 'seguimiento'
-      );
-    }
-
-    return this.todosRegistros.filter(r =>
-      r.tipo === 'sinFormación'
-    );
-  }
-
-  /* ══ Helpers para el template ══ */
 
   contarEntregados(registros: RegistroBase[]): number {
     return registros.filter(r => r.entregado).length;
@@ -257,20 +214,22 @@ export class Dasboard implements OnInit, OnDestroy {
   getCellPct(carrera: string, tipo: string): number {
     const tipoMap = this.matrizData.get(carrera);
     if (!tipoMap) return 0;
+
     const cell = tipoMap.get(tipo);
     if (!cell || cell.total === 0) return 0;
+
     return Math.round((cell.ent / cell.total) * 100);
   }
 
   getHeatLevel(carrera: string, tipo: string): string {
     const pct = this.getCellPct(carrera, tipo);
+
     if (pct === 0) return '0';
     if (pct >= 70) return 'high';
     if (pct >= 40) return 'mid';
+
     return 'low';
   }
-
-  /* ══ Firebase ══ */
 
   escucharCambios(): void {
     onValue(this.refPatrocinio, () => this.cargarDashboard());
@@ -293,37 +252,58 @@ export class Dasboard implements OnInit, OnDestroy {
         const registros: RegistroBase[] = [];
 
         if (patrocinios) {
-          Object.values(patrocinios).forEach((docs: any) => {
-            if (!docs || typeof docs !== 'object') return;
-            Object.values(docs).forEach((doc: any) => {
-              registros.push({ tipo: 'patrocinio', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+          Object.values(patrocinios).forEach((grupo: any) => {
+            if (!grupo || typeof grupo !== 'object') return;
+
+            Object.values(grupo).forEach((doc: any) => {
+              registros.push({
+                tipo: 'patrocinio',
+                carrera: this.obtenerCarrera(doc),
+                entregado: Boolean(doc?.entregado),
+                nombre: this.obtenerNombre(doc)
+              });
             });
           });
         }
 
         if (planes) {
-          Object.values(planes).forEach((docs: any) => {
-            if (!docs || typeof docs !== 'object') return;
-            Object.values(docs).forEach((doc: any) => {
-              registros.push({ tipo: 'plan', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
+          Object.values(planes).forEach((grupo: any) => {
+            if (!grupo || typeof grupo !== 'object') return;
+
+            Object.values(grupo).forEach((doc: any) => {
+              registros.push({
+                tipo: 'plan',
+                carrera: this.obtenerCarrera(doc),
+                entregado: Boolean(doc?.entregado),
+                nombre: this.obtenerNombre(doc)
+              });
             });
           });
         }
 
         if (seguimientos) {
           Object.values(seguimientos).forEach((doc: any) => {
-            registros.push({ tipo: 'seguimiento', carrera: doc?.carrera ?? '', entregado: Boolean(doc?.entregado) });
-          });
-        }
-        if (sinFormacion) {
-          Object.values(sinFormacion).forEach((doc: any) => {
+            if (!doc || typeof doc !== 'object') return;
 
             registros.push({
-              tipo: 'sinFormación',
-              carrera: doc?.carrera ?? 'Sin carrera',
-              entregado: Boolean(doc?.entregado)
+              tipo: 'seguimiento',
+              carrera: this.obtenerCarrera(doc),
+              entregado: Boolean(doc?.entregado),
+              nombre: this.obtenerNombre(doc)
             });
+          });
+        }
 
+        if (sinFormacion) {
+          Object.values(sinFormacion).forEach((doc: any) => {
+            if (!doc || typeof doc !== 'object') return;
+
+            registros.push({
+              tipo: 'sinFormacion',
+              carrera: this.obtenerCarrera(doc),
+              entregado: Boolean(doc?.entregado),
+              nombre: this.obtenerNombre(doc)
+            });
           });
         }
 
@@ -331,7 +311,13 @@ export class Dasboard implements OnInit, OnDestroy {
         this.procesarRegistros(this.obtenerRegistrosPorContexto());
 
         const now = new Date();
-        this.ultimaActualizacion = now.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+        this.ultimaActualizacion = now.toLocaleTimeString('es-EC', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        this.cargando = false;
+        this.cdr.detectChanges();
       })
       .catch(err => {
         console.error('Error cargando dashboard:', err);
@@ -341,54 +327,240 @@ export class Dasboard implements OnInit, OnDestroy {
   }
 
   procesarRegistros(registros: RegistroBase[]): void {
-    /* KPIs globales */
     this.totalDocumentos = registros.length;
     this.totalEntregados = registros.filter(r => r.entregado).length;
     this.totalPendientes = this.totalDocumentos - this.totalEntregados;
-    this.porcentajeEntregados = this.totalDocumentos
-      ? Math.round((this.totalEntregados / this.totalDocumentos) * 100) : 0;
-    this.porcentajePendientes = 100 - this.porcentajeEntregados;
 
-    /* Por tipo */
+    this.porcentajeEntregados = this.totalDocumentos
+      ? Math.round((this.totalEntregados / this.totalDocumentos) * 100)
+      : 0;
+
+    this.porcentajePendientes = this.totalDocumentos
+      ? 100 - this.porcentajeEntregados
+      : 0;
+
     this.totalPatrocinios = registros.filter(r => r.tipo === 'patrocinio').length;
     this.totalPlanes = registros.filter(r => r.tipo === 'plan').length;
     this.totalSeguimientos = registros.filter(r => r.tipo === 'seguimiento').length;
-    this.totalSinFormacion = registros.filter(r => r.tipo === 'sinFormación').length;
+    this.totalSinFormacion = registros.filter(r => r.tipo === 'sinFormacion').length;
 
-    /* Por carrera */
-    const mapa = new Map<string, CarreraResumen>();
-    registros.forEach(r => {
-      const nombre = (r.carrera || 'Sin carrera').trim() || 'Sin carrera';
-      if (!mapa.has(nombre)) {
-        mapa.set(nombre, { carrera: nombre, total: 0, entregados: 0, pendientes: 0, porcentajeEntregados: 0 });
-      }
-      const item = mapa.get(nombre)!;
-      item.total++;
-      r.entregado ? item.entregados++ : item.pendientes++;
-    });
+    this.construirResumenCarreras(registros);
+    this.construirMatrizHeat(registros);
+    this.construirDocentesVersus(registros);
 
-    this.resumenCarreras = Array.from(mapa.values()).map(item => ({
-      ...item,
-      porcentajeEntregados: item.total ? Math.round((item.entregados / item.total) * 100) : 0
-    }));
-
-    /* Construir matriz heat */
-    this.matrizData.clear();
-    registros.forEach(r => {
-      const c = (r.carrera || 'Sin carrera').trim() || 'Sin carrera';
-      if (!this.matrizData.has(c)) this.matrizData.set(c, new Map());
-      const tipoMap = this.matrizData.get(c)!;
-      if (!tipoMap.has(r.tipo)) tipoMap.set(r.tipo, { ent: 0, total: 0 });
-      const cell = tipoMap.get(r.tipo)!;
-      cell.total++;
-      if (r.entregado) cell.ent++;
-    });
-
-    /* Aplicar sort/filter iniciales y sincronizar vista tipo */
     this.aplicarSortYFilter();
     this.filtrarPorCarreraYTipo();
 
     this.cargando = false;
     this.cdr.detectChanges();
+  }
+
+  private obtenerRegistrosPorContexto(): RegistroBase[] {
+    if (this.contextoDashboard === 'documentos') {
+      return this.todosRegistros.filter(r => r.tipo === 'patrocinio' || r.tipo === 'plan');
+    }
+
+    if (this.contextoDashboard === 'seguimiento') {
+      return this.todosRegistros.filter(r => r.tipo === 'seguimiento');
+    }
+
+    return this.todosRegistros.filter(r => r.tipo === 'sinFormacion');
+  }
+
+  private aplicarSortYFilter(): void {
+    let lista = [...this.resumenCarreras];
+
+    if (this.filterMode === 'alto') {
+      lista = lista.filter(i => i.porcentajeEntregados >= 70);
+    }
+
+    if (this.filterMode === 'medio') {
+      lista = lista.filter(i => i.porcentajeEntregados >= 40 && i.porcentajeEntregados < 70);
+    }
+
+    if (this.filterMode === 'bajo') {
+      lista = lista.filter(i => i.porcentajeEntregados < 40);
+    }
+
+    if (this.sortMode === 'pct') {
+      lista.sort((a, b) => b.porcentajeEntregados - a.porcentajeEntregados);
+    }
+
+    if (this.sortMode === 'total') {
+      lista.sort((a, b) => b.total - a.total);
+    }
+
+    if (this.sortMode === 'name') {
+      lista.sort((a, b) => a.carrera.localeCompare(b.carrera));
+    }
+
+    this.resumenCarrerasFiltrado = lista;
+  }
+
+  private construirResumenCarreras(registros: RegistroBase[]): void {
+    const mapa = new Map<string, CarreraResumen>();
+
+    registros.forEach(r => {
+      const carrera = this.normalizarCarrera(r.carrera);
+
+      if (!mapa.has(carrera)) {
+        mapa.set(carrera, {
+          carrera,
+          total: 0,
+          entregados: 0,
+          pendientes: 0,
+          porcentajeEntregados: 0
+        });
+      }
+
+      const item = mapa.get(carrera)!;
+      item.total++;
+
+      if (r.entregado) {
+        item.entregados++;
+      } else {
+        item.pendientes++;
+      }
+    });
+
+    this.resumenCarreras = Array.from(mapa.values()).map(item => ({
+      ...item,
+      porcentajeEntregados: item.total
+        ? Math.round((item.entregados / item.total) * 100)
+        : 0
+    }));
+  }
+
+  private construirMatrizHeat(registros: RegistroBase[]): void {
+    this.matrizData.clear();
+
+    registros.forEach(r => {
+      const carrera = this.normalizarCarrera(r.carrera);
+
+      if (!this.matrizData.has(carrera)) {
+        this.matrizData.set(carrera, new Map());
+      }
+
+      const tipoMap = this.matrizData.get(carrera)!;
+
+      if (!tipoMap.has(r.tipo)) {
+        tipoMap.set(r.tipo, { ent: 0, total: 0 });
+      }
+
+      const cell = tipoMap.get(r.tipo)!;
+      cell.total++;
+
+      if (r.entregado) {
+        cell.ent++;
+      }
+    });
+  }
+
+  private construirGruposPorTipo(base: RegistroBase[]): void {
+    const tipos: { key: TipoRegistro; label: string }[] = [
+      { key: 'patrocinio', label: 'Patrocinios' },
+      { key: 'plan', label: 'Plan Individual' },
+      { key: 'seguimiento', label: 'Seguimientos' },
+      { key: 'sinFormacion', label: 'Sin formación' }
+    ];
+
+    this.gruposPorTipo = tipos
+      .filter(t => {
+        if (this.contextoDashboard === 'documentos') {
+          return t.key === 'patrocinio' || t.key === 'plan';
+        }
+
+        if (this.contextoDashboard === 'seguimiento') {
+          return t.key === 'seguimiento';
+        }
+
+        return t.key === 'sinFormacion';
+      })
+      .map(t => {
+        const sub = base.filter(r => r.tipo === t.key);
+        const entregados = sub.filter(r => r.entregado).length;
+        const pendientes = sub.length - entregados;
+        const total = sub.length;
+
+        return {
+          label: t.label,
+          tipo: t.key,
+          total,
+          entregados,
+          pendientes,
+          pctEnt: total ? Math.round((entregados / total) * 100) : 0,
+          pctPend: total ? Math.round((pendientes / total) * 100) : 0
+        };
+      })
+      .filter(g => g.total > 0);
+  }
+
+  private construirDocentesVersus(registros: RegistroBase[]): void {
+    const mapa = new Map<string, DocenteVersus>();
+    const total = registros.length;
+
+    registros.forEach(r => {
+      const nombre = (r.nombre || 'Docente sin nombre').trim() || 'Docente sin nombre';
+      const carrera = this.normalizarCarrera(r.carrera);
+      const key = `${nombre}__${carrera}`;
+
+      if (!mapa.has(key)) {
+        mapa.set(key, {
+          nombre,
+          carrera,
+          total: 0,
+          ent: 0,
+          pend: 0,
+          pctEntregado: 0,
+          pctDelTotal: 0
+        });
+      }
+
+      const item = mapa.get(key)!;
+      item.total++;
+
+      if (r.entregado) {
+        item.ent++;
+      } else {
+        item.pend++;
+      }
+    });
+
+    this.docentesVersus = Array.from(mapa.values())
+      .map(d => ({
+        ...d,
+        pctEntregado: d.total ? Math.round((d.ent / d.total) * 100) : 0,
+        pctDelTotal: total ? Math.round((d.total / total) * 100) : 0
+      }))
+      .sort((a, b) => b.total - a.total);
+  }
+
+  private normalizarCarrera(carrera: any): string {
+    return String(carrera || 'Sin carrera').trim() || 'Sin carrera';
+  }
+
+  private obtenerCarrera(doc: any): string {
+    return this.normalizarCarrera(
+      doc?.carrera ||
+      doc?.CarreraCursando ||
+      doc?.datosDocumento?.carrera ||
+      doc?.datosDocumento?.CarreraCursando ||
+      'Sin carrera'
+    );
+  }
+
+  private obtenerNombre(doc: any): string {
+    return String(
+      doc?.nombre ||
+      doc?.docente ||
+      doc?.nombres ||
+      doc?.nombreDocente ||
+      doc?.['Nombres Completos'] ||
+      doc?.datosDocumento?.nombre ||
+      doc?.datosDocumento?.docente ||
+      doc?.datosDocumento?.nombres ||
+      doc?.datosDocumento?.['Nombres Completos'] ||
+      'Docente sin nombre'
+    ).trim();
   }
 }
