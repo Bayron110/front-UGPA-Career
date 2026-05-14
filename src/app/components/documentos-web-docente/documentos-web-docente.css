@@ -1,13 +1,13 @@
 :host {
   display: block;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 40px 12px;
   box-sizing: border-box;
   position: relative;
 }
 
 .contenedor-documentos {
-  max-width: 1150px;
+  max-width: 1650px;
   margin: 0 auto;
 }
 

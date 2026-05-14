@@ -1,74 +1,80 @@
 <div class="contenedor-documentos">
   <br>
   <br>
+  <br>
   <div class="panel-principal">
 
-    <div class="tabs">
+    <div class="tabs" role="tablist">
 
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'Activar'"
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'Activar'"
+        [attr.aria-selected]="ventanaActiva === 'Activar'"
         (click)="cambiarVentana('Activar')">
-        <span class="tab-dot"></span>
-        Activar Formularios
+        <i class="ti ti-toggle-right tab-icon" aria-hidden="true"></i>
+        Activar formularios
       </button>
 
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'ingreso-carreras'"
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'ingreso-carreras'"
+        [attr.aria-selected]="ventanaActiva === 'ingreso-carreras'"
         (click)="cambiarVentana('ingreso-carreras')">
-        <span class="tab-dot"></span>
+        <i class="ti ti-school tab-icon" aria-hidden="true"></i>
         Ingreso de carrera
       </button>
 
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'plan-individual'"
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'plan-individual'"
+        [attr.aria-selected]="ventanaActiva === 'plan-individual'"
         (click)="cambiarVentana('plan-individual')">
-        <span class="tab-dot"></span>
+        <i class="ti ti-clipboard-list tab-icon" aria-hidden="true"></i>
         Plan individual docente
       </button>
 
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'seguimiento'"
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'seguimiento'"
+        [attr.aria-selected]="ventanaActiva === 'seguimiento'"
         (click)="cambiarVentana('seguimiento')">
-        <span class="tab-dot"></span>
+        <i class="ti ti-activity tab-icon" aria-hidden="true"></i>
         Seguimiento docente
-
       </button>
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'historial'"
+
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'historial'"
+        [attr.aria-selected]="ventanaActiva === 'historial'"
         (click)="cambiarVentana('historial')">
-        <span class="tab-dot"></span>
+        <i class="ti ti-history tab-icon" aria-hidden="true"></i>
         Historial de documentos
       </button>
 
-      <button type="button" class="tab-btn" [class.activa]="ventanaActiva === 'Dashboard'"
+      <button type="button" role="tab" class="tab-btn"
+        [class.activa]="ventanaActiva === 'Dashboard'"
+        [attr.aria-selected]="ventanaActiva === 'Dashboard'"
         (click)="cambiarVentana('Dashboard')">
-        <span class="tab-dot"></span>
-        Estadísticas De Documentos
+        <i class="ti ti-chart-bar tab-icon" aria-hidden="true"></i>
+        Estadísticas de documentos
       </button>
-
 
     </div>
 
-    <div class="panel-contenido">
-
+    <div class="panel-contenido" role="tabpanel">
+      <ng-container *ngIf="ventanaActiva === 'Activar'">
+        <app-activar-formularios></app-activar-formularios>
+      </ng-container>
       <ng-container *ngIf="ventanaActiva === 'ingreso-carreras'">
         <app-ingreso-carreras></app-ingreso-carreras>
       </ng-container>
       <ng-container *ngIf="ventanaActiva === 'plan-individual'">
         <app-plan-individual></app-plan-individual>
       </ng-container>
-
       <ng-container *ngIf="ventanaActiva === 'seguimiento'">
         <app-seguimiento></app-seguimiento>
       </ng-container>
-
       <ng-container *ngIf="ventanaActiva === 'historial'">
         <app-historial></app-historial>
       </ng-container>
-
       <ng-container *ngIf="ventanaActiva === 'Dashboard'">
         <app-dasboard></app-dasboard>
       </ng-container>
-
-      <ng-container *ngIf="ventanaActiva === 'Activar'">
-        <app-activar-formularios></app-activar-formularios>
-      </ng-container>
-
     </div>
 
   </div>

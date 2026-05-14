@@ -26,7 +26,7 @@ type VentanaActiva = 'ingreso-carreras' | 'patrocinio' | 'plan-individual' | 'se
   styleUrl: './documentos-web-docente.css'
 })
 export class DocumentosWebDocente {
-  ventanaActiva: VentanaActiva = 'ingreso-carreras';
+  ventanaActiva: VentanaActiva = 'Activar';
 
   cambiarVentana(ventana: VentanaActiva): void {
     this.ventanaActiva = ventana;
