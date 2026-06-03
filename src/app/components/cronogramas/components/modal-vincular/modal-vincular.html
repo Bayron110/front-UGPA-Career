@@ -1,0 +1,198 @@
+<div class="overlay" *ngIf="visible" (click)="cerrarSiFuera($event)">
+    <div class="modal">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="modal-header-texto">
+                <p class="label-pequeño">Cronograma seleccionado</p>
+                <h2>Vincular estudiantes</h2>
+                <p class="modal-sub" *ngIf="cronograma">
+                    {{ cronograma.nombre }} — {{ cronograma.periodo }}
+                </p>
+            </div>
+            <button class="btn-cerrar" (click)="cerrar()">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+        <!-- ══ PASO 1: ELEGIR GRUPO ══ -->
+        <div class="paso-grupos" *ngIf="vista === 'grupos'">
+
+            <div class="paso-titulo">
+                <i class="ti ti-folders"></i>
+                Selecciona el grupo de inducción
+            </div>
+
+            <div class="estado-carga" *ngIf="cargando">
+                <div class="spinner"></div>
+                <p>Cargando grupos...</p>
+            </div>
+
+            <div class="lista-grupos" *ngIf="!cargando">
+                <div
+                    class="grupo-item"
+                    *ngFor="let g of grupos"
+                    (click)="seleccionarGrupo(g)">
+                    <div class="grupo-icono">
+                        <i class="ti ti-users-group"></i>
+                    </div>
+                    <div class="grupo-info">
+                        <span class="grupo-nombre">{{ g.nombres }}</span>
+                        <span class="grupo-total">{{ g.totalEstudiantes }} estudiantes</span>
+                    </div>
+                    <i class="ti ti-chevron-right grupo-flecha"></i>
+                </div>
+
+                <div class="estado-vacio" *ngIf="grupos.length === 0">
+                    <i class="ti ti-folder-off"></i>
+                    <p>No hay grupos disponibles</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══ PASO 2: ESTUDIANTES DEL GRUPO ══ -->
+        <div class="paso-estudiantes" *ngIf="vista === 'estudiantes'">
+
+            <!-- Nav breadcrumb -->
+            <div class="nav-grupo">
+                <button class="btn-volver" (click)="volverAGrupos()">
+                    <i class="ti ti-arrow-left"></i>
+                    Grupos
+                </button>
+                <span class="nav-sep">/</span>
+                <span class="nav-grupo-nombre">{{ grupoSeleccionado?.nombres }}</span>
+            </div>
+
+            <!-- Buscador + contador -->
+            <div class="modal-toolbar">
+                <div class="buscador">
+                    <i class="ti ti-search"></i>
+                    <input
+                        type="text"
+                        placeholder="Buscar por cédula, nombre o carrera..."
+                        [(ngModel)]="busqueda"
+                        (input)="filtrar()">
+                </div>
+                <div class="toolbar-stats">
+                    <span class="stat">
+                        <i class="ti ti-users"></i>
+                        {{ estudiantesFiltrados.length }} estudiantes
+                    </span>
+                    <span class="stat" [class.vinculados]="seleccionados.size > 0">
+                        <i class="ti ti-check"></i>
+                        {{ seleccionados.size }} seleccionados
+                    </span>
+                </div>
+            </div>
+
+            <!-- Filtros asistencia -->
+            <div class="filtros-asistencia">
+                <button class="filtro-btn"
+                    [class.active]="filtroAsistencia === 'TODOS'"
+                    (click)="setFiltroAsistencia('TODOS')">
+                    Todos
+                </button>
+                <button class="filtro-btn"
+                    [class.active]="filtroAsistencia === 'PRESENTE'"
+                    (click)="setFiltroAsistencia('PRESENTE')">
+                    <span class="dot verde"></span> Con asistencia
+                </button>
+                <button class="filtro-btn"
+                    [class.active]="filtroAsistencia === 'AUSENTE'"
+                    (click)="setFiltroAsistencia('AUSENTE')">
+                    <span class="dot rojo"></span> Sin asistencia
+                </button>
+            </div>
+
+            <!-- Cargando -->
+            <div class="estado-carga" *ngIf="cargando">
+                <div class="spinner"></div>
+                <p>Cargando estudiantes...</p>
+            </div>
+
+            <!-- Sin resultados -->
+            <div class="estado-vacio"
+                *ngIf="!cargando && estudiantesFiltrados.length === 0">
+                <i class="ti ti-user-off"></i>
+                <p>No se encontraron estudiantes</p>
+            </div>
+
+            <!-- Tabla con scroll real -->
+            <div class="tabla-wrapper"
+                *ngIf="!cargando && estudiantesFiltrados.length > 0">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="th-check">
+                                <input type="checkbox"
+                                    [checked]="todosSeleccionados()"
+                                    (change)="toggleTodos($event)">
+                            </th>
+                            <th>Cédula</th>
+                            <th>Nombre</th>
+                            <th>Carrera</th>
+                            <th>Telegram</th>
+                            <th>Asistencia</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let e of estudiantesFiltrados"
+                            [class.seleccionado]="seleccionados.has(e.id!)"
+                            [class.ya-vinculado]="estaVinculado(e)"
+                            (click)="!estaVinculado(e) && toggleSeleccion(e)">
+                            <td class="td-check" (click)="$event.stopPropagation()">
+                                <input type="checkbox"
+                                    [checked]="seleccionados.has(e.id!)"
+                                    [disabled]="estaVinculado(e)"
+                                    (change)="!estaVinculado(e) && toggleSeleccion(e)">
+                            </td>
+                            <td class="td-cedula">{{ e.cedula }}</td>
+                            <td class="td-nombre">{{ e.nombres }}</td>
+                            <td class="td-carrera">{{ e.carrera }}</td>
+                            <td class="td-telegram">
+                                <span *ngIf="e.telegramUser">
+                                    <i class="ti ti-brand-telegram"></i>
+                                    {{ e.telegramUser }}
+                                </span>
+                                <span class="sin-dato" *ngIf="!e.telegramUser">—</span>
+                            </td>
+                            <td class="td-asistencia">
+                                <span class="badge-asistencia presente" *ngIf="e.asistencia">
+                                    <i class="ti ti-check"></i> Presente
+                                </span>
+                                <span class="badge-asistencia ausente" *ngIf="!e.asistencia">
+                                    <i class="ti ti-x"></i> Ausente
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-vinculado" *ngIf="estaVinculado(e)">
+                                    <i class="ti ti-link"></i> Vinculado
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="btn-cancelar" (click)="cerrar()">
+                Cancelar
+            </button>
+            <button class="btn-vincular"
+                *ngIf="vista === 'estudiantes'"
+                [disabled]="seleccionados.size === 0 || guardando"
+                (click)="vincular()">
+                <i class="ti ti-link"></i>
+                {{ guardando ? 'Vinculando...' :
+                   'Vincular ' + seleccionados.size +
+                   ' estudiante' + (seleccionados.size !== 1 ? 's' : '') }}
+            </button>
+        </div>
+
+    </div>
+</div>

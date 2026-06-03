@@ -1,10 +1,12 @@
-import { Component, OnInit, Output, EventEmitter, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component, OnInit, Output, EventEmitter,
+  ChangeDetectorRef, ChangeDetectionStrategy
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import {
   CronogramaService,
-  ActividadCronograma,
   Cronograma
 } from '../../firebase/cronogramas';
 
@@ -19,6 +21,7 @@ import {
 export class HistorialCronogramas implements OnInit {
 
   @Output() abrirModalEvento = new EventEmitter<Cronograma>();
+  @Output() vincularEvento   = new EventEmitter<Cronograma>(); // ← nuevo
 
   cronogramas: Cronograma[] = [];
   cargando = true;
@@ -31,7 +34,9 @@ export class HistorialCronogramas implements OnInit {
   ngOnInit(): void {
     this.cronogramaService.escucharCronogramas(lista => {
       this.cronogramas = lista.sort(
-        (a, b) => new Date(b.fechaPublicacion).getTime() - new Date(a.fechaPublicacion).getTime()
+        (a, b) =>
+          new Date(b.fechaPublicacion).getTime() -
+          new Date(a.fechaPublicacion).getTime()
       );
       this.cargando = false;
       this.cdr.markForCheck();
@@ -46,6 +51,11 @@ export class HistorialCronogramas implements OnInit {
     this.abrirModalEvento.emit(c);
   }
 
+  // ← nuevo: emite al padre para abrir el modal vincular
+  abrirVincular(c: Cronograma): void {
+    this.vincularEvento.emit(c);
+  }
+
   async eliminarCronograma(id: string): Promise<void> {
     if (!confirm('¿Seguro que deseas eliminar este cronograma?')) return;
     try {
@@ -54,10 +64,6 @@ export class HistorialCronogramas implements OnInit {
       console.error(error);
       alert('Error al eliminar');
     }
-  }
-
-  vincularEstudiantes(): void {
-    // TODO
   }
 
   formatearFecha(fecha: string): string {

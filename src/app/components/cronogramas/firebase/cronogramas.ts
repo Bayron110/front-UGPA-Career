@@ -62,8 +62,19 @@ export interface Cronograma {
     estado: 'PROGRAMADO' | 'VIGENTE' | 'FINALIZADO';
 
     actividades: ActividadCronograma[];
-}
 
+    // ← Esto es lo que falta
+    estudiantesVinculados?: {
+        [cedula: string]: {
+            cedula: string;
+            nombre: string;
+            carrera: string;
+            telegramUser: string;
+            asistencia: boolean;
+            fechaVinculacion: string;
+        }
+    };
+}
 @Injectable({
     providedIn: 'root'
 })

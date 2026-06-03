@@ -30,8 +30,8 @@
         </div>
 
         <div *ngIf="menuSeleccionado === 'historial'">
-            <!-- ✅ Escucha el evento del hijo -->
-            <app-historial-cronogramas (abrirModalEvento)="onAbrirModal($event)">
+            <app-historial-cronogramas (abrirModalEvento)="onAbrirModal($event)"
+                (vincularEvento)="abrirModalVincular($event)">
             </app-historial-cronogramas>
         </div>
 
@@ -39,7 +39,7 @@
 
 </div>
 
-<!-- ✅ MODAL en el componente raíz — tiene acceso a todo el espacio -->
+<!-- ── MODAL EDITAR ── -->
 <div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
@@ -167,17 +167,29 @@
         </div>
 
         <div class="modal-footer">
-            <button class="btn-vincular-modal" (click)="vincularEstudiantes()">
-                <i class="ti ti-users"></i> Vincular estudiantes
+
+            <!-- Botón vincular abre el modal de vinculación con el cronograma actual -->
+            <button class="btn-vincular-modal" (click)="abrirModalVincular(cronogramaEditando!)">
+                <i class="ti ti-users"></i>
+                Vincular estudiantes
             </button>
+
             <div class="modal-footer-right">
-                <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+                <button class="btn-cancelar" (click)="cerrarModal()">
+                    Cancelar
+                </button>
                 <button class="btn-guardar" [disabled]="guardando" (click)="guardarCambios()">
                     <i class="ti ti-device-floppy"></i>
                     {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
                 </button>
             </div>
+
         </div>
 
     </div>
 </div>
+
+<!-- ── MODAL VINCULAR ESTUDIANTES ── -->
+<app-modal-vincular [visible]="modalVincularVisible" [cronograma]="cronogramaParaVincular"
+    (cerrarEvento)="onModalVincularCerrado()" (vinculadoEvento)="onEstudiantesVinculados($event)">
+</app-modal-vincular>

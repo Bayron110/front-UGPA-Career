@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { PublicarCronogramas } from './components/publicar-cronogramas/publicar-cronogramas';
 import { HistorialCronogramas } from './components/historial-cronogramas/historial-cronogramas';
+import { ModalVincular } from './components/modal-vincular/modal-vincular';
 
 import {
   CronogramaService,
@@ -14,17 +15,20 @@ import {
 @Component({
   selector: 'app-cronogramas',
   standalone: true,
-  imports: [CommonModule, FormsModule, PublicarCronogramas, HistorialCronogramas],
+  imports: [CommonModule, FormsModule, PublicarCronogramas, HistorialCronogramas, ModalVincular],
   templateUrl: './cronogramas.html',
   styleUrl: './cronogramas.css'
 })
 export class Cronogramas implements AfterViewInit, OnDestroy {
 
+  // ── Navegación ──
   menuSeleccionado = 'publicar';
+
+  // ── Canvas ──
   private animFrame!: number;
   private resizeHandler!: () => void;
 
-  // ── Modal ──
+  // ── Modal editar ──
   modalAbierto = false;
   cronogramaEditando: Cronograma | null = null;
   editNombre = '';
@@ -39,22 +43,27 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
   editNuevaFechaFin = '';
   guardando = false;
 
-  constructor(private cronogramaService: CronogramaService) {}
+  // ── Modal vincular ──
+  modalVincularVisible = false;
+  cronogramaParaVincular: Cronograma | null = null;
 
+  constructor(private cronogramaService: CronogramaService) { }
+
+  // ── Navegación ──────────────────────────────────────────
   cambiarVista(vista: string): void {
     this.menuSeleccionado = vista;
   }
 
-  // ── Recibe el evento del hijo ──
+  // ── Modal editar ─────────────────────────────────────────
   onAbrirModal(c: Cronograma): void {
     this.cronogramaEditando = c;
-    this.editNombre       = c.nombre;
-    this.editPeriodo      = c.periodo;
-    this.editColorFondo   = c.colorFondo;
-    this.editColorTexto   = c.colorTexto;
-    this.editColorBorde   = c.colorBorde;
-    this.editFuente       = c.fuente;
-    this.editActividades  = c.actividades.map(a => ({ ...a }));
+    this.editNombre         = c.nombre;
+    this.editPeriodo        = c.periodo;
+    this.editColorFondo     = c.colorFondo;
+    this.editColorTexto     = c.colorTexto;
+    this.editColorBorde     = c.colorBorde;
+    this.editFuente         = c.fuente;
+    this.editActividades    = c.actividades.map(a => ({ ...a }));
     this.editNuevaActividad   = '';
     this.editNuevaFechaInicio = '';
     this.editNuevaFechaFin    = '';
@@ -67,15 +76,28 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
   }
 
   agregarActividadModal(): void {
-    if (!this.editNuevaActividad || !this.editNuevaFechaInicio || !this.editNuevaFechaFin) return;
-    this.editActividades = [...this.editActividades, {
-      actividad:   this.editNuevaActividad,
-      fechaInicio: this.editNuevaFechaInicio,
-      fechaFin:    this.editNuevaFechaFin
-    }].sort((a, b) => new Date(a.fechaInicio).getTime() - new Date(b.fechaInicio).getTime());
-    this.editNuevaActividad = '';
+    if (
+      !this.editNuevaActividad ||
+      !this.editNuevaFechaInicio ||
+      !this.editNuevaFechaFin
+    ) return;
+
+    this.editActividades = [
+      ...this.editActividades,
+      {
+        actividad:   this.editNuevaActividad,
+        fechaInicio: this.editNuevaFechaInicio,
+        fechaFin:    this.editNuevaFechaFin
+      }
+    ].sort(
+      (a, b) =>
+        new Date(a.fechaInicio).getTime() -
+        new Date(b.fechaInicio).getTime()
+    );
+
+    this.editNuevaActividad   = '';
     this.editNuevaFechaInicio = '';
-    this.editNuevaFechaFin = '';
+    this.editNuevaFechaFin    = '';
   }
 
   eliminarActividadModal(index: number): void {
@@ -90,19 +112,24 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
       const fechaFin    = this.cronogramaService.obtenerFechaFin(this.editActividades);
       const estado      = this.cronogramaService.calcularEstado(fechaInicio, fechaFin);
 
-      await this.cronogramaService.actualizarCronograma(this.cronogramaEditando.id, {
-        nombre:      this.editNombre,
-        periodo:     this.editPeriodo,
-        colorFondo:  this.editColorFondo,
-        colorTexto:  this.editColorTexto,
-        colorBorde:  this.editColorBorde,
-        fuente:      this.editFuente,
-        actividades: this.editActividades,
-        fechaInicio,
-        fechaFin,
-        estado
-      });
+      await this.cronogramaService.actualizarCronograma(
+        this.cronogramaEditando.id,
+        {
+          nombre:      this.editNombre,
+          periodo:     this.editPeriodo,
+          colorFondo:  this.editColorFondo,
+          colorTexto:  this.editColorTexto,
+          colorBorde:  this.editColorBorde,
+          fuente:      this.editFuente,
+          actividades: this.editActividades,
+          fechaInicio,
+          fechaFin,
+          estado
+        }
+      );
+
       this.cerrarModal();
+
     } catch (error) {
       console.error(error);
       alert('Error al guardar los cambios');
@@ -111,17 +138,32 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
     }
   }
 
-  vincularEstudiantes(): void {
-    // TODO
+  // ── Modal vincular ───────────────────────────────────────
+  abrirModalVincular(c: Cronograma): void {
+    this.cronogramaParaVincular = c;
+    this.modalVincularVisible   = true;
   }
 
+  onModalVincularCerrado(): void {
+    this.modalVincularVisible   = false;
+    this.cronogramaParaVincular = null;
+  }
+
+  onEstudiantesVinculados(cantidad: number): void {
+    alert(
+      `${cantidad} estudiante${cantidad !== 1 ? 's' : ''} ` +
+      `vinculado${cantidad !== 1 ? 's' : ''} correctamente`
+    );
+  }
+
+  // ── Helpers ──────────────────────────────────────────────
   formatearFecha(fecha: string): string {
     if (!fecha) return '-';
     const [y, m, d] = fecha.split('-');
     return `${d}/${m}/${y}`;
   }
 
-  // ── Canvas HUD ──
+  // ── Canvas HUD ───────────────────────────────────────────
   ngAfterViewInit(): void {
     setTimeout(() => this.initHUD(), 50);
   }
@@ -171,7 +213,7 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
     const ticksOuter = Array.from({ length: 96 }, (_, i) => ({
       angle: (i / 96) * Math.PI * 2,
       len:   i % 8 === 0 ? 16 : i % 4 === 0 ? 10 : i % 2 === 0 ? 6 : 3,
-      r: 248,
+      r:     248,
       alpha: i % 8 === 0 ? 0.80 : i % 4 === 0 ? 0.50 : 0.20,
       width: i % 8 === 0 ? 1.5 : 0.8
     }));
@@ -179,7 +221,7 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
     const ticksMid = Array.from({ length: 60 }, (_, i) => ({
       angle: (i / 60) * Math.PI * 2,
       len:   i % 5 === 0 ? 10 : 5,
-      r: 200,
+      r:     200,
       alpha: i % 5 === 0 ? 0.55 : 0.20,
       width: i % 5 === 0 ? 1.2 : 0.7
     }));
@@ -187,7 +229,7 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
     const ticksInner = Array.from({ length: 36 }, (_, i) => ({
       angle: (i / 36) * Math.PI * 2,
       len:   i % 3 === 0 ? 8 : 4,
-      r: 118,
+      r:     118,
       alpha: i % 3 === 0 ? 0.60 : 0.20,
       width: 0.8
     }));
@@ -233,7 +275,10 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
     let corePhase = 0;
 
     const draw = () => {
-      if (!canvas.isConnected) { cancelAnimationFrame(this.animFrame); return; }
+      if (!canvas.isConnected) {
+        cancelAnimationFrame(this.animFrame);
+        return;
+      }
 
       const w = canvas.width, h = canvas.height;
       const cx = ox(), cy = oy();
@@ -252,7 +297,8 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
       scanDots.forEach(d => {
         d.pulse += 0.022;
         const a = d.alpha * (0.55 + 0.45 * Math.sin(d.pulse));
-        ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
         ctx.fillStyle = d.green ? `rgba(105,255,71,${a})` : `rgba(0,229,255,${a})`;
         ctx.fill();
       });
@@ -260,36 +306,57 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
       hudLines.forEach(l => {
         const startX = l.side === 'left' ? cx - 250 - l.len : cx + 250;
         const endX   = l.side === 'left' ? cx - 250         : cx + 250 + l.len;
-        ctx.beginPath(); ctx.moveTo(startX, cy + l.yOff); ctx.lineTo(endX, cy + l.yOff);
-        ctx.strokeStyle = `rgba(0,229,255,${l.alpha})`; ctx.lineWidth = 0.8;
-        ctx.setLineDash(l.dash); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(startX, cy + l.yOff);
+        ctx.lineTo(endX,   cy + l.yOff);
+        ctx.strokeStyle = `rgba(0,229,255,${l.alpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash(l.dash);
+        ctx.stroke();
+        ctx.setLineDash([]);
         const tx = l.side === 'left' ? startX : endX;
         ctx.fillStyle = `rgba(0,229,255,${l.alpha * 1.5})`;
         ctx.fillRect(tx - 2, cy + l.yOff - 2, 4, 4);
       });
 
       hudVLines.forEach(l => {
-        ctx.beginPath(); ctx.moveTo(cx + l.xOff, cy + l.yStart); ctx.lineTo(cx + l.xOff, cy + l.yEnd);
-        ctx.strokeStyle = `rgba(0,229,255,${l.alpha})`; ctx.lineWidth = 0.7;
-        ctx.setLineDash(l.dash); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + l.xOff, cy + l.yStart);
+        ctx.lineTo(cx + l.xOff, cy + l.yEnd);
+        ctx.strokeStyle = `rgba(0,229,255,${l.alpha})`;
+        ctx.lineWidth = 0.7;
+        ctx.setLineDash(l.dash);
+        ctx.stroke();
       });
       ctx.setLineDash([]);
 
       [ticksOuter, ticksMid, ticksInner].forEach(group => {
         group.forEach(tk => {
-          const x1 = cx + Math.cos(tk.angle) * tk.r, y1 = cy + Math.sin(tk.angle) * tk.r;
-          const x2 = cx + Math.cos(tk.angle) * (tk.r + tk.len), y2 = cy + Math.sin(tk.angle) * (tk.r + tk.len);
-          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-          ctx.strokeStyle = `rgba(0,229,255,${tk.alpha})`; ctx.lineWidth = tk.width; ctx.stroke();
+          const x1 = cx + Math.cos(tk.angle) * tk.r;
+          const y1 = cy + Math.sin(tk.angle) * tk.r;
+          const x2 = cx + Math.cos(tk.angle) * (tk.r + tk.len);
+          const y2 = cy + Math.sin(tk.angle) * (tk.r + tk.len);
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = `rgba(0,229,255,${tk.alpha})`;
+          ctx.lineWidth = tk.width;
+          ctx.stroke();
         });
       });
 
       rings.forEach((ring, i) => {
         angles[i] += ring.speed * ring.dir;
-        ctx.save(); ctx.translate(cx, cy); ctx.rotate(angles[i]);
-        ctx.beginPath(); ctx.arc(0, 0, ring.r, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0,229,255,${ring.alpha})`; ctx.lineWidth = ring.width;
-        ctx.setLineDash(ring.dash); ctx.stroke(); ctx.restore();
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angles[i]);
+        ctx.beginPath();
+        ctx.arc(0, 0, ring.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0,229,255,${ring.alpha})`;
+        ctx.lineWidth = ring.width;
+        ctx.setLineDash(ring.dash);
+        ctx.stroke();
+        ctx.restore();
       });
       ctx.setLineDash([]);
 
@@ -298,44 +365,56 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
       const coreGlow  = 0.85 + 0.15 * Math.sin(corePhase * 1.3);
 
       const halo1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 55 * corePulse);
-      halo1.addColorStop(0, `rgba(0,229,255,${0.18 * coreGlow})`);
+      halo1.addColorStop(0,   `rgba(0,229,255,${0.18 * coreGlow})`);
       halo1.addColorStop(0.5, `rgba(0,150,200,${0.10 * coreGlow})`);
-      halo1.addColorStop(1, 'rgba(0,229,255,0)');
-      ctx.beginPath(); ctx.arc(cx, cy, 55 * corePulse, 0, Math.PI * 2);
-      ctx.fillStyle = halo1; ctx.fill();
+      halo1.addColorStop(1,   'rgba(0,229,255,0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, 55 * corePulse, 0, Math.PI * 2);
+      ctx.fillStyle = halo1;
+      ctx.fill();
 
       const sphere = ctx.createRadialGradient(cx - 4, cy - 4, 2, cx, cy, 22);
       sphere.addColorStop(0,   `rgba(180,240,255,${0.95 * coreGlow})`);
       sphere.addColorStop(0.3, `rgba(0,229,255,${0.85 * coreGlow})`);
       sphere.addColorStop(0.7, `rgba(0,100,180,${0.70 * coreGlow})`);
       sphere.addColorStop(1,   `rgba(0,30,60,${0.90 * coreGlow})`);
-      ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-      ctx.fillStyle = sphere; ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = sphere;
+      ctx.fill();
 
       const shine = ctx.createRadialGradient(cx - 6, cy - 8, 1, cx - 4, cy - 5, 14);
       shine.addColorStop(0,   `rgba(255,255,255,${0.55 * coreGlow})`);
       shine.addColorStop(0.5, `rgba(180,240,255,${0.15 * coreGlow})`);
       shine.addColorStop(1,   'rgba(255,255,255,0)');
-      ctx.beginPath(); ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-      ctx.fillStyle = shine; ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = shine;
+      ctx.fill();
 
       const dot = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
       dot.addColorStop(0,   '#ffffff');
       dot.addColorStop(0.4, `rgba(200,245,255,${coreGlow})`);
       dot.addColorStop(1,   'rgba(0,229,255,0)');
-      ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-      ctx.fillStyle = dot; ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = dot;
+      ctx.fill();
 
       particles.forEach(p => {
         p.pulse += 0.020;
         const a = p.alpha * (0.65 + 0.35 * Math.sin(p.pulse));
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.green ? `rgba(105,255,71,${a})` : `rgba(0,229,255,${a})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.green
+          ? `rgba(105,255,71,${a})`
+          : `rgba(0,229,255,${a})`;
         ctx.fill();
-        p.x += p.vx; p.y += p.vy;
-        if (p.y < -5)  { p.y = h + 5; p.x = Math.random() * w; }
-        if (p.x < -5)  p.x = w + 5;
-        if (p.x > w+5) p.x = -5;
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -5)   { p.y = h + 5; p.x = Math.random() * w; }
+        if (p.x < -5)   p.x = w + 5;
+        if (p.x > w + 5) p.x = -5;
       });
 
       this.animFrame = requestAnimationFrame(draw);
