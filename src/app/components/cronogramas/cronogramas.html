@@ -1,0 +1,183 @@
+<canvas id="cronogramasBg" class="reactor-canvas"></canvas>
+
+<div class="cronograma-layout">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>Cronogramas</h2>
+            <p>Panel de gestión</p>
+        </div>
+        <nav class="menu">
+            <button class="menu-btn" [class.active]="menuSeleccionado === 'publicar'"
+                (click)="cambiarVista('publicar')">
+                <i class="ti ti-calendar-plus"></i> Publicar cronograma
+            </button>
+            <button class="menu-btn" [class.active]="menuSeleccionado === 'historial'"
+                (click)="cambiarVista('historial')">
+                <i class="ti ti-history"></i> Historial
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <span class="estado-dot"></span>
+            <span class="estado-texto">Sistema activo</span>
+        </div>
+    </aside>
+
+    <main class="contenido">
+
+        <div *ngIf="menuSeleccionado === 'publicar'">
+            <app-publicar-cronogramas></app-publicar-cronogramas>
+        </div>
+
+        <div *ngIf="menuSeleccionado === 'historial'">
+            <!-- ✅ Escucha el evento del hijo -->
+            <app-historial-cronogramas (abrirModalEvento)="onAbrirModal($event)">
+            </app-historial-cronogramas>
+        </div>
+
+    </main>
+
+</div>
+
+<!-- ✅ MODAL en el componente raíz — tiene acceso a todo el espacio -->
+<div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+            <div>
+                <p class="modal-label">Editar cronograma</p>
+                <h3>{{ editNombre || 'Sin nombre' }}</h3>
+            </div>
+            <button class="btn-cerrar" (click)="cerrarModal()">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <div class="modal-seccion">
+                <h4><i class="ti ti-info-circle"></i> Información general</h4>
+                <div class="modal-grid-2">
+                    <div class="campo">
+                        <label>Nombre del cronograma</label>
+                        <input type="text" [(ngModel)]="editNombre" placeholder="Nombre">
+                    </div>
+                    <div class="campo">
+                        <label>Periodo</label>
+                        <input type="text" [(ngModel)]="editPeriodo" placeholder="Periodo">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-seccion">
+                <h4><i class="ti ti-palette"></i> Personalización</h4>
+                <div class="modal-grid-colores">
+                    <div class="campo">
+                        <label>Color fondo</label>
+                        <div class="color-wrapper">
+                            <input type="color" [(ngModel)]="editColorFondo">
+                            <span class="color-hex">{{ editColorFondo }}</span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label>Color texto</label>
+                        <div class="color-wrapper">
+                            <input type="color" [(ngModel)]="editColorTexto">
+                            <span class="color-hex">{{ editColorTexto }}</span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label>Color borde</label>
+                        <div class="color-wrapper">
+                            <input type="color" [(ngModel)]="editColorBorde">
+                            <span class="color-hex">{{ editColorBorde }}</span>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label>Fuente</label>
+                        <select [(ngModel)]="editFuente">
+                            <option>Arial</option>
+                            <option>Calibri</option>
+                            <option>Verdana</option>
+                            <option>Tahoma</option>
+                            <option>Times New Roman</option>
+                        </select>
+                    </div>
+                    <div class="campo modal-campo-full">
+                        <label>Vista previa</label>
+                        <div class="preview-banner" [style.background]="editColorFondo" [style.color]="editColorTexto"
+                            [style.border-color]="editColorBorde" [style.font-family]="editFuente">
+                            <span class="preview-nombre">{{ editNombre || 'Nombre del cronograma' }}</span>
+                            <span class="preview-periodo" *ngIf="editPeriodo">{{ editPeriodo }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-seccion">
+                <h4><i class="ti ti-list-check"></i> Actividades ({{ editActividades.length }})</h4>
+                <div class="modal-grid-actividad">
+                    <div class="campo">
+                        <label>Actividad</label>
+                        <input type="text" [(ngModel)]="editNuevaActividad" placeholder="Nombre de la actividad">
+                    </div>
+                    <div class="campo">
+                        <label>Fecha inicio</label>
+                        <input type="date" [(ngModel)]="editNuevaFechaInicio">
+                    </div>
+                    <div class="campo">
+                        <label>Fecha fin</label>
+                        <input type="date" [(ngModel)]="editNuevaFechaFin">
+                    </div>
+                    <div class="campo campo-accion">
+                        <button class="btn-add-actividad" (click)="agregarActividadModal()">
+                            <i class="ti ti-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tabla-container" *ngIf="editActividades.length > 0">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Actividad</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let a of editActividades; let i = index">
+                                <td class="td-num">{{ i + 1 }}</td>
+                                <td>{{ a.actividad }}</td>
+                                <td class="td-fecha">{{ formatearFecha(a.fechaInicio) }}</td>
+                                <td class="td-fecha">{{ formatearFecha(a.fechaFin) }}</td>
+                                <td class="td-accion">
+                                    <button class="btn-danger-sm" (click)="eliminarActividadModal(i)">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-vincular-modal" (click)="vincularEstudiantes()">
+                <i class="ti ti-users"></i> Vincular estudiantes
+            </button>
+            <div class="modal-footer-right">
+                <button class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+                <button class="btn-guardar" [disabled]="guardando" (click)="guardarCambios()">
+                    <i class="ti ti-device-floppy"></i>
+                    {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

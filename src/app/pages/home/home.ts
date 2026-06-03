@@ -70,7 +70,8 @@ export class Home implements OnInit, AfterViewInit, OnDestroy {
     const routes: Record<string, () => void> = {
       iraControlInd: () => window.open('https://registroinduccionesitsqmet.netlify.app/admin/admin', '_blank'),
       irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
-      irAAgendar: () => this.router.navigate(['/Agenda'])
+      irAAgendar: () => this.router.navigate(['/Agenda']),
+      irACronogramas: () => this.router.navigate(['/Cronogramas'])
     };
     routes[action]?.();
   }

@@ -1,0 +1,253 @@
+<div class="contenedor-cronograma">
+
+    <!-- HEADER -->
+    <div class="seccion-header">
+        <p class="label-pequeño">Panel administrador</p>
+        <h2>Publicar cronograma</h2>
+        <p>Complete la información y agregue las actividades del cronograma.</p>
+    </div>
+
+    <!-- DATOS GENERALES -->
+    <div class="card">
+
+        <h3>
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            Información general
+        </h3>
+
+        <div class="grid-2">
+
+            <div class="campo">
+                <label>Nombre del cronograma</label>
+                <input
+                    type="text"
+                    [(ngModel)]="nombreCronograma"
+                    placeholder="Ej: Cronograma de actividades 2026">
+            </div>
+
+            <div class="campo">
+                <label>Periodo</label>
+                <input
+                    type="text"
+                    [(ngModel)]="periodo"
+                    placeholder="Ej: Febrero 2025 - Agosto 2026">
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PERSONALIZACIÓN -->
+    <div class="card">
+
+        <h3>
+            <i class="ti ti-palette" aria-hidden="true"></i>
+            Personalización
+        </h3>
+
+        <div class="grid-colores">
+
+            <div class="campo">
+                <label>Color fondo</label>
+                <div class="color-wrapper">
+                    <input type="color" [(ngModel)]="colorFondo">
+                    <span class="color-hex">{{ colorFondo }}</span>
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Color texto</label>
+                <div class="color-wrapper">
+                    <input type="color" [(ngModel)]="colorTexto">
+                    <span class="color-hex">{{ colorTexto }}</span>
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Color borde</label>
+                <div class="color-wrapper">
+                    <input type="color" [(ngModel)]="colorBorde">
+                    <span class="color-hex">{{ colorBorde }}</span>
+                </div>
+            </div>
+
+            <div class="campo">
+                <label>Fuente</label>
+                <select [(ngModel)]="fuente">
+                    <option>Arial</option>
+                    <option>Calibri</option>
+                    <option>Verdana</option>
+                    <option>Tahoma</option>
+                    <option>Times New Roman</option>
+                </select>
+            </div>
+
+            <!-- VISTA PREVIA inline -->
+            <div class="campo campo-preview">
+                <label>Vista previa</label>
+                <div
+                    class="preview"
+                    [style.background]="colorFondo"
+                    [style.color]="colorTexto"
+                    [style.border-color]="colorBorde"
+                    [style.font-family]="fuente">
+                    <span class="preview-nombre">
+                        {{ nombreCronograma || 'Nombre del cronograma' }}
+                    </span>
+                    <span class="preview-periodo">
+                        {{ periodo || 'Periodo académico' }}
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- IMPORTAR EXCEL -->
+    <div class="card">
+
+        <h3>
+            <i class="ti ti-table-import" aria-hidden="true"></i>
+            Importar desde Excel
+        </h3>
+
+        <p class="ayuda-texto">
+            Copie las celdas desde Excel (columnas: Actividad | Fecha Inicio | Fecha Fin) y péguelas aquí.
+        </p>
+
+        <textarea
+            [(ngModel)]="excelTexto"
+            placeholder="Pegue aquí las filas copiadas desde Excel...">
+        </textarea>
+
+        <button
+            class="btn-primary"
+            (click)="procesarExcel()">
+            <i class="ti ti-file-import" aria-hidden="true"></i>
+            Procesar Excel
+        </button>
+
+    </div>
+
+    <!-- ACTIVIDAD MANUAL -->
+    <div class="card">
+
+        <h3>
+            <i class="ti ti-circle-plus" aria-hidden="true"></i>
+            Agregar actividad manual
+        </h3>
+
+        <div class="grid-actividad">
+
+            <div class="campo">
+                <label>Actividad</label>
+                <input
+                    type="text"
+                    placeholder="Nombre de la actividad"
+                    [(ngModel)]="nuevaActividad">
+            </div>
+
+            <div class="campo">
+                <label>Fecha inicio</label>
+                <input
+                    type="date"
+                    [(ngModel)]="nuevaFechaInicio">
+            </div>
+
+            <div class="campo">
+                <label>Fecha fin</label>
+                <input
+                    type="date"
+                    [(ngModel)]="nuevaFechaFin">
+            </div>
+
+            <div class="campo campo-accion">
+                <label>&nbsp;</label>
+                <button
+                    class="btn-success"
+                    (click)="agregarActividad()">
+                    <i class="ti ti-plus" aria-hidden="true"></i>
+                    Agregar
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- RESUMEN + TABLA -->
+    <div class="card" *ngIf="actividades.length > 0">
+
+        <h3>
+            <i class="ti ti-list-check" aria-hidden="true"></i>
+            Actividades registradas
+        </h3>
+
+        <!-- Resumen métricas -->
+        <div class="resumen">
+
+            <div class="resumen-item">
+                <span class="resumen-label">Total actividades</span>
+                <span class="resumen-valor">{{ totalActividades }}</span>
+            </div>
+
+            <div class="resumen-item">
+                <span class="resumen-label">Fecha inicio</span>
+                <span class="resumen-valor">{{ fechaInicioCronograma }}</span>
+            </div>
+
+            <div class="resumen-item">
+                <span class="resumen-label">Fecha fin</span>
+                <span class="resumen-valor">{{ fechaFinCronograma }}</span>
+            </div>
+
+        </div>
+
+        <!-- Tabla con scroll interno -->
+        <div class="tabla-container">
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Actividad</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let actividad of actividades; let i = index">
+                        <td class="td-num">{{ i + 1 }}</td>
+                        <td>{{ actividad.actividad }}</td>
+                        <td class="td-fecha">{{ actividad.fechaInicio }}</td>
+                        <td class="td-fecha">{{ actividad.fechaFin }}</td>
+                        <td class="td-accion">
+                            <button
+                                class="btn-danger"
+                                (click)="eliminarActividad(i)">
+                                <i class="ti ti-trash" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+    <!-- PUBLICAR -->
+    <div class="acciones">
+        <button
+            class="btn-publicar"
+            [disabled]="cargando"
+            (click)="publicar()">
+            <i class="ti ti-send" aria-hidden="true"></i>
+            {{ cargando ? 'Publicando...' : 'Publicar cronograma' }}
+        </button>
+    </div>
+
+</div>

@@ -1,0 +1,92 @@
+<div class="historial-container">
+
+    <!-- HEADER -->
+    <div class="seccion-header">
+        <p class="label-pequeño">Panel administrador</p>
+        <h2>Historial de cronogramas</h2>
+        <p>Todos los cronogramas publicados. Los vigentes están resaltados en verde.</p>
+    </div>
+
+    <!-- CARGANDO -->
+    <div class="estado-vacio" *ngIf="cargando">
+        <div class="spinner"></div>
+        <p>Cargando cronogramas...</p>
+    </div>
+
+    <!-- SIN DATOS -->
+    <div class="estado-vacio" *ngIf="!cargando && cronogramas.length === 0">
+        <i class="ti ti-calendar-off"></i>
+        <h3>Sin cronogramas</h3>
+        <p>Aún no se ha publicado ningún cronograma.</p>
+    </div>
+
+    <!-- LISTA -->
+    <div class="lista" *ngIf="!cargando && cronogramas.length > 0">
+
+        <div class="cronograma-card" *ngFor="let c of cronogramas; trackBy: trackById"
+            [class.vigente]="estadoReal(c) === 'VIGENTE'"
+            [class.finalizado]="estadoReal(c) === 'FINALIZADO'"
+            [class.programado]="estadoReal(c) === 'PROGRAMADO'">
+
+            <div class="aura-vigente"    *ngIf="estadoReal(c) === 'VIGENTE'"></div>
+            <div class="aura-programado" *ngIf="estadoReal(c) === 'PROGRAMADO'"></div>
+            <div class="aura-finalizado" *ngIf="estadoReal(c) === 'FINALIZADO'"></div>
+
+            <div class="badge-estado" [class]="'badge-' + estadoReal(c).toLowerCase()">
+                <span class="badge-dot"></span>
+                {{ estadoReal(c) === 'VIGENTE' ? 'Vigente' : estadoReal(c) === 'FINALIZADO' ? 'Finalizado' : 'Programado' }}
+            </div>
+
+            <div class="preview-banner"
+                [style.background]="c.colorFondo"
+                [style.color]="c.colorTexto"
+                [style.border-color]="c.colorBorde"
+                [style.font-family]="c.fuente">
+                <span class="preview-nombre">{{ c.nombre }}</span>
+                <span class="preview-periodo" *ngIf="c.periodo">{{ c.periodo }}</span>
+            </div>
+
+            <div class="card-info">
+                <div class="info-fechas">
+                    <div class="info-item">
+                        <span class="info-label">Inicio</span>
+                        <span class="info-valor">{{ formatearFecha(c.fechaInicio) }}</span>
+                    </div>
+                    <div class="info-sep">→</div>
+                    <div class="info-item">
+                        <span class="info-label">Fin</span>
+                        <span class="info-valor">{{ formatearFecha(c.fechaFin) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Actividades</span>
+                        <span class="info-valor">{{ c.actividades ? c.actividades.length : 0 }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Publicado</span>
+                        <span class="info-valor">{{ formatearFecha(c.fechaPublicacion ? c.fechaPublicacion.split('T')[0] : '') }}</span>
+                    </div>
+                </div>
+
+                <div class="card-acciones">
+                    <button class="btn-editar" (click)="abrirModal(c)">
+                        <i class="ti ti-pencil"></i>
+                        Editar
+                    </button>
+                    <button class="btn-vincular" (click)="vincularEstudiantes()">
+                        <i class="ti ti-users"></i>
+                        Vincular estudiantes
+                    </button>
+                    <button class="btn-eliminar" (click)="eliminarCronograma(c.id!)">
+                        <i class="ti ti-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sello-finalizado" *ngIf="estadoReal(c) === 'FINALIZADO'">
+                <span class="sello-finalizado-texto">FINALIZADO</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
