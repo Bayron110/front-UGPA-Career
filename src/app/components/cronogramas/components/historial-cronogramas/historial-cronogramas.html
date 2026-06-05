@@ -24,24 +24,36 @@
     <div class="lista" *ngIf="!cargando && cronogramas.length > 0">
 
         <div class="cronograma-card" *ngFor="let c of cronogramas; trackBy: trackById"
-            [class.vigente]="estadoReal(c) === 'VIGENTE'"
-            [class.finalizado]="estadoReal(c) === 'FINALIZADO'"
+            [class.vigente]="estadoReal(c) === 'VIGENTE'" [class.finalizado]="estadoReal(c) === 'FINALIZADO'"
             [class.programado]="estadoReal(c) === 'PROGRAMADO'">
 
-            <div class="aura-vigente"    *ngIf="estadoReal(c) === 'VIGENTE'"></div>
+            <div class="aura-vigente" *ngIf="estadoReal(c) === 'VIGENTE'"></div>
             <div class="aura-programado" *ngIf="estadoReal(c) === 'PROGRAMADO'"></div>
             <div class="aura-finalizado" *ngIf="estadoReal(c) === 'FINALIZADO'"></div>
 
             <div class="badge-estado" [class]="'badge-' + estadoReal(c).toLowerCase()">
                 <span class="badge-dot"></span>
-                {{ estadoReal(c) === 'VIGENTE' ? 'Vigente' : estadoReal(c) === 'FINALIZADO' ? 'Finalizado' : 'Programado' }}
+                {{ estadoReal(c) === 'VIGENTE' ? 'Vigente' : estadoReal(c) === 'FINALIZADO' ? 'Finalizado' :
+                'Programado' }}
+            </div>
+            <!-- Botón wake-up backend -->
+            <div class="backend-status">
+                <button class="btn-despertar" (click)="despertarBackend()" [disabled]="estadoBackend === 'despertando'">
+                    <span class="btn-despertar-dot" [class]="estadoBackend"></span>
+                    <span *ngIf="estadoBackend === 'dormido'">
+                        <i class="ti ti-player-play"></i> Despertar servidor
+                    </span>
+                    <span *ngIf="estadoBackend === 'despertando'">
+                        <i class="ti ti-loader-2 spin"></i> Despertando... {{ cuentaRegresiva }}s
+                    </span>
+                    <span *ngIf="estadoBackend === 'activo'">
+                        <i class="ti ti-circle-check"></i> Servidor activo
+                    </span>
+                </button>
             </div>
 
-            <div class="preview-banner"
-                [style.background]="c.colorFondo"
-                [style.color]="c.colorTexto"
-                [style.border-color]="c.colorBorde"
-                [style.font-family]="c.fuente">
+            <div class="preview-banner" [style.background]="c.colorFondo" [style.color]="c.colorTexto"
+                [style.border-color]="c.colorBorde" [style.font-family]="c.fuente">
                 <span class="preview-nombre">{{ c.nombre }}</span>
                 <span class="preview-periodo" *ngIf="c.periodo">{{ c.periodo }}</span>
             </div>
@@ -63,7 +75,8 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Publicado</span>
-                        <span class="info-valor">{{ formatearFecha(c.fechaPublicacion ? c.fechaPublicacion.split('T')[0] : '') }}</span>
+                        <span class="info-valor">{{ formatearFecha(c.fechaPublicacion ? c.fechaPublicacion.split('T')[0]
+                            : '') }}</span>
                     </div>
                 </div>
 

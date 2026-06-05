@@ -1,7 +1,6 @@
 import {
     Component, Input, Output, EventEmitter,
-    OnChanges, SimpleChanges, ChangeDetectorRef,
-    ChangeDetectionStrategy
+    OnChanges, SimpleChanges, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,15 +8,24 @@ import { FormsModule } from '@angular/forms';
 import { EstudiantesService, Estudiante, GrupoInduccion } from '../../firebase/estudiante';
 import { CronogramaService, Cronograma } from '../../firebase/cronogramas';
 
-type Vista = 'grupos' | 'estudiantes';
+type Vista = 'grupos' | 'estudiantes' | 'manual';
+
+interface ManualDatos {
+    cedula:      string;
+    nombres:     string;
+    carrera:     string;
+    telegramUser: string;
+    grupo:       string;
+    asistencia:  boolean;
+}
 
 @Component({
     selector: 'app-modal-vincular',
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './modal-vincular.html',
-    styleUrl: './modal-vincular.css',
-    changeDetection: ChangeDetectionStrategy.OnPush
+    styleUrl: './modal-vincular.css'
+    // ✅ Sin ChangeDetectionStrategy.OnPush — Default detecta cambios en tiempo real
 })
 export class ModalVincular implements OnChanges {
 
@@ -38,6 +46,11 @@ export class ModalVincular implements OnChanges {
     busqueda = '';
     filtroAsistencia: 'TODOS' | 'PRESENTE' | 'AUSENTE' = 'TODOS';
 
+    // ── Paso 3: manual ──
+    origenManual: 'grupos' | 'estudiantes' = 'grupos';
+    manualDatos: ManualDatos = this.manualVacio();
+    manualError = '';
+
     cargando = false;
     guardando = false;
 
@@ -54,6 +67,17 @@ export class ModalVincular implements OnChanges {
         }
     }
 
+    private manualVacio(): ManualDatos {
+        return {
+            cedula:      '',
+            nombres:     '',
+            carrera:     '',
+            telegramUser: '',
+            grupo:       '',
+            asistencia:  false
+        };
+    }
+
     private resetear(): void {
         this.vista               = 'grupos';
         this.grupos              = [];
@@ -63,11 +87,14 @@ export class ModalVincular implements OnChanges {
         this.seleccionados.clear();
         this.busqueda            = '';
         this.filtroAsistencia    = 'TODOS';
+        this.manualDatos         = this.manualVacio();
+        this.manualError         = '';
+        this.cargando            = false;
+        this.guardando           = false;
     }
 
     // ── Helpers ya vinculado ──────────────────────────────
 
-    /** Devuelve true si la cédula del estudiante ya está en estudiantesVinculados */
     estaVinculado(e: Estudiante): boolean {
         if (!e.cedula) return false;
         const mapa = (this.cronograma as any)?.estudiantesVinculados ?? {};
@@ -78,14 +105,15 @@ export class ModalVincular implements OnChanges {
 
     private async cargarGrupos(): Promise<void> {
         this.cargando = true;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         try {
             this.grupos = await this.estudiantesService.obtenerGrupos();
         } catch (e) {
             console.error('Error cargando grupos:', e);
+            this.grupos = [];
         } finally {
             this.cargando = false;
-            this.cdr.markForCheck();
+            this.cdr.detectChanges(); // ✅ detectChanges en lugar de markForCheck
         }
     }
 
@@ -93,16 +121,18 @@ export class ModalVincular implements OnChanges {
         this.grupoSeleccionado = grupo;
         this.cargando = true;
         this.vista = 'estudiantes';
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         try {
             this.estudiantes = await this.estudiantesService
                 .obtenerEstudiantesDeGrupo(grupo.id);
             this.filtrar();
         } catch (e) {
             console.error('Error cargando estudiantes:', e);
+            this.estudiantes = [];
+            this.estudiantesFiltrados = [];
         } finally {
             this.cargando = false;
-            this.cdr.markForCheck();
+            this.cdr.detectChanges(); // ✅ garantiza que el spinner desaparece
         }
     }
 
@@ -112,7 +142,7 @@ export class ModalVincular implements OnChanges {
         this.estudiantes        = [];
         this.estudiantesFiltrados = [];
         this.seleccionados.clear();
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
     }
 
     // ── Paso 2: filtros y selección ───────────────────────
@@ -130,7 +160,6 @@ export class ModalVincular implements OnChanges {
                 (this.filtroAsistencia === 'AUSENTE'  && !e.asistencia);
             return texto && asist;
         });
-        this.cdr.markForCheck();
     }
 
     setFiltroAsistencia(f: 'TODOS' | 'PRESENTE' | 'AUSENTE'): void {
@@ -143,20 +172,17 @@ export class ModalVincular implements OnChanges {
         this.seleccionados.has(e.id)
             ? this.seleccionados.delete(e.id)
             : this.seleccionados.add(e.id);
-        this.cdr.markForCheck();
     }
 
     toggleTodos(event: Event): void {
         const checked = (event.target as HTMLInputElement).checked;
         if (checked) {
-            // Solo selecciona los que NO están ya vinculados
             this.estudiantesFiltrados
                 .filter(e => !this.estaVinculado(e))
                 .forEach(e => { if (e.id) this.seleccionados.add(e.id); });
         } else {
             this.seleccionados.clear();
         }
-        this.cdr.markForCheck();
     }
 
     todosSeleccionados(): boolean {
@@ -165,18 +191,18 @@ export class ModalVincular implements OnChanges {
             disponibles.every(e => this.seleccionados.has(e.id!));
     }
 
-    // ── Vincular ──────────────────────────────────────────
+    // ── Vincular desde lista ──────────────────────────────
 
     async vincular(): Promise<void> {
         if (!this.cronograma?.id || this.seleccionados.size === 0) return;
         this.guardando = true;
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         try {
             const aVincular = this.estudiantes
                 .filter(e => this.seleccionados.has(e.id!))
                 .map(e => ({
                     cedula:           e.cedula,
-                    nombres:           e.nombres,
+                    nombres:          e.nombres,
                     carrera:          e.carrera,
                     telegramUser:     e.telegramUser ?? '',
                     asistencia:       e.asistencia   ?? false,
@@ -203,9 +229,88 @@ export class ModalVincular implements OnChanges {
             alert('Error al vincular estudiantes');
         } finally {
             this.guardando = false;
-            this.cdr.markForCheck();
+            this.cdr.detectChanges();
         }
     }
+
+    // ── Paso 3: ingreso manual ────────────────────────────
+
+    irAManual(): void {
+        // Guarda desde dónde vino para el botón "volver"
+        this.origenManual = this.vista === 'estudiantes' ? 'estudiantes' : 'grupos';
+        // Pre-rellena el grupo si hay uno seleccionado
+        this.manualDatos = this.manualVacio();
+        if (this.grupoSeleccionado) {
+            this.manualDatos.grupo = this.grupoSeleccionado.nombres;
+        }
+        this.manualError = '';
+        this.vista = 'manual';
+        this.cdr.detectChanges();
+    }
+
+    volverDesdeManual(): void {
+        this.manualError = '';
+        this.manualDatos = this.manualVacio();
+        this.vista = this.origenManual;
+        this.cdr.detectChanges();
+    }
+
+    async vincularManual(): Promise<void> {
+        this.manualError = '';
+
+        const cedula   = this.manualDatos.cedula.trim();
+        const nombres  = this.manualDatos.nombres.trim();
+
+        if (!cedula || !nombres) {
+            this.manualError = 'La cédula y el nombre son obligatorios.';
+            return;
+        }
+
+        if (!this.cronograma?.id) return;
+
+        // Verificar duplicado
+        const mapa = (this.cronograma as any)?.estudiantesVinculados ?? {};
+        if (mapa[cedula]) {
+            this.manualError = `El estudiante con cédula ${cedula} ya está vinculado.`;
+            return;
+        }
+
+        this.guardando = true;
+        this.cdr.detectChanges();
+
+        try {
+            const nuevoEstudiante = {
+                cedula,
+                nombres,
+                carrera:          this.manualDatos.carrera.trim()      || '',
+                telegramUser:     this.manualDatos.telegramUser.trim()  || '',
+                asistencia:       this.manualDatos.asistencia,
+                grupo:            this.manualDatos.grupo.trim()         || '',
+                fechaVinculacion: new Date().toISOString(),
+                ingresadoManual:  true
+            };
+
+            const vinculadosActuales = { ...mapa };
+            vinculadosActuales[cedula] = nuevoEstudiante;
+
+            await this.cronogramaService.actualizarCronograma(
+                this.cronograma.id!,
+                { estudiantesVinculados: vinculadosActuales } as any
+            );
+
+            this.vinculadoEvento.emit(1);
+            this.cerrar();
+
+        } catch (error) {
+            console.error('Error al guardar manual:', error);
+            this.manualError = 'Ocurrió un error al guardar. Intenta de nuevo.';
+        } finally {
+            this.guardando = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    // ── Cierre ────────────────────────────────────────────
 
     cerrar(): void { this.cerrarEvento.emit(); }
 

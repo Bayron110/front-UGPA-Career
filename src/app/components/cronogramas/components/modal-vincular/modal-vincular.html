@@ -178,11 +178,121 @@
 
         </div>
 
+        <!-- ══ PASO 3: INGRESO MANUAL ══ -->
+        <div class="paso-manual" *ngIf="vista === 'manual'">
+
+            <div class="nav-grupo">
+                <button class="btn-volver" (click)="volverDesdeManual()">
+                    <i class="ti ti-arrow-left"></i>
+                    {{ origenManual === 'grupos' ? 'Grupos' : grupoSeleccionado?.nombres || 'Estudiantes' }}
+                </button>
+                <span class="nav-sep">/</span>
+                <span class="nav-grupo-nombre">Ingreso manual</span>
+            </div>
+
+            <div class="manual-body">
+
+                <div class="manual-intro">
+                    <div class="manual-intro-icono">
+                        <i class="ti ti-user-plus"></i>
+                    </div>
+                    <div>
+                        <p class="manual-intro-titulo">Agregar estudiante manualmente</p>
+                        <p class="manual-intro-sub">Completa los datos del estudiante. Solo cédula y nombre son obligatorios.</p>
+                    </div>
+                </div>
+
+                <!-- Mensaje de error -->
+                <div class="manual-error" *ngIf="manualError">
+                    <i class="ti ti-alert-triangle"></i>
+                    {{ manualError }}
+                </div>
+
+                <!-- Formulario -->
+                <div class="manual-form">
+
+                    <div class="form-row">
+                        <div class="form-group requerido">
+                            <label>Cédula</label>
+                            <input
+                                type="text"
+                                placeholder="Ej. 1712345678"
+                                [(ngModel)]="manualDatos.cedula"
+                                maxlength="20">
+                        </div>
+                        <div class="form-group requerido">
+                            <label>Nombre completo</label>
+                            <input
+                                type="text"
+                                placeholder="Ej. Juan Pérez López"
+                                [(ngModel)]="manualDatos.nombres">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Carrera</label>
+                            <input
+                                type="text"
+                                placeholder="Ej. Ingeniería en Sistemas"
+                                [(ngModel)]="manualDatos.carrera">
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario Telegram</label>
+                            <div class="input-prefix">
+                                <span class="prefix">@</span>
+                                <input
+                                    type="text"
+                                    placeholder="usuario"
+                                    [(ngModel)]="manualDatos.telegramUser">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Grupo</label>
+                            <input
+                                type="text"
+                                placeholder="Ej. Grupo A"
+                                [(ngModel)]="manualDatos.grupo">
+                        </div>
+                        <div class="form-group form-group-check">
+                            <label>Asistencia</label>
+                            <label class="toggle-asistencia">
+                                <input type="checkbox" [(ngModel)]="manualDatos.asistencia">
+                                <span class="toggle-track">
+                                    <span class="toggle-thumb"></span>
+                                </span>
+                                <span class="toggle-label">{{ manualDatos.asistencia ? 'Presente' : 'Ausente' }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <!-- Footer -->
         <div class="modal-footer">
+
+            <!-- Botón agregar manual — visible en grupos y estudiantes -->
+            <button class="btn-manual"
+                *ngIf="vista === 'grupos' || vista === 'estudiantes'"
+                (click)="irAManual()">
+                <i class="ti ti-user-plus"></i>
+                Agregar manual
+            </button>
+
+            <div class="footer-spacer" *ngIf="vista === 'grupos' || vista === 'estudiantes'"></div>
+
             <button class="btn-cancelar" (click)="cerrar()">
                 Cancelar
             </button>
+
+            <!-- Vincular desde lista -->
             <button class="btn-vincular"
                 *ngIf="vista === 'estudiantes'"
                 [disabled]="seleccionados.size === 0 || guardando"
@@ -192,6 +302,16 @@
                    'Vincular ' + seleccionados.size +
                    ' estudiante' + (seleccionados.size !== 1 ? 's' : '') }}
             </button>
+
+            <!-- Guardar manual -->
+            <button class="btn-vincular"
+                *ngIf="vista === 'manual'"
+                [disabled]="!manualDatos.cedula || !manualDatos.nombres || guardando"
+                (click)="vincularManual()">
+                <i class="ti ti-user-check"></i>
+                {{ guardando ? 'Guardando...' : 'Guardar estudiante' }}
+            </button>
+
         </div>
 
     </div>
