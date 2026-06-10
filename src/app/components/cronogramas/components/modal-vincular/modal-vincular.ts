@@ -8,15 +8,23 @@ import { FormsModule } from '@angular/forms';
 import { EstudiantesService, Estudiante, GrupoInduccion } from '../../firebase/estudiante';
 import { CronogramaService, Cronograma } from '../../firebase/cronogramas';
 
-type Vista = 'grupos' | 'estudiantes' | 'manual';
+type Vista       = 'grupos' | 'estudiantes' | 'manual';
+type TipoPersona = 'estudiante' | 'docente';
 
 interface ManualDatos {
-    cedula:      string;
-    nombres:     string;
-    carrera:     string;
+    cedula:       string;
+    nombres:      string;
+    carrera:      string;
     telegramUser: string;
-    grupo:       string;
-    asistencia:  boolean;
+    grupo:        string;
+    asistencia:   boolean;
+}
+
+interface DocenteDatos {
+    cedula:       string;
+    nombres:      string;
+    cargo:        string;
+    departamento: string;
 }
 
 @Component({
@@ -25,33 +33,43 @@ interface ManualDatos {
     imports: [CommonModule, FormsModule],
     templateUrl: './modal-vincular.html',
     styleUrl: './modal-vincular.css'
-    // ✅ Sin ChangeDetectionStrategy.OnPush — Default detecta cambios en tiempo real
 })
 export class ModalVincular implements OnChanges {
 
-    @Input()  visible: boolean = false;
+    @Input()  visible:    boolean          = false;
     @Input()  cronograma: Cronograma | null = null;
     @Output() cerrarEvento    = new EventEmitter<void>();
     @Output() vinculadoEvento = new EventEmitter<number>();
 
-    // ── Paso 1: grupos ──
+    // ── Paso 1: grupos ─────────────────────────────────────
     vista: Vista = 'grupos';
     grupos: GrupoInduccion[] = [];
     grupoSeleccionado: GrupoInduccion | null = null;
 
-    // ── Paso 2: estudiantes ──
+    // ── Paso 2: estudiantes ────────────────────────────────
     estudiantes: Estudiante[] = [];
     estudiantesFiltrados: Estudiante[] = [];
     seleccionados = new Set<string>();
     busqueda = '';
     filtroAsistencia: 'TODOS' | 'PRESENTE' | 'AUSENTE' = 'TODOS';
 
-    // ── Paso 3: manual ──
+    // ── Paso 3: tipo de persona ────────────────────────────
+    tipoPersona: TipoPersona = 'estudiante';
     origenManual: 'grupos' | 'estudiantes' = 'grupos';
+
+    // Datos formulario estudiante
     manualDatos: ManualDatos = this.manualVacio();
     manualError = '';
 
-    cargando = false;
+    // Datos formulario docente
+    docenteDatos: DocenteDatos = this.docenteVacio();
+
+    // Cronogramas para el selector del docente
+    todosCronogramas: Cronograma[] = [];
+    cronogramasSeleccionados = new Set<string>();
+    cargandoCronogramas = false;
+
+    cargando  = false;
     guardando = false;
 
     constructor(
@@ -67,42 +85,81 @@ export class ModalVincular implements OnChanges {
         }
     }
 
+    // ── Vaciadores ─────────────────────────────────────────
     private manualVacio(): ManualDatos {
-        return {
-            cedula:      '',
-            nombres:     '',
-            carrera:     '',
-            telegramUser: '',
-            grupo:       '',
-            asistencia:  false
-        };
+        return { cedula: '', nombres: '', carrera: '', telegramUser: '', grupo: '', asistencia: false };
+    }
+
+    private docenteVacio(): DocenteDatos {
+        return { cedula: '', nombres: '', cargo: '', departamento: '' };
     }
 
     private resetear(): void {
-        this.vista               = 'grupos';
-        this.grupos              = [];
-        this.grupoSeleccionado   = null;
-        this.estudiantes         = [];
-        this.estudiantesFiltrados = [];
+        this.vista                 = 'grupos';
+        this.grupos                = [];
+        this.grupoSeleccionado     = null;
+        this.estudiantes           = [];
+        this.estudiantesFiltrados  = [];
         this.seleccionados.clear();
-        this.busqueda            = '';
-        this.filtroAsistencia    = 'TODOS';
-        this.manualDatos         = this.manualVacio();
-        this.manualError         = '';
-        this.cargando            = false;
-        this.guardando           = false;
+        this.busqueda              = '';
+        this.filtroAsistencia      = 'TODOS';
+        this.tipoPersona           = 'estudiante';
+        this.manualDatos           = this.manualVacio();
+        this.docenteDatos          = this.docenteVacio();
+        this.manualError           = '';
+        this.todosCronogramas      = [];
+        this.cronogramasSeleccionados.clear();
+        this.cargando              = false;
+        this.guardando             = false;
     }
 
-    // ── Helpers ya vinculado ──────────────────────────────
+    // ── Toggle tipo persona ────────────────────────────────
+    setTipo(tipo: TipoPersona): void {
+        this.tipoPersona = tipo;
+        this.manualError = '';
 
+        // Si cambia a docente, cargar lista de cronogramas
+        if (tipo === 'docente' && this.todosCronogramas.length === 0) {
+            this.cargarTodosCronogramas();
+        }
+        this.cdr.detectChanges();
+    }
+
+    // ── Estado visual del cronograma en el selector ────────
+    estadoCrono(c: Cronograma): string {
+        return this.cronogramaService.calcularEstado(c.fechaInicio, c.fechaFin);
+    }
+
+    // ── Toggle cronograma en el selector ──────────────────
+    toggleCronograma(id: string): void {
+        this.cronogramasSeleccionados.has(id)
+            ? this.cronogramasSeleccionados.delete(id)
+            : this.cronogramasSeleccionados.add(id);
+    }
+
+    // ── Cargar todos los cronogramas para el selector ──────
+    private async cargarTodosCronogramas(): Promise<void> {
+        this.cargandoCronogramas = true;
+        this.cdr.detectChanges();
+        try {
+            this.todosCronogramas = await this.cronogramaService.obtenerCronogramas();
+        } catch (e) {
+            console.error('Error cargando cronogramas:', e);
+            this.todosCronogramas = [];
+        } finally {
+            this.cargandoCronogramas = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    // ── Helpers ya vinculado ───────────────────────────────
     estaVinculado(e: Estudiante): boolean {
         if (!e.cedula) return false;
         const mapa = (this.cronograma as any)?.estudiantesVinculados ?? {};
         return !!mapa[e.cedula];
     }
 
-    // ── Paso 1: cargar grupos ─────────────────────────────
-
+    // ── Paso 1: cargar grupos ──────────────────────────────
     private async cargarGrupos(): Promise<void> {
         this.cargando = true;
         this.cdr.detectChanges();
@@ -113,40 +170,38 @@ export class ModalVincular implements OnChanges {
             this.grupos = [];
         } finally {
             this.cargando = false;
-            this.cdr.detectChanges(); // ✅ detectChanges en lugar de markForCheck
+            this.cdr.detectChanges();
         }
     }
 
     async seleccionarGrupo(grupo: GrupoInduccion): Promise<void> {
         this.grupoSeleccionado = grupo;
-        this.cargando = true;
-        this.vista = 'estudiantes';
+        this.cargando          = true;
+        this.vista             = 'estudiantes';
         this.cdr.detectChanges();
         try {
-            this.estudiantes = await this.estudiantesService
-                .obtenerEstudiantesDeGrupo(grupo.id);
+            this.estudiantes = await this.estudiantesService.obtenerEstudiantesDeGrupo(grupo.id);
             this.filtrar();
         } catch (e) {
             console.error('Error cargando estudiantes:', e);
-            this.estudiantes = [];
+            this.estudiantes          = [];
             this.estudiantesFiltrados = [];
         } finally {
             this.cargando = false;
-            this.cdr.detectChanges(); // ✅ garantiza que el spinner desaparece
+            this.cdr.detectChanges();
         }
     }
 
     volverAGrupos(): void {
-        this.vista              = 'grupos';
-        this.grupoSeleccionado  = null;
-        this.estudiantes        = [];
+        this.vista                = 'grupos';
+        this.grupoSeleccionado    = null;
+        this.estudiantes          = [];
         this.estudiantesFiltrados = [];
         this.seleccionados.clear();
         this.cdr.detectChanges();
     }
 
-    // ── Paso 2: filtros y selección ───────────────────────
-
+    // ── Paso 2: filtros y selección ────────────────────────
     filtrar(): void {
         const q = this.busqueda.toLowerCase().trim();
         this.estudiantesFiltrados = this.estudiantes.filter(e => {
@@ -191,8 +246,7 @@ export class ModalVincular implements OnChanges {
             disponibles.every(e => this.seleccionados.has(e.id!));
     }
 
-    // ── Vincular desde lista ──────────────────────────────
-
+    // ── Vincular estudiantes desde lista ───────────────────
     async vincular(): Promise<void> {
         if (!this.cronograma?.id || this.seleccionados.size === 0) return;
         this.guardando = true;
@@ -210,10 +264,8 @@ export class ModalVincular implements OnChanges {
                     fechaVinculacion: new Date().toISOString()
                 }));
 
-            const vinculadosActuales =
-                (this.cronograma as any).estudiantesVinculados ?? {};
-
-            const nuevoVinculados = { ...vinculadosActuales };
+            const vinculadosActuales = (this.cronograma as any).estudiantesVinculados ?? {};
+            const nuevoVinculados    = { ...vinculadosActuales };
             aVincular.forEach(e => { nuevoVinculados[e.cedula] = e; });
 
             await this.cronogramaService.actualizarCronograma(
@@ -223,7 +275,6 @@ export class ModalVincular implements OnChanges {
 
             this.vinculadoEvento.emit(aVincular.length);
             this.cerrar();
-
         } catch (error) {
             console.error('Error al vincular:', error);
             alert('Error al vincular estudiantes');
@@ -233,42 +284,41 @@ export class ModalVincular implements OnChanges {
         }
     }
 
-    // ── Paso 3: ingreso manual ────────────────────────────
-
+    // ── Ingreso manual estudiante ──────────────────────────
     irAManual(): void {
-        // Guarda desde dónde vino para el botón "volver"
         this.origenManual = this.vista === 'estudiantes' ? 'estudiantes' : 'grupos';
-        // Pre-rellena el grupo si hay uno seleccionado
-        this.manualDatos = this.manualVacio();
+        this.manualDatos  = this.manualVacio();
+        this.docenteDatos = this.docenteVacio();
+        this.cronogramasSeleccionados.clear();
         if (this.grupoSeleccionado) {
             this.manualDatos.grupo = this.grupoSeleccionado.nombres;
         }
-        this.manualError = '';
-        this.vista = 'manual';
+        this.manualError  = '';
+        this.tipoPersona  = 'estudiante';
+        this.vista        = 'manual';
         this.cdr.detectChanges();
     }
 
     volverDesdeManual(): void {
         this.manualError = '';
         this.manualDatos = this.manualVacio();
+        this.docenteDatos = this.docenteVacio();
+        this.cronogramasSeleccionados.clear();
         this.vista = this.origenManual;
         this.cdr.detectChanges();
     }
 
     async vincularManual(): Promise<void> {
         this.manualError = '';
-
-        const cedula   = this.manualDatos.cedula.trim();
-        const nombres  = this.manualDatos.nombres.trim();
+        const cedula  = this.manualDatos.cedula.trim();
+        const nombres = this.manualDatos.nombres.trim();
 
         if (!cedula || !nombres) {
             this.manualError = 'La cédula y el nombre son obligatorios.';
             return;
         }
-
         if (!this.cronograma?.id) return;
 
-        // Verificar duplicado
         const mapa = (this.cronograma as any)?.estudiantesVinculados ?? {};
         if (mapa[cedula]) {
             this.manualError = `El estudiante con cédula ${cedula} ya está vinculado.`;
@@ -277,15 +327,14 @@ export class ModalVincular implements OnChanges {
 
         this.guardando = true;
         this.cdr.detectChanges();
-
         try {
             const nuevoEstudiante = {
                 cedula,
                 nombres,
-                carrera:          this.manualDatos.carrera.trim()      || '',
-                telegramUser:     this.manualDatos.telegramUser.trim()  || '',
+                carrera:          this.manualDatos.carrera.trim()     || '',
+                telegramUser:     this.manualDatos.telegramUser.trim() || '',
                 asistencia:       this.manualDatos.asistencia,
-                grupo:            this.manualDatos.grupo.trim()         || '',
+                grupo:            this.manualDatos.grupo.trim()        || '',
                 fechaVinculacion: new Date().toISOString(),
                 ingresadoManual:  true
             };
@@ -300,7 +349,6 @@ export class ModalVincular implements OnChanges {
 
             this.vinculadoEvento.emit(1);
             this.cerrar();
-
         } catch (error) {
             console.error('Error al guardar manual:', error);
             this.manualError = 'Ocurrió un error al guardar. Intenta de nuevo.';
@@ -310,8 +358,61 @@ export class ModalVincular implements OnChanges {
         }
     }
 
-    // ── Cierre ────────────────────────────────────────────
+    // ── Guardar docente ────────────────────────────────────
+    async vincularDocente(): Promise<void> {
+        this.manualError = '';
+        const cedula  = this.docenteDatos.cedula.trim();
+        const nombres = this.docenteDatos.nombres.trim();
+        const cargo   = this.docenteDatos.cargo.trim();
 
+        if (!cedula || !nombres || !cargo) {
+            this.manualError = 'Cédula, nombre y cargo son obligatorios.';
+            return;
+        }
+        if (this.cronogramasSeleccionados.size === 0) {
+            this.manualError = 'Selecciona al menos un cronograma para el docente.';
+            return;
+        }
+
+        this.guardando = true;
+        this.cdr.detectChanges();
+
+        try {
+            const nuevoDocente = {
+                cedula,
+                nombres,
+                cargo,
+                departamento:        this.docenteDatos.departamento.trim() || '',
+                fechaVinculacion:    new Date().toISOString(),
+                cronogramasAsignados: Array.from(this.cronogramasSeleccionados),
+                esDocente:           true
+            };
+
+            // Guardar en cada cronograma seleccionado bajo el nodo docentesVinculados
+            const updates: Promise<void>[] = Array.from(this.cronogramasSeleccionados).map(cronoId => {
+                return this.cronogramaService.obtenerCronograma(cronoId).then(crono => {
+                    if (!crono) return;
+                    const docentesActuales = (crono as any)?.docentesVinculados ?? {};
+                    return this.cronogramaService.actualizarCronograma(cronoId, {
+                        docentesVinculados: { ...docentesActuales, [cedula]: nuevoDocente }
+                    } as any);
+                });
+            });
+
+            await Promise.all(updates);
+
+            this.vinculadoEvento.emit(1);
+            this.cerrar();
+        } catch (error) {
+            console.error('Error al guardar docente:', error);
+            this.manualError = 'Ocurrió un error al guardar. Intenta de nuevo.';
+        } finally {
+            this.guardando = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    // ── Cierre ─────────────────────────────────────────────
     cerrar(): void { this.cerrarEvento.emit(); }
 
     cerrarSiFuera(event: MouseEvent): void {
