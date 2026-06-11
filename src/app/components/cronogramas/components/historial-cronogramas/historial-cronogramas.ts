@@ -26,6 +26,10 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
   cronogramas: Cronograma[] = [];
   cargando = true;
 
+  // ── Filtros ──────────────────────────────────────────────
+  filtroEstado: 'TODOS' | 'VIGENTE' | 'PROGRAMADO' | 'FINALIZADO' = 'TODOS';
+  filtroTexto = '';
+
   // ── Backend wake-up (manual) ─────────────────────────────
   estadoBackend: 'dormido' | 'despertando' | 'activo' = 'dormido';
   cuentaRegresiva = 30;
@@ -100,6 +104,34 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     return c.id ?? '';
   }
 
+  // ── Filtros ──────────────────────────────────────────────
+  get cronogramasFiltrados(): Cronograma[] {
+    return this.cronogramas.filter(c => {
+      const coincideEstado =
+        this.filtroEstado === 'TODOS' || this.estadoReal(c) === this.filtroEstado;
+
+      const coincideTexto =
+        !this.filtroTexto.trim() ||
+        c.nombre.toLowerCase().includes(this.filtroTexto.trim().toLowerCase());
+
+      return coincideEstado && coincideTexto;
+    });
+  }
+
+  setFiltro(estado: 'TODOS' | 'VIGENTE' | 'PROGRAMADO' | 'FINALIZADO'): void {
+    this.filtroEstado = estado;
+    this.cdr.markForCheck();
+  }
+
+  contar(estado: 'VIGENTE' | 'PROGRAMADO' | 'FINALIZADO'): number {
+    return this.cronogramas.filter(c => this.estadoReal(c) === estado).length;
+  }
+
+  limpiarBusqueda(): void {
+    this.filtroTexto = '';
+    this.cdr.markForCheck();
+  }
+
   // ── Botón manual: despertar backend ─────────────────────
   async despertarBackend(): Promise<void> {
     if (this.estadoBackend === 'despertando') return;
@@ -164,15 +196,10 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     return antesDeOcho || antesDeSeis;
   }
 
-  /**
-   * Arranca dos timers independientes:
-   *  1. Cada 1 min → revisa si faltan ≤5 min para un cron y despierta
-   *  2. Cada 10 min → ping general dentro del horario (mantiene activo)
-   */
+
   private iniciarHeartbeat(): void {
 
-    // ── Timer 1: vigilar los crons de 8am y 6pm ──────────
-    // Primer chequeo inmediato por si arrancamos justo en la ventana
+
     if (this.debeDespertarAntesDelCron()) {
       console.log('[Heartbeat] ⏰ Ventana pre-cron detectada al iniciar, despertando...');
       this.enviarHeartbeat();
@@ -185,8 +212,6 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
       }
     }, this.INTERVALO_CRON_MS);
 
-    // ── Timer 2: ping general cada 10 min (horario laboral) ─
-    // Primer ping inmediato si estamos en horario
     if (this.esDentroDeHorario()) {
       this.enviarHeartbeat();
     }

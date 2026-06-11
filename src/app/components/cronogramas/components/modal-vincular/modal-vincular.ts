@@ -8,22 +8,22 @@ import { FormsModule } from '@angular/forms';
 import { EstudiantesService, Estudiante, GrupoInduccion } from '../../firebase/estudiante';
 import { CronogramaService, Cronograma } from '../../firebase/cronogramas';
 
-type Vista       = 'grupos' | 'estudiantes' | 'manual';
+type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados';
 type TipoPersona = 'estudiante' | 'docente';
 
 interface ManualDatos {
-    cedula:       string;
-    nombres:      string;
-    carrera:      string;
+    cedula: string;
+    nombres: string;
+    carrera: string;
     telegramUser: string;
-    grupo:        string;
-    asistencia:   boolean;
+    grupo: string;
+    asistencia: boolean;
 }
 
 interface DocenteDatos {
-    cedula:       string;
-    nombres:      string;
-    cargo:        string;
+    cedula: string;
+    nombres: string;
+    cargo: string;
     departamento: string;
 }
 
@@ -36,9 +36,9 @@ interface DocenteDatos {
 })
 export class ModalVincular implements OnChanges {
 
-    @Input()  visible:    boolean          = false;
-    @Input()  cronograma: Cronograma | null = null;
-    @Output() cerrarEvento    = new EventEmitter<void>();
+    @Input() visible: boolean = false;
+    @Input() cronograma: Cronograma | null = null;
+    @Output() cerrarEvento = new EventEmitter<void>();
     @Output() vinculadoEvento = new EventEmitter<number>();
 
     // ── Paso 1: grupos ─────────────────────────────────────
@@ -56,6 +56,10 @@ export class ModalVincular implements OnChanges {
     // ── Paso 3: tipo de persona ────────────────────────────
     tipoPersona: TipoPersona = 'estudiante';
     origenManual: 'grupos' | 'estudiantes' = 'grupos';
+    // ── Paso: vinculados ───────────────────────────────────
+    origenVinculados: 'grupos' | 'estudiantes' = 'grupos';
+    busquedaVinculados = '';
+    filtroTipoVinculado: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES' = 'TODOS';
 
     // Datos formulario estudiante
     manualDatos: ManualDatos = this.manualVacio();
@@ -68,15 +72,41 @@ export class ModalVincular implements OnChanges {
     todosCronogramas: Cronograma[] = [];
     cronogramasSeleccionados = new Set<string>();
     cargandoCronogramas = false;
+    get personasVinculadas(): any[] {
+        const estudiantes = Object.values((this.cronograma as any)?.estudiantesVinculados ?? {})
+            .map((e: any) => ({ ...e, tipo: 'estudiante' }));
+        const docentes = Object.values((this.cronograma as any)?.docentesVinculados ?? {})
+            .map((d: any) => ({ ...d, tipo: 'docente' }));
+        return [...docentes, ...estudiantes];
+    }
 
-    cargando  = false;
+    get vinculadosFiltrados(): any[] {
+        const q = this.busquedaVinculados.toLowerCase().trim();
+        return this.personasVinculadas.filter(p => {
+            const coincideTipo =
+                this.filtroTipoVinculado === 'TODOS' ||
+                (this.filtroTipoVinculado === 'ESTUDIANTES' && p.tipo === 'estudiante') ||
+                (this.filtroTipoVinculado === 'DOCENTES' && p.tipo === 'docente');
+
+            const coincideTexto = !q ||
+                p.cedula?.toLowerCase().includes(q) ||
+                p.nombres?.toLowerCase().includes(q);
+
+            return coincideTipo && coincideTexto;
+        });
+    }
+
+    contarVinculados(tipo: 'estudiante' | 'docente'): number {
+        return this.personasVinculadas.filter(p => p.tipo === tipo).length;
+    }
+    cargando = false;
     guardando = false;
 
     constructor(
         private estudiantesService: EstudiantesService,
         private cronogramaService: CronogramaService,
         private cdr: ChangeDetectorRef
-    ) {}
+    ) { }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['visible']?.currentValue === true) {
@@ -95,22 +125,25 @@ export class ModalVincular implements OnChanges {
     }
 
     private resetear(): void {
-        this.vista                 = 'grupos';
-        this.grupos                = [];
-        this.grupoSeleccionado     = null;
-        this.estudiantes           = [];
-        this.estudiantesFiltrados  = [];
+        this.vista = 'grupos';
+        this.grupos = [];
+        this.grupoSeleccionado = null;
+        this.estudiantes = [];
+        this.estudiantesFiltrados = [];
         this.seleccionados.clear();
-        this.busqueda              = '';
-        this.filtroAsistencia      = 'TODOS';
-        this.tipoPersona           = 'estudiante';
-        this.manualDatos           = this.manualVacio();
-        this.docenteDatos          = this.docenteVacio();
-        this.manualError           = '';
-        this.todosCronogramas      = [];
+        this.busqueda = '';
+        this.filtroAsistencia = 'TODOS';
+        this.tipoPersona = 'estudiante';
+        this.manualDatos = this.manualVacio();
+        this.docenteDatos = this.docenteVacio();
+        this.manualError = '';
+        this.todosCronogramas = [];
         this.cronogramasSeleccionados.clear();
-        this.cargando              = false;
-        this.guardando             = false;
+        this.cargando = false;
+        this.guardando = false;
+        this.busquedaVinculados = '';
+        this.filtroTipoVinculado = 'TODOS';
+        this.origenVinculados = 'grupos';
     }
 
     // ── Toggle tipo persona ────────────────────────────────
@@ -125,6 +158,54 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
     }
 
+    irAVinculados(): void {
+        this.origenVinculados = this.vista === 'estudiantes' ? 'estudiantes' : 'grupos';
+        this.busquedaVinculados = '';
+        this.filtroTipoVinculado = 'TODOS';
+        this.vista = 'vinculados';
+        this.cdr.detectChanges();
+    }
+
+    volverDesdeVinculados(): void {
+        this.vista = this.origenVinculados;
+        this.cdr.detectChanges();
+    }
+
+    async desvincular(persona: any): Promise<void> {
+        if (!this.cronograma?.id) return;
+
+        const tipoTexto = persona.tipo === 'docente' ? 'docente' : 'estudiante';
+        if (!confirm(`¿Desvincular a ${persona.nombres} (${tipoTexto})?`)) return;
+
+        try {
+            if (persona.tipo === 'docente') {
+                const actuales = { ...((this.cronograma as any)?.docentesVinculados ?? {}) };
+                delete actuales[persona.cedula];
+                await this.cronogramaService.actualizarCronograma(
+                    this.cronograma.id!,
+                    { docentesVinculados: actuales } as any
+                );
+                (this.cronograma as any).docentesVinculados = actuales;
+            } else {
+                const actuales = { ...((this.cronograma as any)?.estudiantesVinculados ?? {}) };
+                delete actuales[persona.cedula];
+                await this.cronogramaService.actualizarCronograma(
+                    this.cronograma.id!,
+                    { estudiantesVinculados: actuales } as any
+                );
+                (this.cronograma as any).estudiantesVinculados = actuales;
+            }
+            this.cdr.detectChanges();
+        } catch (error) {
+            console.error('Error al desvincular:', error);
+            alert('Error al desvincular');
+        }
+    }
+
+    setFiltroTipoVinculado(f: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES'): void {
+        this.filtroTipoVinculado = f;
+        this.cdr.detectChanges();
+    }
     // ── Estado visual del cronograma en el selector ────────
     estadoCrono(c: Cronograma): string {
         return this.cronogramaService.calcularEstado(c.fechaInicio, c.fechaFin);
@@ -176,15 +257,15 @@ export class ModalVincular implements OnChanges {
 
     async seleccionarGrupo(grupo: GrupoInduccion): Promise<void> {
         this.grupoSeleccionado = grupo;
-        this.cargando          = true;
-        this.vista             = 'estudiantes';
+        this.cargando = true;
+        this.vista = 'estudiantes';
         this.cdr.detectChanges();
         try {
             this.estudiantes = await this.estudiantesService.obtenerEstudiantesDeGrupo(grupo.id);
             this.filtrar();
         } catch (e) {
             console.error('Error cargando estudiantes:', e);
-            this.estudiantes          = [];
+            this.estudiantes = [];
             this.estudiantesFiltrados = [];
         } finally {
             this.cargando = false;
@@ -193,9 +274,9 @@ export class ModalVincular implements OnChanges {
     }
 
     volverAGrupos(): void {
-        this.vista                = 'grupos';
-        this.grupoSeleccionado    = null;
-        this.estudiantes          = [];
+        this.vista = 'grupos';
+        this.grupoSeleccionado = null;
+        this.estudiantes = [];
         this.estudiantesFiltrados = [];
         this.seleccionados.clear();
         this.cdr.detectChanges();
@@ -211,8 +292,8 @@ export class ModalVincular implements OnChanges {
                 e.carrera?.toLowerCase().includes(q);
             const asist =
                 this.filtroAsistencia === 'TODOS' ||
-                (this.filtroAsistencia === 'PRESENTE' &&  e.asistencia) ||
-                (this.filtroAsistencia === 'AUSENTE'  && !e.asistencia);
+                (this.filtroAsistencia === 'PRESENTE' && e.asistencia) ||
+                (this.filtroAsistencia === 'AUSENTE' && !e.asistencia);
             return texto && asist;
         });
     }
@@ -255,17 +336,17 @@ export class ModalVincular implements OnChanges {
             const aVincular = this.estudiantes
                 .filter(e => this.seleccionados.has(e.id!))
                 .map(e => ({
-                    cedula:           e.cedula,
-                    nombres:          e.nombres,
-                    carrera:          e.carrera,
-                    telegramUser:     e.telegramUser ?? '',
-                    asistencia:       e.asistencia   ?? false,
-                    grupo:            this.grupoSeleccionado?.nombres ?? '',
+                    cedula: e.cedula,
+                    nombres: e.nombres,
+                    carrera: e.carrera,
+                    telegramUser: e.telegramUser ?? '',
+                    asistencia: e.asistencia ?? false,
+                    grupo: this.grupoSeleccionado?.nombres ?? '',
                     fechaVinculacion: new Date().toISOString()
                 }));
 
             const vinculadosActuales = (this.cronograma as any).estudiantesVinculados ?? {};
-            const nuevoVinculados    = { ...vinculadosActuales };
+            const nuevoVinculados = { ...vinculadosActuales };
             aVincular.forEach(e => { nuevoVinculados[e.cedula] = e; });
 
             await this.cronogramaService.actualizarCronograma(
@@ -287,15 +368,15 @@ export class ModalVincular implements OnChanges {
     // ── Ingreso manual estudiante ──────────────────────────
     irAManual(): void {
         this.origenManual = this.vista === 'estudiantes' ? 'estudiantes' : 'grupos';
-        this.manualDatos  = this.manualVacio();
+        this.manualDatos = this.manualVacio();
         this.docenteDatos = this.docenteVacio();
         this.cronogramasSeleccionados.clear();
         if (this.grupoSeleccionado) {
             this.manualDatos.grupo = this.grupoSeleccionado.nombres;
         }
-        this.manualError  = '';
-        this.tipoPersona  = 'estudiante';
-        this.vista        = 'manual';
+        this.manualError = '';
+        this.tipoPersona = 'estudiante';
+        this.vista = 'manual';
         this.cdr.detectChanges();
     }
 
@@ -310,7 +391,7 @@ export class ModalVincular implements OnChanges {
 
     async vincularManual(): Promise<void> {
         this.manualError = '';
-        const cedula  = this.manualDatos.cedula.trim();
+        const cedula = this.manualDatos.cedula.trim();
         const nombres = this.manualDatos.nombres.trim();
 
         if (!cedula || !nombres) {
@@ -331,12 +412,12 @@ export class ModalVincular implements OnChanges {
             const nuevoEstudiante = {
                 cedula,
                 nombres,
-                carrera:          this.manualDatos.carrera.trim()     || '',
-                telegramUser:     this.manualDatos.telegramUser.trim() || '',
-                asistencia:       this.manualDatos.asistencia,
-                grupo:            this.manualDatos.grupo.trim()        || '',
+                carrera: this.manualDatos.carrera.trim() || '',
+                telegramUser: this.manualDatos.telegramUser.trim() || '',
+                asistencia: this.manualDatos.asistencia,
+                grupo: this.manualDatos.grupo.trim() || '',
                 fechaVinculacion: new Date().toISOString(),
-                ingresadoManual:  true
+                ingresadoManual: true
             };
 
             const vinculadosActuales = { ...mapa };
@@ -361,9 +442,9 @@ export class ModalVincular implements OnChanges {
     // ── Guardar docente ────────────────────────────────────
     async vincularDocente(): Promise<void> {
         this.manualError = '';
-        const cedula  = this.docenteDatos.cedula.trim();
+        const cedula = this.docenteDatos.cedula.trim();
         const nombres = this.docenteDatos.nombres.trim();
-        const cargo   = this.docenteDatos.cargo.trim();
+        const cargo = this.docenteDatos.cargo.trim();
 
         if (!cedula || !nombres || !cargo) {
             this.manualError = 'Cédula, nombre y cargo son obligatorios.';
@@ -382,10 +463,10 @@ export class ModalVincular implements OnChanges {
                 cedula,
                 nombres,
                 cargo,
-                departamento:        this.docenteDatos.departamento.trim() || '',
-                fechaVinculacion:    new Date().toISOString(),
+                departamento: this.docenteDatos.departamento.trim() || '',
+                fechaVinculacion: new Date().toISOString(),
                 cronogramasAsignados: Array.from(this.cronogramasSeleccionados),
-                esDocente:           true
+                esDocente: true
             };
 
             // Guardar en cada cronograma seleccionado bajo el nodo docentesVinculados

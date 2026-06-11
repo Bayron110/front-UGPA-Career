@@ -1743,3 +1743,65 @@ tbody td {
     letter-spacing: 0;
     font-weight: 400;
 }
+/* ── Botón "Ver vinculados" ── */
+.btn-ver-vinculados {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(0,229,255,0.07);
+  color: #00e5ff;
+  border: 1px solid rgba(0,229,255,0.22);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ver-vinculados:hover {
+  background: rgba(0,229,255,0.14);
+  box-shadow: 0 0 14px rgba(0,229,255,0.10);
+}
+
+.badge-count {
+  background: rgba(0,229,255,0.18);
+  color: #00e5ff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Tipo (estudiante / docente) en tabla vinculados ── */
+.badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,229,255,0.10);
+  color: #00e5ff;
+  border: 1px solid rgba(0,229,255,0.25);
+  white-space: nowrap;
+}
+
+.badge-tipo.docente {
+  background: rgba(124,58,237,0.14);
+  color: #c4b5fd;
+  border-color: rgba(124,58,237,0.35);
+}
+
+.filtro-mini-count {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 1px 6px;
+  margin-left: 4px;
+}
+
+.th-accion { width: 44px; text-align: center; }

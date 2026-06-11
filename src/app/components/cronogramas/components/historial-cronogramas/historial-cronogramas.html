@@ -20,10 +20,59 @@
         <p>Aún no se ha publicado ningún cronograma.</p>
     </div>
 
-    <!-- LISTA -->
-    <div class="lista" *ngIf="!cargando && cronogramas.length > 0">
+    <!-- FILTROS -->
+    <div class="filtros-bar" *ngIf="!cargando && cronogramas.length > 0">
 
-        <div class="cronograma-card" *ngFor="let c of cronogramas; trackBy: trackById"
+        <div class="filtros-estado">
+            <button class="filtro-chip" [class.activo]="filtroEstado === 'TODOS'"
+                (click)="setFiltro('TODOS')">
+                Todos
+                <span class="filtro-count">{{ cronogramas.length }}</span>
+            </button>
+
+            <button class="filtro-chip filtro-vigente" [class.activo]="filtroEstado === 'VIGENTE'"
+                (click)="setFiltro('VIGENTE')">
+                <span class="filtro-dot dot-vigente"></span>
+                Vigentes
+                <span class="filtro-count">{{ contar('VIGENTE') }}</span>
+            </button>
+
+            <button class="filtro-chip filtro-programado" [class.activo]="filtroEstado === 'PROGRAMADO'"
+                (click)="setFiltro('PROGRAMADO')">
+                <span class="filtro-dot dot-programado"></span>
+                Programados
+                <span class="filtro-count">{{ contar('PROGRAMADO') }}</span>
+            </button>
+
+            <button class="filtro-chip filtro-finalizado" [class.activo]="filtroEstado === 'FINALIZADO'"
+                (click)="setFiltro('FINALIZADO')">
+                <span class="filtro-dot dot-finalizado"></span>
+                Finalizados
+                <span class="filtro-count">{{ contar('FINALIZADO') }}</span>
+            </button>
+        </div>
+
+        <div class="filtro-busqueda">
+            <i class="ti ti-search"></i>
+            <input type="text" placeholder="Buscar por nombre..." [(ngModel)]="filtroTexto" />
+            <button class="btn-limpiar" *ngIf="filtroTexto" (click)="limpiarBusqueda()">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- SIN RESULTADOS (por filtro) -->
+    <div class="estado-vacio" *ngIf="!cargando && cronogramas.length > 0 && cronogramasFiltrados.length === 0">
+        <i class="ti ti-filter-off"></i>
+        <h3>Sin resultados</h3>
+        <p>No hay cronogramas que coincidan con el filtro seleccionado.</p>
+    </div>
+
+    <!-- LISTA -->
+    <div class="lista" *ngIf="!cargando && cronogramasFiltrados.length > 0">
+
+        <div class="cronograma-card" *ngFor="let c of cronogramasFiltrados; trackBy: trackById"
             [class.vigente]="estadoReal(c) === 'VIGENTE'" [class.finalizado]="estadoReal(c) === 'FINALIZADO'"
             [class.programado]="estadoReal(c) === 'PROGRAMADO'">
 
