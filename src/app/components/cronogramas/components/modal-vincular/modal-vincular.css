@@ -1805,3 +1805,194 @@ tbody td {
 }
 
 .th-accion { width: 44px; text-align: center; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   NUEVOS ESTILOS — agregar al final de modal-vincular.css
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Lista de docentes ─────────────────────────────────────────── */
+.docente-buscador {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.docente-buscador i {
+    color: rgba(0, 229, 255, 0.5);
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.docente-buscador input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e0f7fa;
+    font-size: 13px;
+    width: 100%;
+}
+
+.docente-buscador input::placeholder {
+    color: rgba(0, 229, 255, 0.3);
+}
+
+.lista-docentes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    padding-right: 2px;
+}
+
+.lista-docentes::-webkit-scrollbar {
+    width: 4px;
+}
+
+.lista-docentes::-webkit-scrollbar-track {
+    background: rgba(0, 229, 255, 0.05);
+}
+
+.lista-docentes::-webkit-scrollbar-thumb {
+    background: rgba(0, 229, 255, 0.2);
+    border-radius: 2px;
+}
+
+.docente-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    background: rgba(0, 229, 255, 0.03);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.docente-item:hover:not(.ya-vinculado) {
+    border-color: rgba(0, 229, 255, 0.3);
+    background: rgba(0, 229, 255, 0.07);
+}
+
+.docente-item.seleccionado {
+    border-color: rgba(0, 229, 255, 0.6);
+    background: rgba(0, 229, 255, 0.1);
+}
+
+.docente-item.ya-vinculado {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.docente-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 229, 255, 0.08);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: rgba(0, 229, 255, 0.7);
+    font-size: 16px;
+}
+
+.docente-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.docente-nombre {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0f7fa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.docente-meta {
+    font-size: 11px;
+    color: rgba(0, 229, 255, 0.5);
+}
+
+.docente-depto {
+    font-size: 11px;
+    color: rgba(0, 229, 255, 0.35);
+}
+
+.docente-check {
+    color: rgba(0, 229, 255, 0.9);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.docente-vacio {
+    text-align: center;
+    padding: 24px 0;
+    color: rgba(0, 229, 255, 0.3);
+    font-size: 13px;
+}
+
+.docente-vacio i {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* ── Botón registrar nuevo docente ──────────────────────────────── */
+.btn-nuevo-docente {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px dashed rgba(0, 229, 255, 0.3);
+    background: transparent;
+    color: rgba(0, 229, 255, 0.6);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 4px;
+}
+
+.btn-nuevo-docente:hover {
+    border-color: rgba(0, 229, 255, 0.6);
+    color: rgba(0, 229, 255, 0.9);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+/* ── Nav sub (dentro del formulario nuevo docente) ──────────────── */
+.nav-sub {
+    margin-bottom: 14px;
+}
+
+.btn-volver-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: rgba(0, 229, 255, 0.5);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+}
+
+.btn-volver-sub:hover {
+    color: rgba(0, 229, 255, 0.9);
+}
