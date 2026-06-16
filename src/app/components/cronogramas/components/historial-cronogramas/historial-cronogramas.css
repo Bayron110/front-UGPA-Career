@@ -740,61 +740,166 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   .btn-editar, .btn-vincular { flex: 1; justify-content: center; }
   .sello-finalizado-texto { font-size: 32px; }
 }
-/* ── Backend wake-up ── */
+/* ══════════════════════════════════════════
+   PANEL DE CONTROL DEL SERVIDOR
+   Reemplaza la sección "Backend wake-up"
+   ══════════════════════════════════════════ */
+
+/* ── Contenedor del panel ── */
 .backend-status {
-  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.06);
+  background: rgba(0, 0, 0, 0.20);
+  min-height: 44px;
+  gap: 10px;
 }
 
-.btn-despertar {
+/* ── Fila cuando está activo (info + botón finalizar) ── */
+.backend-activo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* ── Info inline (verificando / despertando / activo) ── */
+.backend-info {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
-  border: 1px solid rgba(0,229,255,0.22);
-  background: rgba(0,229,255,0.07);
-  color: #00e5ff;
-  transition: all 0.2s;
+  color: rgba(226, 232, 240, 0.55);
 }
 
-.btn-despertar:hover:not(:disabled) {
-  background: rgba(0,229,255,0.14);
-  box-shadow: 0 0 14px rgba(0,229,255,0.12);
+.backend-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btn-despertar:disabled {
-  cursor: not-allowed;
-  opacity: 0.75;
-}
-
+/* ── Dot de estado ── */
 .btn-despertar-dot {
-  width: 7px; height: 7px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-block;
+}
+
+.btn-despertar-dot.verificando {
+  background: rgba(0, 229, 255, 0.30);
+  animation: pulso-dot 1.2s ease-in-out infinite;
 }
 
 .btn-despertar-dot.dormido {
-  background: rgba(0,229,255,0.35);
+  background: rgba(148, 163, 184, 0.35);
+  box-shadow: none;
 }
 
 .btn-despertar-dot.despertando {
   background: #f59e0b;
-  box-shadow: 0 0 8px rgba(245,158,11,0.8);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.80);
   animation: pulso-dot 1s ease-in-out infinite;
 }
 
 .btn-despertar-dot.activo {
   background: #22c55e;
-  box-shadow: 0 0 8px rgba(34,197,94,0.8);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.85),
+              0 0 16px rgba(34, 197, 94, 0.35);
   animation: pulso-dot 2s ease-in-out infinite;
 }
 
+/* ── Botón Despertar ── */
+.btn-despertar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(0, 229, 255, 0.20);
+  background: rgba(0, 229, 255, 0.06);
+  color: rgba(0, 229, 255, 0.75);
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.btn-despertar:hover:not(:disabled) {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.40);
+  color: #00e5ff;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.10);
+}
+
+.btn-despertar:disabled {
+  cursor: not-allowed;
+  opacity: 0.50;
+}
+
+/* ── Botón Finalizar ── */
+.btn-finalizar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.07);
+  color: rgba(252, 165, 165, 0.80);
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+  margin-left: auto;
+}
+
+.btn-finalizar:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
+}
+
+/* ── Badge keepalive ON ── */
+.keepalive-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(34, 197, 94, 0.60);
+  text-transform: uppercase;
+}
+
+/* ── Spin util ── */
 .spin {
-  animation: spin 1s linear infinite;
   display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* ── Header con panel integrado ── */
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.backend-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 229, 255, 0.10);
+  border-radius: 10px;
+  flex-shrink: 0;
+  align-self: center;
 }
 /* ── Filtros ── */
 .filtros-bar {

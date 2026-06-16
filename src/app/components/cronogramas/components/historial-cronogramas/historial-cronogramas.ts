@@ -30,19 +30,22 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
   filtroEstado: 'TODOS' | 'VIGENTE' | 'PROGRAMADO' | 'FINALIZADO' = 'TODOS';
   filtroTexto = '';
 
-  // ── Backend wake-up (manual) ─────────────────────────────
-  estadoBackend: 'dormido' | 'despertando' | 'activo' = 'dormido';
-  cuentaRegresiva = 30;
-  private timerWake: any;
+  // ── Backend monitor ──────────────────────────────────────
+  estadoBackend: 'verificando' | 'dormido' | 'despertando' | 'activo' = 'verificando';
+  private pollingWakeTimer: any;   // polling cada 3s mientras despierta
+  private keepaliveTimer: any;     // ping cada 25s para mantener activo
+  keepaliveActivo = false;         // true cuando el keepalive está corriendo
 
-  // ── Auto-heartbeat ───────────────────────────────────────
-  private heartbeatGeneralTimer: any;  // ping cada 10 min dentro del horario
-  private heartbeatCronTimer: any;     // ping cada 1 min para vigilar crons
+  // ── Auto-heartbeat (pre-cron) ────────────────────────────
+  private heartbeatGeneralTimer: any;
+  private heartbeatCronTimer: any;
 
-  private readonly INTERVALO_GENERAL_MS = 10 * 60 * 1000; // 10 minutos
-  private readonly INTERVALO_CRON_MS    =      60 * 1000; //  1 minuto
+  private readonly INTERVALO_GENERAL_MS = 10 * 60 * 1000; // 10 min
+  private readonly INTERVALO_CRON_MS    =      60 * 1000; //  1 min
+  private readonly INTERVALO_KEEPALIVE  =      25 * 1000; // 25 s
+  private readonly INTERVALO_POLLING    =       3 * 1000; //  3 s
+  private readonly TIMEOUT_PING         =      15 * 1000; // 15 s
 
-  // ── URL backend ─────────────────────────────────────────
   private readonly BACKEND_URL = 'https://itsqmet-bot-backend.onrender.com';
 
   constructor(
@@ -62,11 +65,14 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
+    // Verificar estado real del backend al cargar
+    this.verificarEstadoInicial();
     this.iniciarHeartbeat();
   }
 
   ngOnDestroy(): void {
-    if (this.timerWake)            clearInterval(this.timerWake);
+    this.detenerPolling();
+    this.detenerKeepalive();
     if (this.heartbeatGeneralTimer) clearInterval(this.heartbeatGeneralTimer);
     if (this.heartbeatCronTimer)    clearInterval(this.heartbeatCronTimer);
   }
@@ -132,74 +138,132 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  // ── Botón manual: despertar backend ─────────────────────
-  async despertarBackend(): Promise<void> {
-    if (this.estadoBackend === 'despertando') return;
-
-    this.estadoBackend = 'despertando';
-    this.cuentaRegresiva = 30;
+  // ── Verificación inicial del estado real ─────────────────
+  private async verificarEstadoInicial(): Promise<void> {
+    this.estadoBackend = 'verificando';
     this.cdr.markForCheck();
 
-    // Ping sin CORS usando Image — solo despierta
-    new Image().src = `${this.BACKEND_URL}/?_=${Date.now()}`;
+    const activo = await this.pingBackend();
 
-    this.timerWake = setInterval(() => {
-      this.cuentaRegresiva--;
-      this.cdr.markForCheck();
+    if (activo) {
+      console.log('[Backend] ✅ Ya estaba activo al cargar.');
+      this.estadoBackend = 'activo';
+      this.iniciarKeepalive();
+    } else {
+      console.log('[Backend] 💤 Dormido al cargar.');
+      this.estadoBackend = 'dormido';
+    }
 
-      if (this.cuentaRegresiva <= 0) {
-        clearInterval(this.timerWake);
-        this.estadoBackend = 'activo';
-        this.cdr.markForCheck();
-
-        // Resetear a dormido después de 5 minutos
-        setTimeout(() => {
-          this.estadoBackend = 'dormido';
-          this.cdr.markForCheck();
-        }, 5 * 60 * 1000);
-      }
-    }, 1000);
+    this.cdr.markForCheck();
   }
 
-  // ── Auto-heartbeat ───────────────────────────────────────
+  // ── Botón: Despertar ─────────────────────────────────────
+  async despertarBackend(): Promise<void> {
+    if (this.estadoBackend === 'despertando' || this.estadoBackend === 'verificando') return;
 
+    this.estadoBackend = 'despertando';
+    this.cdr.markForCheck();
+    console.log('[Backend] 🔄 Iniciando polling para despertar...');
+
+    // Primer ping inmediato
+    await this.pingBackend();
+
+    // Polling cada 3s hasta que responda
+    this.pollingWakeTimer = setInterval(async () => {
+      const activo = await this.pingBackend();
+
+      if (activo) {
+        this.detenerPolling();
+        this.estadoBackend = 'activo';
+        this.keepaliveActivo = true;
+        this.iniciarKeepalive();
+        console.log('[Backend] ✅ Servidor despierto y keepalive iniciado.');
+        this.cdr.markForCheck();
+      }
+    }, this.INTERVALO_POLLING);
+  }
+
+  // ── Botón: Finalizar keepalive ───────────────────────────
+  finalizarKeepalive(): void {
+    this.detenerKeepalive();
+    this.estadoBackend = 'dormido';
+    console.log('[Backend] 🛑 Keepalive detenido. El servidor dormirá por inactividad.');
+    this.cdr.markForCheck();
+  }
+
+  // ── Keepalive: mantener vivo cada 25s ───────────────────
+  private iniciarKeepalive(): void {
+    this.detenerKeepalive();
+    this.keepaliveActivo = true;
+
+    this.keepaliveTimer = setInterval(async () => {
+      const activo = await this.pingBackend();
+      const hora = this.ahoraEcuador().toLocaleTimeString('es-EC');
+
+      if (activo) {
+        console.log(`[Keepalive] 💚 Backend sigue activo — ${hora}`);
+      } else {
+        // Si perdió conexión, actualizar estado
+        console.warn(`[Keepalive] ⚠️ Backend no responde — ${hora}`);
+        this.estadoBackend = 'dormido';
+        this.keepaliveActivo = false;
+        this.detenerKeepalive();
+        this.cdr.markForCheck();
+      }
+    }, this.INTERVALO_KEEPALIVE);
+  }
+
+  private detenerKeepalive(): void {
+    if (this.keepaliveTimer) {
+      clearInterval(this.keepaliveTimer);
+      this.keepaliveTimer = null;
+    }
+    this.keepaliveActivo = false;
+  }
+
+  private detenerPolling(): void {
+    if (this.pollingWakeTimer) {
+      clearInterval(this.pollingWakeTimer);
+      this.pollingWakeTimer = null;
+    }
+  }
+
+  // ── Ping real al backend ─────────────────────────────────
   /**
-   * Hora actual en Ecuador (UTC-5).
+   * Hace GET /ping. Devuelve true si responde OK, false si falla.
    */
+  private async pingBackend(): Promise<boolean> {
+    try {
+      const res = await fetch(`${this.BACKEND_URL}/ping`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(this.TIMEOUT_PING)
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  // ── Auto-heartbeat (pre-cron, no modifica estadoBackend) ─
   private ahoraEcuador(): Date {
     return new Date(
       new Date().toLocaleString('en-US', { timeZone: 'America/Guayaquil' })
     );
   }
 
-  /**
-   * true si estamos entre 8:00 AM y 5:59 PM hora Ecuador.
-   */
   private esDentroDeHorario(): boolean {
     const h = this.ahoraEcuador().getHours();
     return h >= 8 && h < 18;
   }
 
-  /**
-   * true en los 5 minutos previos a las 8:00 AM o 6:00 PM.
-   * Ej: 7:55–7:59 → true  /  17:55–17:59 → true
-   * Así el backend está despierto justo cuando node-cron dispara.
-   */
   private debeDespertarAntesDelCron(): boolean {
     const ahora = this.ahoraEcuador();
     const h = ahora.getHours();
     const m = ahora.getMinutes();
-
-    const antesDeOcho = h === 7  && m >= 55; // 7:55 – 7:59 AM
-    const antesDeSeis = h === 17 && m >= 55; // 5:55 – 5:59 PM
-
-    return antesDeOcho || antesDeSeis;
+    return (h === 7 && m >= 55) || (h === 17 && m >= 55);
   }
 
-
   private iniciarHeartbeat(): void {
-
-
     if (this.debeDespertarAntesDelCron()) {
       console.log('[Heartbeat] ⏰ Ventana pre-cron detectada al iniciar, despertando...');
       this.enviarHeartbeat();
@@ -228,16 +292,12 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     }, this.INTERVALO_GENERAL_MS);
   }
 
-  /**
-   * Hace GET /ping al backend.
-   * Si falla solo se loguea, no afecta la UI.
-   */
   private async enviarHeartbeat(): Promise<void> {
     const hora = this.ahoraEcuador().toLocaleTimeString('es-EC');
     try {
       const res = await fetch(`${this.BACKEND_URL}/ping`, {
         method: 'GET',
-        signal: AbortSignal.timeout(15000) // timeout 15s
+        signal: AbortSignal.timeout(this.TIMEOUT_PING)
       });
       console.log(`[Heartbeat] ✅ Backend despierto — status: ${res.status} — ${hora}`);
     } catch (err) {

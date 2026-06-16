@@ -58,9 +58,14 @@
             <div class="modal-toolbar">
                 <div class="buscador">
                     <i class="ti ti-search"></i>
-                    <input type="text" placeholder="Buscar por cédula, nombre o carrera..."
-                        [(ngModel)]="busqueda" (input)="filtrar()">
+                    <input type="text" placeholder="Buscar por cédula, nombre o carrera..." [(ngModel)]="busqueda"
+                        (input)="filtrar()">
                 </div>
+                <button class="btn-sort" [class.active]="ordenarPorCarrera" (click)="toggleOrdenCarrera()"
+                    title="Ordenar por carrera">
+                    <i class="ti ti-arrows-sort"></i>
+                    <span>Carrera</span>
+                </button>
                 <div class="toolbar-stats">
                     <span class="stat">
                         <i class="ti ti-users"></i> {{ estudiantesFiltrados.length }} estudiantes
@@ -83,7 +88,32 @@
                     <span class="dot rojo"></span> Sin asistencia
                 </button>
             </div>
-
+   <!-- ── NUEVO: Filtro por carreras ── -->
+    <div class="filtros-carreras" *ngIf="carrerasDisponibles.length > 1">
+        <div class="filtros-carreras-label">
+            <i class="ti ti-building-community"></i> Carrera:
+        </div>
+        <div class="filtros-carreras-chips">
+            <button class="chip-carrera"
+                [class.active]="filtroCarreras.size === 0"
+                (click)="limpiarFiltrosCarrera()">
+                Todas
+            </button>
+            <button class="chip-carrera"
+                *ngFor="let c of carrerasDisponibles"
+                [class.active]="filtroCarreras.has(c)"
+                (click)="toggleFiltroCarrera(c)"
+                [title]="c">
+                {{ c }}
+            </button>
+        </div>
+        <span class="filtros-carreras-activos" *ngIf="filtroCarreras.size > 0">
+            {{ filtroCarreras.size }} activo{{ filtroCarreras.size !== 1 ? 's' : '' }}
+            <button class="btn-limpiar-filtros" (click)="limpiarFiltrosCarrera()">
+                <i class="ti ti-x"></i>
+            </button>
+        </span>
+    </div>
             <div class="estado-carga" *ngIf="cargando">
                 <div class="spinner"></div>
                 <p>Cargando estudiantes...</p>
@@ -99,8 +129,7 @@
                     <thead>
                         <tr>
                             <th class="th-check">
-                                <input type="checkbox" [checked]="todosSeleccionados()"
-                                    (change)="toggleTodos($event)">
+                                <input type="checkbox" [checked]="todosSeleccionados()" (change)="toggleTodos($event)">
                             </th>
                             <th>Cédula</th>
                             <th>Nombre</th>
@@ -111,14 +140,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let e of estudiantesFiltrados"
-                            [class.seleccionado]="seleccionados.has(e.id!)"
-                            [class.ya-vinculado]="estaVinculado(e)"
-                            (click)="!estaVinculado(e) && toggleSeleccion(e)">
+                        <tr *ngFor="let e of estudiantesFiltrados" [class.seleccionado]="seleccionados.has(e.id!)"
+                            [class.ya-vinculado]="estaVinculado(e)" (click)="!estaVinculado(e) && toggleSeleccion(e)">
                             <td class="td-check" (click)="$event.stopPropagation()">
                                 <input type="checkbox" [checked]="seleccionados.has(e.id!)"
-                                    [disabled]="estaVinculado(e)"
-                                    (change)="!estaVinculado(e) && toggleSeleccion(e)">
+                                    [disabled]="estaVinculado(e)" (change)="!estaVinculado(e) && toggleSeleccion(e)">
                             </td>
                             <td class="td-cedula">{{ e.cedula }}</td>
                             <td class="td-nombre">{{ e.nombres }}</td>
@@ -195,13 +221,12 @@
                         <div class="form-row">
                             <div class="form-group requerido">
                                 <label>Cédula</label>
-                                <input type="text" placeholder="Ej. 1712345678"
-                                    [(ngModel)]="manualDatos.cedula" maxlength="20">
+                                <input type="text" placeholder="Ej. 1712345678" [(ngModel)]="manualDatos.cedula"
+                                    maxlength="20">
                             </div>
                             <div class="form-group requerido">
                                 <label>Nombre completo</label>
-                                <input type="text" placeholder="Ej. Juan Pérez López"
-                                    [(ngModel)]="manualDatos.nombres">
+                                <input type="text" placeholder="Ej. Juan Pérez López" [(ngModel)]="manualDatos.nombres">
                             </div>
                         </div>
                         <div class="form-row">
@@ -214,16 +239,14 @@
                                 <label>Usuario Telegram</label>
                                 <div class="input-prefix">
                                     <span class="prefix">@</span>
-                                    <input type="text" placeholder="usuario"
-                                        [(ngModel)]="manualDatos.telegramUser">
+                                    <input type="text" placeholder="usuario" [(ngModel)]="manualDatos.telegramUser">
                                 </div>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Grupo</label>
-                                <input type="text" placeholder="Ej. Grupo A"
-                                    [(ngModel)]="manualDatos.grupo">
+                                <input type="text" placeholder="Ej. Grupo A" [(ngModel)]="manualDatos.grupo">
                             </div>
                             <div class="form-group form-group-check">
                                 <label>Asistencia</label>
@@ -275,8 +298,7 @@
 
                             <!-- Lista docentes -->
                             <div class="lista-docentes" *ngIf="docentesFiltrados.length > 0">
-                                <div class="docente-item"
-                                    *ngFor="let d of docentesFiltrados"
+                                <div class="docente-item" *ngFor="let d of docentesFiltrados"
                                     [class.seleccionado]="docenteSeleccionado?.cedula === d.cedula"
                                     [class.ya-vinculado]="estaDocenteVinculado(d)"
                                     (click)="!estaDocenteVinculado(d) && seleccionarDocente(d)">
@@ -339,8 +361,8 @@
                             <div class="form-row">
                                 <div class="form-group requerido">
                                     <label>Cédula</label>
-                                    <input type="text" placeholder="Ej. 1712345678"
-                                        [(ngModel)]="docenteForm.cedula" maxlength="20">
+                                    <input type="text" placeholder="Ej. 1712345678" [(ngModel)]="docenteForm.cedula"
+                                        maxlength="20">
                                 </div>
                                 <div class="form-group requerido">
                                     <label>Nombre completo</label>
@@ -384,8 +406,7 @@
             <div class="modal-toolbar">
                 <div class="buscador">
                     <i class="ti ti-search"></i>
-                    <input type="text" placeholder="Buscar por cédula o nombre..."
-                        [(ngModel)]="busquedaVinculados">
+                    <input type="text" placeholder="Buscar por cédula o nombre..." [(ngModel)]="busquedaVinculados">
                 </div>
                 <div class="toolbar-stats">
                     <span class="stat">
@@ -432,8 +453,7 @@
                         <tr *ngFor="let p of vinculadosFiltrados">
                             <td>
                                 <span class="badge-tipo" [class.docente]="p.tipo === 'docente'">
-                                    <i class="ti"
-                                        [class.ti-user-graduate]="p.tipo === 'estudiante'"
+                                    <i class="ti" [class.ti-user-graduate]="p.tipo === 'estudiante'"
                                         [class.ti-user-shield]="p.tipo === 'docente'"></i>
                                     {{ p.tipo === 'docente' ? 'Docente' : 'Estudiante' }}
                                 </span>
@@ -462,41 +482,33 @@
         <div class="modal-footer">
 
             <!-- Botones izquierda (solo en grupos/estudiantes) -->
-            <button class="btn-manual"
-                *ngIf="vista === 'grupos' || vista === 'estudiantes'"
-                (click)="irAManual()">
+            <button class="btn-manual" *ngIf="vista === 'grupos' || vista === 'estudiantes'" (click)="irAManual()">
                 <i class="ti ti-user-plus"></i> Agregar manual
             </button>
-            <button class="btn-ver-vinculados"
-                *ngIf="vista === 'grupos' || vista === 'estudiantes'"
+            <button class="btn-ver-vinculados" *ngIf="vista === 'grupos' || vista === 'estudiantes'"
                 (click)="irAVinculados()">
                 <i class="ti ti-users-group"></i> Ver vinculados
                 <span class="badge-count" *ngIf="personasVinculadas.length > 0">
                     {{ personasVinculadas.length }}
                 </span>
             </button>
-            <div class="footer-spacer"
-                *ngIf="vista === 'grupos' || vista === 'estudiantes'">
+            <div class="footer-spacer" *ngIf="vista === 'grupos' || vista === 'estudiantes'">
             </div>
 
             <button class="btn-cancelar" (click)="cerrar()">Cancelar</button>
 
             <!-- Vincular desde lista de estudiantes -->
-            <button class="btn-vincular"
-                *ngIf="vista === 'estudiantes'"
-                [disabled]="seleccionados.size === 0 || guardando"
-                (click)="vincular()">
+            <button class="btn-vincular" *ngIf="vista === 'estudiantes'"
+                [disabled]="seleccionados.size === 0 || guardando" (click)="vincular()">
                 <i class="ti ti-link"></i>
                 {{ guardando ? 'Vinculando...' :
-                    'Vincular ' + seleccionados.size +
-                    ' estudiante' + (seleccionados.size !== 1 ? 's' : '') }}
+                'Vincular ' + seleccionados.size +
+                ' estudiante' + (seleccionados.size !== 1 ? 's' : '') }}
             </button>
 
             <!-- Guardar manual estudiante -->
-            <button class="btn-vincular"
-                *ngIf="vista === 'manual' && tipoPersona === 'estudiante'"
-                [disabled]="!manualDatos.cedula || !manualDatos.nombres || guardando"
-                (click)="vincularManual()">
+            <button class="btn-vincular" *ngIf="vista === 'manual' && tipoPersona === 'estudiante'"
+                [disabled]="!manualDatos.cedula || !manualDatos.nombres || guardando" (click)="vincularManual()">
                 <i class="ti ti-user-check"></i>
                 {{ guardando ? 'Guardando...' : 'Guardar estudiante' }}
             </button>

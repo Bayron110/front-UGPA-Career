@@ -2,9 +2,52 @@
 
     <!-- HEADER -->
     <div class="seccion-header">
-        <p class="label-pequeño">Panel administrador</p>
-        <h2>Historial de cronogramas</h2>
-        <p>Todos los cronogramas publicados. Los vigentes están resaltados en verde.</p>
+        <div class="header-top">
+            <div>
+                <p class="label-pequeño">Panel administrador</p>
+                <h2>Historial de cronogramas</h2>
+                <p>Todos los cronogramas publicados. Los vigentes están resaltados en verde.</p>
+            </div>
+
+            <!-- ── Panel de control del servidor ── -->
+            <div class="backend-panel">
+
+                <div class="backend-info" *ngIf="estadoBackend === 'verificando'">
+                    <span class="btn-despertar-dot verificando"></span>
+                    <span class="backend-label">
+                        <i class="ti ti-loader-2 spin"></i> Verificando servidor...
+                    </span>
+                </div>
+
+                <button class="btn-despertar" *ngIf="estadoBackend === 'dormido'"
+                    (click)="despertarBackend()">
+                    <span class="btn-despertar-dot dormido"></span>
+                    <i class="ti ti-player-play"></i> Despertar servidor
+                </button>
+
+                <div class="backend-info" *ngIf="estadoBackend === 'despertando'">
+                    <span class="btn-despertar-dot despertando"></span>
+                    <span class="backend-label">
+                        <i class="ti ti-loader-2 spin"></i> Despertando servidor...
+                    </span>
+                </div>
+
+                <div class="backend-activo-row" *ngIf="estadoBackend === 'activo'">
+                    <div class="backend-info">
+                        <span class="btn-despertar-dot activo"></span>
+                        <span class="backend-label">
+                            <i class="ti ti-circle-check"></i> Servidor activo
+                            <span class="keepalive-badge" *ngIf="keepaliveActivo">· keepalive ON</span>
+                        </span>
+                    </div>
+                    <button class="btn-finalizar" (click)="finalizarKeepalive()">
+                        <i class="ti ti-player-stop"></i> Finalizar
+                    </button>
+                </div>
+
+            </div>
+            <!-- ── /Panel de control del servidor ── -->
+        </div>
     </div>
 
     <!-- CARGANDO -->
@@ -84,21 +127,6 @@
                 <span class="badge-dot"></span>
                 {{ estadoReal(c) === 'VIGENTE' ? 'Vigente' : estadoReal(c) === 'FINALIZADO' ? 'Finalizado' :
                 'Programado' }}
-            </div>
-            <!-- Botón wake-up backend -->
-            <div class="backend-status">
-                <button class="btn-despertar" (click)="despertarBackend()" [disabled]="estadoBackend === 'despertando'">
-                    <span class="btn-despertar-dot" [class]="estadoBackend"></span>
-                    <span *ngIf="estadoBackend === 'dormido'">
-                        <i class="ti ti-player-play"></i> Despertar servidor
-                    </span>
-                    <span *ngIf="estadoBackend === 'despertando'">
-                        <i class="ti ti-loader-2 spin"></i> Despertando... {{ cuentaRegresiva }}s
-                    </span>
-                    <span *ngIf="estadoBackend === 'activo'">
-                        <i class="ti ti-circle-check"></i> Servidor activo
-                    </span>
-                </button>
             </div>
 
             <div class="preview-banner" [style.background]="c.colorFondo" [style.color]="c.colorTexto"

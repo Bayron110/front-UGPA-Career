@@ -1996,3 +1996,114 @@ tbody td {
 .btn-volver-sub:hover {
     color: rgba(0, 229, 255, 0.9);
 }
+/* ── Botón sort ── */
+.btn-sort {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid rgba(0, 229, 255, 0.14);
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(0, 229, 255, 0.40);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.btn-sort:hover {
+    background: rgba(0, 229, 255, 0.06);
+    color: rgba(0, 229, 255, 0.75);
+}
+.btn-sort.active {
+    background: rgba(0, 229, 255, 0.10);
+    border-color: rgba(0, 229, 255, 0.38);
+    color: #00e5ff;
+}
+
+/* ── Filtro por carreras ── */
+.filtros-carreras {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 28px;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.07);
+    flex-shrink: 0;
+    max-width: 100%;
+}
+
+.filtros-carreras-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(0, 229, 255, 0.35);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.filtros-carreras-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+    margin-bottom: -4px;
+}
+
+.filtros-carreras-chips::-webkit-scrollbar {
+    height: 4px;
+}
+.filtros-carreras-chips::-webkit-scrollbar-track {
+    background: transparent;
+}
+.filtros-carreras-chips::-webkit-scrollbar-thumb {
+    background: rgba(0, 229, 255, 0.18);
+    border-radius: 3px;
+}
+
+.chip-carrera {
+    padding: 4px 11px;
+    border: 1px solid rgba(0, 229, 255, 0.12);
+    border-radius: 20px;
+    background: transparent;
+    color: rgba(0, 229, 255, 0.38);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.chip-carrera:hover {
+    background: rgba(0, 229, 255, 0.06);
+    color: rgba(0, 229, 255, 0.75);
+    border-color: rgba(0, 229, 255, 0.25);
+}
+.chip-carrera.active {
+    background: rgba(0, 229, 255, 0.12);
+    color: #00e5ff;
+    border-color: rgba(0, 229, 255, 0.45);
+    font-weight: 700;
+}
+
+.filtros-carreras-activos {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: rgba(0, 229, 255, 0.50);
+    white-space: nowrap;
+    flex-shrink: 0;
+}

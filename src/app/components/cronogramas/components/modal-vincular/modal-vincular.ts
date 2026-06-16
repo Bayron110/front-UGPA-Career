@@ -85,6 +85,11 @@ export class ModalVincular implements OnChanges {
     cargando = false;
     guardando = false;
 
+    // ── Nuevas propiedades (agregar junto a los filtros existentes) ──
+    carrerasDisponibles: string[] = [];
+    filtroCarreras = new Set<string>();
+    ordenarPorCarrera = false;
+
     // ── Computed: personas vinculadas al cronograma actual ──────────────────
     get personasVinculadas(): any[] {
         const estudiantes = Object.values((this.cronograma as any)?.estudiantesVinculados ?? {})
@@ -158,6 +163,9 @@ export class ModalVincular implements OnChanges {
         this.docentesFiltrados = [];
         this.busquedaDocentes = '';
         this.docenteSeleccionado = null;
+        this.carrerasDisponibles = [];
+        this.filtroCarreras = new Set<string>();
+        this.ordenarPorCarrera = false;
     }
 
     // ── Vinculados ──────────────────────────────────────────────────────────
@@ -474,6 +482,12 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
         try {
             this.estudiantes = await this.estudiantesService.obtenerEstudiantesDeGrupo(grupo.id);
+            this.carrerasDisponibles = [...new Set(
+                this.estudiantes
+                    .map(e => e.carrera ?? '')
+                    .filter(c => c.trim() !== '')
+            )].sort((a, b) => a.localeCompare(b, 'es'));
+            this.filtroCarreras.clear();
             this.filtrar();
         } catch (e) {
             console.error('Error cargando estudiantes:', e);
@@ -497,7 +511,7 @@ export class ModalVincular implements OnChanges {
     // ── Paso 2: filtros y selección ─────────────────────────────────────────
     filtrar(): void {
         const q = this.busqueda.toLowerCase().trim();
-        this.estudiantesFiltrados = this.estudiantes.filter(e => {
+        let lista = this.estudiantes.filter(e => {
             const texto = !q ||
                 e.cedula?.toLowerCase().includes(q) ||
                 e.nombres?.toLowerCase().includes(q) ||
@@ -506,10 +520,36 @@ export class ModalVincular implements OnChanges {
                 this.filtroAsistencia === 'TODOS' ||
                 (this.filtroAsistencia === 'PRESENTE' && e.asistencia) ||
                 (this.filtroAsistencia === 'AUSENTE' && !e.asistencia);
-            return texto && asist;
+            const carrera =
+                this.filtroCarreras.size === 0 ||
+                this.filtroCarreras.has(e.carrera ?? '');
+            return texto && asist && carrera;
         });
+
+        if (this.ordenarPorCarrera) {
+            lista = [...lista].sort((a, b) =>
+                (a.carrera ?? '').localeCompare(b.carrera ?? '', 'es'));
+        }
+        this.estudiantesFiltrados = lista;
     }
 
+    // ── Agregar después de filtrar() ──
+    toggleFiltroCarrera(carrera: string): void {
+        this.filtroCarreras.has(carrera)
+            ? this.filtroCarreras.delete(carrera)
+            : this.filtroCarreras.add(carrera);
+        this.filtrar();
+    }
+
+    limpiarFiltrosCarrera(): void {
+        this.filtroCarreras.clear();
+        this.filtrar();
+    }
+
+    toggleOrdenCarrera(): void {
+        this.ordenarPorCarrera = !this.ordenarPorCarrera;
+        this.filtrar();
+    }
     setFiltroAsistencia(f: 'TODOS' | 'PRESENTE' | 'AUSENTE'): void {
         this.filtroAsistencia = f;
         this.filtrar();
