@@ -25,7 +25,7 @@ export const HOME_CARDS: HomeCard[] = [
                 title: 'Cronogramas',
                 description: 'Gestión de cronogramas de actividades.',
                 footer: 'Cronogramas',
-                image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
+                image: 'https://i.postimg.cc/Hs8kDr7t/Gemini-Generated-Image-2j6v812j6v812j6v.png',
                 action: 'irACronogramas'
         },
 

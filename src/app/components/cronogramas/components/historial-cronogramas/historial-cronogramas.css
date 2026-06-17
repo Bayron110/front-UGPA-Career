@@ -4,11 +4,28 @@
   background: transparent;
 }
 
-/* ── Contenedor ── */
+/* ── Contenedor principal con scroll ── */
 .historial-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar del contenedor principal */
+.historial-container::-webkit-scrollbar { width: 4px; }
+.historial-container::-webkit-scrollbar-track { background: transparent; }
+.historial-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.15);
+  border-radius: 2px;
+}
+.historial-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 229, 255, 0.28);
 }
 
 /* ── Header ── */
@@ -21,6 +38,7 @@
   overflow: hidden;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  flex-shrink: 0;
 }
 
 .seccion-header::after {
@@ -51,6 +69,15 @@
   margin: 0;
   font-size: 13px;
   color: rgba(0,229,255,0.30);
+}
+
+/* ── Header top con panel servidor ── */
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 /* ── Estado vacío / cargando ── */
@@ -86,11 +113,12 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Lista ── */
+/* ── Lista de cards ── */
 .lista {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding-bottom: 8px;
 }
 
 /* ── Card cronograma ── */
@@ -105,7 +133,7 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* ── VIGENTE — aura verde más fuerte ── */
+/* ── VIGENTE ── */
 .cronograma-card.vigente {
   border-color: rgba(34,197,94,0.65);
   box-shadow:
@@ -128,7 +156,7 @@
   50%       { opacity: 0.20; transform: scaleY(0.85); }
 }
 
-/* ── PROGRAMADO — aura naranja más fuerte ── */
+/* ── PROGRAMADO ── */
 .cronograma-card.programado {
   border-color: rgba(251,146,60,0.60);
   box-shadow:
@@ -151,7 +179,7 @@
   50%       { opacity: 0.15; transform: scaleY(0.80); }
 }
 
-/* ── FINALIZADO — aura roja más fuerte ── */
+/* ── FINALIZADO ── */
 .cronograma-card.finalizado {
   border-color: rgba(239,68,68,0.55);
   box-shadow:
@@ -174,20 +202,23 @@
   50%       { opacity: 0.15; transform: scaleY(0.80); }
 }
 
-/* ── Badge estado ── */
+/* ── Badge estado — ahora con min-width para que no se corte ── */
 .badge-estado {
   position: absolute;
   top: 14px; right: 14px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 5px 12px;
   border-radius: 20px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   z-index: 2;
+  white-space: nowrap;
+  min-width: 90px;
+  justify-content: center;
 }
 
 .badge-vigente {
@@ -200,6 +231,7 @@
   background: #4ade80;
   box-shadow: 0 0 8px rgba(74,222,128,1), 0 0 14px rgba(74,222,128,0.6);
   animation: pulso-dot 1.8s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .badge-programado {
@@ -212,6 +244,7 @@
   background: #fb923c;
   box-shadow: 0 0 8px rgba(251,146,60,1), 0 0 14px rgba(251,146,60,0.6);
   animation: pulso-dot 2.2s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .badge-finalizado {
@@ -223,6 +256,7 @@
   width: 6px; height: 6px; border-radius: 50%;
   background: #ef4444;
   box-shadow: 0 0 8px rgba(239,68,68,1), 0 0 14px rgba(239,68,68,0.7);
+  flex-shrink: 0;
 }
 
 @keyframes pulso-dot {
@@ -240,17 +274,34 @@
   align-items: center;
   gap: 12px;
   min-height: 52px;
+  /* Espacio a la derecha para que el badge no tape el texto */
+  padding-right: 130px;
+  overflow: hidden;
 }
 
-.preview-nombre { font-weight: 700; font-size: 14px; }
+.preview-nombre {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
 .preview-periodo {
   font-size: 12px;
   border-left: 1px solid currentColor;
   padding-left: 12px;
   opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 2;
+  min-width: 0;
 }
 
-/* ── Sello FINALIZADO — rojo fuerte y visible ── */
+/* ── Sello FINALIZADO ── */
 .sello-finalizado {
   position: absolute;
   inset: 0;
@@ -287,7 +338,7 @@
   50%       { opacity: 0.70; }
 }
 
-/* ── Info ── */
+/* ── Card info ── */
 .card-info {
   padding: 14px 16px 16px;
   display: flex;
@@ -295,30 +346,50 @@
   gap: 14px;
 }
 
+/* ── Info fechas: grid en lugar de flex para no romperse ── */
 .info-fechas {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
   align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: 8px 18px;
 }
 
-.info-item { display: flex; flex-direction: column; gap: 2px; }
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 
 .info-label {
-  font-size: 10px; font-weight: 600;
-  letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: rgba(0,229,255,0.28);
+  white-space: nowrap;
 }
 
-.info-valor { font-size: 13px; font-weight: 500; color: #94a3b8; }
-.info-sep   { color: rgba(0,229,255,0.20); font-size: 14px; margin-top: 10px; }
+.info-valor {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  white-space: nowrap;
+}
 
-/* ── Acciones card ── */
+.info-sep {
+  color: rgba(0,229,255,0.20);
+  font-size: 14px;
+  margin-top: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Acciones de la card ── */
 .card-acciones {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .btn-editar, .btn-vincular, .btn-eliminar {
@@ -332,6 +403,8 @@
   transition: all 0.2s ease;
   border: 1px solid transparent;
   padding: 8px 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-editar {
@@ -404,7 +477,6 @@
   background: linear-gradient(90deg, transparent, rgba(0,229,255,0.50) 50%, transparent);
 }
 
-/* Header modal */
 .modal-header {
   display: flex;
   align-items: flex-start;
@@ -440,7 +512,6 @@
   color: #00e5ff;
 }
 
-/* Body modal */
 .modal-body {
   flex: 1;
   overflow-y: auto;
@@ -458,7 +529,6 @@
   border-radius: 2px;
 }
 
-/* Secciones modal */
 .modal-seccion {
   display: flex;
   flex-direction: column;
@@ -486,7 +556,6 @@
   background: linear-gradient(90deg, rgba(0,229,255,0.15), transparent);
 }
 
-/* Grids */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -520,7 +589,6 @@
 
 .campo-accion { justify-content: flex-end; }
 
-/* Inputs */
 input[type="text"],
 input[type="date"],
 select {
@@ -546,7 +614,6 @@ select:focus {
 input::placeholder { color: rgba(0,229,255,0.18); }
 select option { background: #000d1a; color: #e2e8f0; }
 
-/* Color inputs */
 input[type="color"] {
   height: 36px;
   padding: 3px 5px;
@@ -577,7 +644,6 @@ input[type="color"] {
   font-family: monospace;
 }
 
-/* Botón agregar actividad */
 .btn-add-actividad {
   width: 38px; height: 38px;
   border-radius: 8px;
@@ -593,7 +659,6 @@ input[type="color"] {
 }
 .btn-add-actividad:hover { background: rgba(0,229,255,0.16); }
 
-/* Tabla actividades */
 .tabla-container {
   overflow-x: auto;
   border-radius: 8px;
@@ -645,7 +710,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
 }
 .btn-danger-sm:hover { background: rgba(220,38,38,0.22); }
 
-/* Footer modal */
 .modal-footer {
   display: flex;
   align-items: center;
@@ -724,28 +788,9 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   transform: none;
 }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .grid-2, .grid-colores, .grid-actividad { grid-template-columns: 1fr; }
-  .campo-full { grid-column: 1; }
-  .modal { max-height: 95vh; }
-  .modal-footer { flex-direction: column; align-items: stretch; }
-  .modal-footer-right { flex-direction: column; }
-  .btn-vincular-modal, .btn-cancelar, .btn-guardar {
-    width: 100%;
-    justify-content: center;
-  }
-  .info-fechas { gap: 12px; }
-  .card-acciones { gap: 6px; }
-  .btn-editar, .btn-vincular { flex: 1; justify-content: center; }
-  .sello-finalizado-texto { font-size: 32px; }
-}
 /* ══════════════════════════════════════════
    PANEL DE CONTROL DEL SERVIDOR
-   Reemplaza la sección "Backend wake-up"
    ══════════════════════════════════════════ */
-
-/* ── Contenedor del panel ── */
 .backend-status {
   display: flex;
   align-items: center;
@@ -756,7 +801,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   gap: 10px;
 }
 
-/* ── Fila cuando está activo (info + botón finalizar) ── */
 .backend-activo-row {
   display: flex;
   align-items: center;
@@ -764,7 +808,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   width: 100%;
 }
 
-/* ── Info inline (verificando / despertando / activo) ── */
 .backend-info {
   display: inline-flex;
   align-items: center;
@@ -780,7 +823,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   gap: 6px;
 }
 
-/* ── Dot de estado ── */
 .btn-despertar-dot {
   width: 7px;
   height: 7px;
@@ -812,7 +854,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   animation: pulso-dot 2s ease-in-out infinite;
 }
 
-/* ── Botón Despertar ── */
 .btn-despertar {
   display: inline-flex;
   align-items: center;
@@ -841,7 +882,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   opacity: 0.50;
 }
 
-/* ── Botón Finalizar ── */
 .btn-finalizar {
   display: inline-flex;
   align-items: center;
@@ -866,7 +906,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
 }
 
-/* ── Badge keepalive ON ── */
 .keepalive-badge {
   font-size: 10px;
   font-weight: 600;
@@ -875,19 +914,9 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   text-transform: uppercase;
 }
 
-/* ── Spin util ── */
 .spin {
   display: inline-block;
   animation: spin 1s linear infinite;
-}
-
-/* ── Header con panel integrado ── */
-.header-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
 }
 
 .backend-panel {
@@ -901,6 +930,7 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   flex-shrink: 0;
   align-self: center;
 }
+
 /* ── Filtros ── */
 .filtros-bar {
   display: flex;
@@ -914,6 +944,7 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   padding: 14px 18px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  flex-shrink: 0;
 }
 
 .filtros-estado {
@@ -992,7 +1023,6 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
   text-align: center;
 }
 
-/* ── Búsqueda ── */
 .filtro-busqueda {
   display: flex;
   align-items: center;
@@ -1041,9 +1071,47 @@ tbody td { padding: 10px 12px; font-size: 12px; color: #94a3b8; }
 }
 .btn-limpiar:hover { color: #00e5ff; }
 
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .historial-container {
+    max-height: calc(100vh - 80px);
+  }
+
+  .grid-2,
+  .grid-colores,
+  .grid-actividad { grid-template-columns: 1fr; }
+
+  .campo-full { grid-column: 1; }
+
+  .modal { max-height: 95vh; }
+
+  .modal-footer { flex-direction: column; align-items: stretch; }
+  .modal-footer-right { flex-direction: column; }
+  .btn-vincular-modal, .btn-cancelar, .btn-guardar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* En móvil las fechas vuelven a flex-wrap */
+  .info-fechas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .card-acciones { flex-wrap: wrap; gap: 6px; }
+  .btn-editar, .btn-vincular { flex: 1; justify-content: center; }
+  .sello-finalizado-texto { font-size: 32px; }
+
+  .preview-banner { padding-right: 18px; }
+  .badge-estado { position: static; margin: 12px 16px 0; }
+}
+
 @media (max-width: 700px) {
   .filtros-bar { flex-direction: column; align-items: stretch; }
   .filtros-estado { justify-content: space-between; }
   .filtro-chip { flex: 1; justify-content: center; }
   .filtro-busqueda { min-width: 0; }
+  .header-top { flex-direction: column; }
+  .backend-panel { width: 100%; box-sizing: border-box; }
 }
