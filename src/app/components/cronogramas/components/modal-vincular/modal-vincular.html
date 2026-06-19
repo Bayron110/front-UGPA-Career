@@ -88,6 +88,15 @@
                     (click)="setFiltroAsistencia('AUSENTE')">
                     <span class="dot rojo"></span> Sin asistencia
                 </button>
+                <!-- ── Filtro notificaciones ── -->
+                <button class="filtro-btn" [class.active]="filtroNotif === 'ACTIVAS'"
+                    (click)="setFiltroNotif('ACTIVAS')">
+                    <i class="ti ti-bell-ringing"></i> Notif. activas
+                </button>
+                <button class="filtro-btn" [class.active]="filtroNotif === 'PENDIENTES'"
+                    (click)="setFiltroNotif('PENDIENTES')">
+                    <i class="ti ti-bell-off"></i> Sin activar
+                </button>
             </div>
 
             <!-- Filtro por carreras -->
@@ -140,6 +149,7 @@
                             <th>Nombre</th>
                             <th>Carrera</th>
                             <th>Telegram</th>
+                            <th>Notif.</th>
                             <th>Asistencia</th>
                             <th>Estado</th>
                         </tr>
@@ -163,6 +173,22 @@
                                     <i class="ti ti-brand-telegram"></i> {{ e.telegramUser }}
                                 </span>
                                 <span class="sin-dato" *ngIf="!e.telegramUser">—</span>
+                            </td>
+                            <!-- ── NUEVA COLUMNA NOTIFICACIONES ── -->
+                            <td class="td-notif">
+                                <span class="badge-notif activa"
+                                    *ngIf="estadoNotif(e) === 'activa'"
+                                    title="Notificaciones activadas en Telegram">
+                                    <i class="ti ti-bell-ringing"></i> Activa
+                                </span>
+                                <span class="badge-notif pendiente"
+                                    *ngIf="estadoNotif(e) === 'pendiente'"
+                                    title="Tiene Telegram pero no ha iniciado el bot">
+                                    <i class="ti ti-bell-off"></i> Pendiente
+                                </span>
+                                <span class="sin-dato"
+                                    *ngIf="estadoNotif(e) === 'sin-telegram'"
+                                    title="No tiene usuario Telegram registrado">—</span>
                             </td>
                             <td class="td-asistencia">
                                 <span class="badge-asistencia presente" *ngIf="e.asistencia">
@@ -428,6 +454,15 @@
                     <input type="text" placeholder="Buscar por cédula o nombre..."
                         [(ngModel)]="busquedaVinculados">
                 </div>
+                <!-- ── Botón exportar Excel (descarga TODOS los vinculados, sin filtros) ── -->
+                <button class="btn-exportar"
+                    [disabled]="exportando || personasVinculadas.length === 0"
+                    (click)="exportarExcel()"
+                    title="Descargar Excel con todos los vinculados (estudiantes y docentes)">
+                    <div class="spinner-sm" *ngIf="exportando"></div>
+                    <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
+                    {{ exportando ? 'Generando...' : 'Descargar Excel' }}
+                </button>
                 <div class="toolbar-stats">
                     <span class="stat">
                         <i class="ti ti-users"></i> {{ vinculadosFiltrados.length }} vinculados
@@ -435,30 +470,75 @@
                 </div>
             </div>
 
-            <div class="filtros-asistencia">
-                <button class="filtro-btn"
-                    [class.active]="filtroTipoVinculado === 'TODOS'"
-                    (click)="setFiltroTipoVinculado('TODOS')">
-                    Todos
-                    <span class="filtro-mini-count">{{ personasVinculadas.length }}</span>
-                </button>
-                <button class="filtro-btn"
-                    [class.active]="filtroTipoVinculado === 'ESTUDIANTES'"
-                    (click)="setFiltroTipoVinculado('ESTUDIANTES')">
-                    <i class="ti ti-user-graduate"></i> Estudiantes
-                    <span class="filtro-mini-count">{{ contarVinculados('estudiante') }}</span>
-                </button>
-                <button class="filtro-btn"
-                    [class.active]="filtroTipoVinculado === 'DOCENTES'"
-                    (click)="setFiltroTipoVinculado('DOCENTES')">
-                    <i class="ti ti-user-shield"></i> Docentes
-                    <span class="filtro-mini-count">{{ contarVinculados('docente') }}</span>
+            <!-- ══ BARRA DE FILTROS (vinculados) ══ -->
+            <div class="filtros-vinculados-panel">
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-label">Tipo</span>
+                    <div class="filtro-grupo-chips">
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'TODOS'"
+                            (click)="setFiltroTipoVinculado('TODOS')">
+                            Todos
+                            <span class="filtro-mini-count">{{ personasVinculadas.length }}</span>
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'ESTUDIANTES'"
+                            (click)="setFiltroTipoVinculado('ESTUDIANTES')">
+                            <i class="ti ti-user-graduate"></i> Estudiantes
+                            <span class="filtro-mini-count">{{ contarVinculados('estudiante') }}</span>
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'DOCENTES'"
+                            (click)="setFiltroTipoVinculado('DOCENTES')">
+                            <i class="ti ti-user-shield"></i> Docentes
+                            <span class="filtro-mini-count">{{ contarVinculados('docente') }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filtro-grupo">
+                    <span class="filtro-grupo-label">Notificaciones</span>
+                    <div class="filtro-grupo-chips">
+                        <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'TODOS'"
+                            (click)="setFiltroNotifVinculados('TODOS')">
+                            Todas
+                        </button>
+                        <button class="filtro-btn notif-activa" [class.active]="filtroNotifVinculados === 'ACTIVAS'"
+                            (click)="setFiltroNotifVinculados('ACTIVAS')">
+                            <span class="dot verde"></span> Activas
+                        </button>
+                        <button class="filtro-btn notif-pendiente" [class.active]="filtroNotifVinculados === 'PENDIENTES'"
+                            (click)="setFiltroNotifVinculados('PENDIENTES')">
+                            <span class="dot amarillo"></span> Pendientes
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'SIN_TELEGRAM'"
+                            (click)="setFiltroNotifVinculados('SIN_TELEGRAM')">
+                            <span class="dot gris"></span> Sin Telegram
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filtro-grupo filtro-grupo-select" *ngIf="carrerasVinculadosDisponibles.length > 1">
+                    <label class="filtro-grupo-label" for="selectCarreraVinculados">Carrera / cargo</label>
+                    <div class="select-wrapper">
+                        <i class="ti ti-building-community"></i>
+                        <select id="selectCarreraVinculados"
+                            [ngModel]="filtroCarreraVinculadosSeleccionada"
+                            (ngModelChange)="setFiltroCarreraVinculados($event)">
+                            <option value="">Todas las carreras / cargos</option>
+                            <option *ngFor="let c of carrerasVinculadosDisponibles" [value]="c">{{ c }}</option>
+                        </select>
+                        <i class="ti ti-chevron-down select-caret"></i>
+                    </div>
+                </div>
+
+                <button class="btn-limpiar-todo" *ngIf="hayFiltrosVinculadosActivos"
+                    (click)="limpiarFiltrosVinculados()">
+                    <i class="ti ti-filter-x"></i> Limpiar filtros
                 </button>
             </div>
 
             <div class="estado-vacio" *ngIf="vinculadosFiltrados.length === 0">
                 <i class="ti ti-user-off"></i>
-                <p>No hay personas vinculadas{{ busquedaVinculados ? ' que coincidan' : '' }}</p>
+                <p>No hay personas vinculadas{{ hayFiltrosVinculadosActivos ? ' que coincidan con los filtros' : '' }}</p>
             </div>
 
             <div class="tabla-wrapper" *ngIf="vinculadosFiltrados.length > 0">
@@ -470,6 +550,7 @@
                             <th>Nombre</th>
                             <th>Carrera / Cargo</th>
                             <th>Telegram</th>
+                            <th>Notif.</th>
                             <th class="th-accion"></th>
                         </tr>
                     </thead>
@@ -493,6 +574,21 @@
                                     <i class="ti ti-brand-telegram"></i> {{ p.telegramUser }}
                                 </span>
                                 <span class="sin-dato" *ngIf="!p.telegramUser">—</span>
+                            </td>
+                            <!-- ── NUEVA COLUMNA NOTIFICACIONES en vinculados ── -->
+                            <td class="td-notif">
+                                <span class="badge-notif activa"
+                                    *ngIf="p.notificacionesActivas && p.telegramChatId"
+                                    title="Notificaciones activadas">
+                                    <i class="ti ti-bell-ringing"></i> Activa
+                                </span>
+                                <span class="badge-notif pendiente"
+                                    *ngIf="!p.notificacionesActivas && p.telegramUser"
+                                    title="Tiene Telegram pero no ha iniciado el bot">
+                                    <i class="ti ti-bell-off"></i> Pendiente
+                                </span>
+                                <span class="sin-dato"
+                                    *ngIf="!p.notificacionesActivas && !p.telegramUser">—</span>
                             </td>
                             <td class="td-accion">
                                 <button class="btn-danger-sm"

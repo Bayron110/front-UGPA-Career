@@ -14,6 +14,8 @@ type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados';
 type TipoPersona = 'estudiante' | 'docente';
 /** Sub-vista dentro del paso manual para docentes */
 type VistaDocente = 'lista' | 'nuevo';
+/** Estado de notificaciones de un estudiante */
+type EstadoNotif = 'activa' | 'pendiente' | 'sin-telegram';
 
 interface ManualDatos {
     cedula: string;
@@ -56,6 +58,8 @@ export class ModalVincular implements OnChanges {
     seleccionados = new Set<string>();
     busqueda = '';
     filtroAsistencia: 'TODOS' | 'PRESENTE' | 'AUSENTE' = 'TODOS';
+    /** Filtro por estado de notificaciones */
+    filtroNotif: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' = 'TODOS';
 
     // ── Paso 3: tipo de persona ─────────────────────────────────────────────
     tipoPersona: TipoPersona = 'estudiante';
@@ -75,6 +79,12 @@ export class ModalVincular implements OnChanges {
     origenVinculados: 'grupos' | 'estudiantes' = 'grupos';
     busquedaVinculados = '';
     filtroTipoVinculado: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES' = 'TODOS';
+    /** Filtro por estado de notificaciones en la vista de vinculados */
+    filtroNotifVinculados: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' = 'TODOS';
+    /** Filtro por carrera/cargo en la vista de vinculados (dropdown, valor único) */
+    filtroCarreraVinculadosSeleccionada = '';
+    /** Indica si se está generando el archivo Excel */
+    exportando = false;
 
     // ── Formularios ─────────────────────────────────────────────────────────
     manualDatos: ManualDatos = this.manualVacio();
@@ -85,7 +95,7 @@ export class ModalVincular implements OnChanges {
     cargando = false;
     guardando = false;
 
-    // ── Nuevas propiedades (agregar junto a los filtros existentes) ──
+    // ── Filtros carrera / orden ──────────────────────────────────────────────
     carrerasDisponibles: string[] = [];
     filtroCarreras = new Set<string>();
     ordenarPorCarrera = false;
@@ -99,6 +109,21 @@ export class ModalVincular implements OnChanges {
         return [...docentes, ...estudiantes];
     }
 
+    /** Carreras/cargos únicos entre los vinculados, para los chips de filtro */
+    get carrerasVinculadosDisponibles(): string[] {
+        const valores = this.personasVinculadas
+            .map(p => (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '')
+            .filter((c: string) => c.trim() !== '');
+        return [...new Set(valores)].sort((a, b) => a.localeCompare(b, 'es'));
+    }
+
+    /** Estado de notificaciones de una persona ya vinculada (estudiante o docente) */
+    estadoNotifVinculado(p: any): EstadoNotif {
+        if (p.notificacionesActivas && p.telegramChatId) return 'activa';
+        if (p.telegramUser || p.telegramChatId) return 'pendiente';
+        return 'sin-telegram';
+    }
+
     get vinculadosFiltrados(): any[] {
         const q = this.busquedaVinculados.toLowerCase().trim();
         return this.personasVinculadas.filter(p => {
@@ -109,7 +134,17 @@ export class ModalVincular implements OnChanges {
             const coincideTexto = !q ||
                 p.cedula?.toLowerCase().includes(q) ||
                 p.nombres?.toLowerCase().includes(q);
-            return coincideTipo && coincideTexto;
+            const estadoNotif = this.estadoNotifVinculado(p);
+            const coincideNotif =
+                this.filtroNotifVinculados === 'TODOS' ||
+                (this.filtroNotifVinculados === 'ACTIVAS' && estadoNotif === 'activa') ||
+                (this.filtroNotifVinculados === 'PENDIENTES' && estadoNotif === 'pendiente') ||
+                (this.filtroNotifVinculados === 'SIN_TELEGRAM' && estadoNotif === 'sin-telegram');
+            const carreraOcargo = (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '';
+            const coincideCarrera =
+                !this.filtroCarreraVinculadosSeleccionada ||
+                carreraOcargo === this.filtroCarreraVinculadosSeleccionada;
+            return coincideTipo && coincideTexto && coincideNotif && coincideCarrera;
         });
     }
 
@@ -149,6 +184,7 @@ export class ModalVincular implements OnChanges {
         this.seleccionados.clear();
         this.busqueda = '';
         this.filtroAsistencia = 'TODOS';
+        this.filtroNotif = 'TODOS';
         this.tipoPersona = 'estudiante';
         this.manualDatos = this.manualVacio();
         this.docenteForm = this.docenteFormVacio();
@@ -157,6 +193,9 @@ export class ModalVincular implements OnChanges {
         this.guardando = false;
         this.busquedaVinculados = '';
         this.filtroTipoVinculado = 'TODOS';
+        this.filtroNotifVinculados = 'TODOS';
+        this.filtroCarreraVinculadosSeleccionada = '';
+        this.exportando = false;
         this.origenVinculados = 'grupos';
         this.vistaDocente = 'lista';
         this.docentes = [];
@@ -168,11 +207,45 @@ export class ModalVincular implements OnChanges {
         this.ordenarPorCarrera = false;
     }
 
+    // ── Notificaciones ──────────────────────────────────────────────────────
+
+    /**
+     * Devuelve el estado de notificaciones de un estudiante.
+     * Lee desde estudiantesVinculados del cronograma si el estudiante ya está
+     * vinculado (tiene telegramChatId/notificacionesActivas), o directamente
+     * del objeto Estudiante si aún no está vinculado.
+     *
+     * 'activa'       → tiene telegramChatId y notificacionesActivas: true
+     * 'pendiente'    → tiene telegramUser pero no ha iniciado el bot aún
+     * 'sin-telegram' → no tiene telegramUser registrado
+     */
+    estadoNotif(e: Estudiante): EstadoNotif {
+        // Intentar leer desde el nodo vinculados del cronograma (tiene los campos frescos)
+        const vinculados = (this.cronograma as any)?.estudiantesVinculados ?? {};
+        const vinc = e.cedula ? vinculados[e.cedula] : null;
+
+        const chatId = vinc?.telegramChatId ?? (e as any).telegramChatId;
+        const notifActiva = vinc?.notificacionesActivas ?? (e as any).notificacionesActivas;
+        const tgUser = vinc?.telegramUser ?? e.telegramUser;
+
+        if (chatId && notifActiva) return 'activa';
+        if (tgUser) return 'pendiente';
+        return 'sin-telegram';
+    }
+
+    /** Filtro por estado de notificaciones */
+    setFiltroNotif(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES'): void {
+        this.filtroNotif = f;
+        this.filtrar();
+    }
+
     // ── Vinculados ──────────────────────────────────────────────────────────
     irAVinculados(): void {
         this.origenVinculados = this.vista === 'estudiantes' ? 'estudiantes' : 'grupos';
         this.busquedaVinculados = '';
         this.filtroTipoVinculado = 'TODOS';
+        this.filtroNotifVinculados = 'TODOS';
+        this.filtroCarreraVinculadosSeleccionada = '';
         this.vista = 'vinculados';
         this.cdr.detectChanges();
     }
@@ -187,6 +260,33 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
     }
 
+    /** Filtro por estado de notificaciones, en la vista de vinculados */
+    setFiltroNotifVinculados(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM'): void {
+        this.filtroNotifVinculados = f;
+        this.cdr.detectChanges();
+    }
+
+    /** Selecciona una carrera/cargo desde el dropdown de filtro de vinculados */
+    setFiltroCarreraVinculados(valor: string): void {
+        this.filtroCarreraVinculadosSeleccionada = valor;
+        this.cdr.detectChanges();
+    }
+
+    limpiarFiltrosVinculados(): void {
+        this.busquedaVinculados = '';
+        this.filtroTipoVinculado = 'TODOS';
+        this.filtroNotifVinculados = 'TODOS';
+        this.filtroCarreraVinculadosSeleccionada = '';
+        this.cdr.detectChanges();
+    }
+
+    get hayFiltrosVinculadosActivos(): boolean {
+        return this.filtroTipoVinculado !== 'TODOS' ||
+            this.filtroNotifVinculados !== 'TODOS' ||
+            this.filtroCarreraVinculadosSeleccionada !== '' ||
+            this.busquedaVinculados.trim() !== '';
+    }
+
     async desvincular(persona: any): Promise<void> {
         if (!this.cronograma?.id) return;
         const tipoTexto = persona.tipo === 'docente' ? 'docente' : 'estudiante';
@@ -194,13 +294,11 @@ export class ModalVincular implements OnChanges {
 
         try {
             if (persona.tipo === 'docente') {
-                // Usa el service para mantener sincronía con /docentes
                 await this.docentesService.desvincularDeCronograma(
                     persona.cedula,
                     this.cronograma.id!,
                     (id, datos) => this.cronogramaService.actualizarCronograma(id, datos)
                 );
-                // Reflejar en el objeto local
                 const actuales = { ...((this.cronograma as any)?.docentesVinculados ?? {}) };
                 delete actuales[persona.cedula];
                 (this.cronograma as any).docentesVinculados = actuales;
@@ -218,6 +316,106 @@ export class ModalVincular implements OnChanges {
             console.error('Error al desvincular:', error);
             alert('Error al desvincular');
         }
+    }
+
+    // ── Exportar a Excel ────────────────────────────────────────────────────
+    /**
+     * Genera y descarga un archivo .xlsx con TODAS las personas vinculadas al
+     * cronograma (estudiantes + docentes), sin importar filtros o búsqueda
+     * activos en pantalla. Usa la librería SheetJS (xlsx), cargada
+     * dinámicamente desde CDN si aún no está disponible en window, para no
+     * añadir una dependencia pesada al bundle cuando la función no se usa.
+     */
+    async exportarExcel(): Promise<void> {
+        const datos = this.personasVinculadas;
+        if (datos.length === 0) {
+            alert('No hay personas vinculadas para exportar.');
+            return;
+        }
+
+        this.exportando = true;
+        this.cdr.detectChanges();
+
+        try {
+            const XLSX = await this.cargarSheetJS();
+
+            const filas = datos.map(p => ({
+                'Tipo': p.tipo === 'docente' ? 'Docente' : 'Estudiante',
+                'Cédula': p.cedula ?? '',
+                'Nombre': p.nombres ?? '',
+                'Carrera / Cargo': (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '',
+                'Departamento': p.departamento ?? '',
+                'Telegram': p.telegramUser ? '@' + p.telegramUser : '',
+                'Notificaciones': this.etiquetaNotif(this.estadoNotifVinculado(p)),
+                'Asistencia': p.tipo === 'estudiante' ? (p.asistencia ? 'Presente' : 'Ausente') : '',
+                'Fecha de vinculación': this.formatearFecha(p.fechaVinculacion)
+            }));
+
+            const hoja = XLSX.utils.json_to_sheet(filas);
+
+            // Ancho de columnas aproximado según contenido
+            hoja['!cols'] = [
+                { wch: 12 }, // Tipo
+                { wch: 14 }, // Cédula
+                { wch: 28 }, // Nombre
+                { wch: 26 }, // Carrera / Cargo
+                { wch: 18 }, // Departamento
+                { wch: 18 }, // Telegram
+                { wch: 14 }, // Notificaciones
+                { wch: 12 }, // Asistencia
+                { wch: 18 }  // Fecha de vinculación
+            ];
+
+            const libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hoja, 'Vinculados');
+
+            const nombreCrono = (this.cronograma as any)?.nombre ?? 'cronograma';
+            const fecha = new Date().toISOString().slice(0, 10);
+            const nombreArchivo = `vinculados_${this.slug(nombreCrono)}_${fecha}.xlsx`;
+
+            XLSX.writeFile(libro, nombreArchivo);
+        } catch (error) {
+            console.error('Error al exportar Excel:', error);
+            alert('Ocurrió un error al generar el Excel. Intenta de nuevo.');
+        } finally {
+            this.exportando = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    private etiquetaNotif(estado: EstadoNotif): string {
+        if (estado === 'activa') return 'Activa';
+        if (estado === 'pendiente') return 'Pendiente';
+        return 'Sin Telegram';
+    }
+
+    private formatearFecha(iso: string | undefined): string {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('es-EC', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+
+    private slug(texto: string): string {
+        return texto
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+    }
+
+    /** Carga SheetJS (xlsx) desde CDN una sola vez y la deja cacheada en window */
+    private cargarSheetJS(): Promise<any> {
+        if ((window as any).XLSX) {
+            return Promise.resolve((window as any).XLSX);
+        }
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            script.onload = () => resolve((window as any).XLSX);
+            script.onerror = () => reject(new Error('No se pudo cargar la librería de exportación.'));
+            document.head.appendChild(script);
+        });
     }
 
     // ── Manual: navegación ──────────────────────────────────────────────────
@@ -321,7 +519,6 @@ export class ModalVincular implements OnChanges {
                 (id, datos) => this.cronogramaService.actualizarCronograma(id, datos)
             );
 
-            // Reflejar localmente para que la vista "Vinculados" se actualice al instante
             const docentesActuales = (this.cronograma as any).docentesVinculados ?? {};
             (this.cronograma as any).docentesVinculados = {
                 ...docentesActuales,
@@ -357,7 +554,6 @@ export class ModalVincular implements OnChanges {
         }
         if (!this.cronograma?.id) return;
 
-        // Verificar duplicado en /docentes
         const existente = await this.docentesService.obtenerDocente(cedula);
         if (existente) {
             this.manualError = `Ya existe un docente con cédula ${cedula}. Selecciónalo de la lista.`;
@@ -376,17 +572,14 @@ export class ModalVincular implements OnChanges {
                 cronogramasAsignados: []
             };
 
-            // 1. Guardar en /docentes
             await this.docentesService.guardarDocente(nuevoDocente);
 
-            // 2. Vincular al cronograma actual
             await this.docentesService.vincularAcronograma(
                 nuevoDocente,
                 this.cronograma.id!,
                 (id, datos) => this.cronogramaService.actualizarCronograma(id, datos)
             );
 
-            // Reflejar localmente
             const docentesActuales = (this.cronograma as any).docentesVinculados ?? {};
             (this.cronograma as any).docentesVinculados = {
                 ...docentesActuales,
@@ -523,7 +716,11 @@ export class ModalVincular implements OnChanges {
             const carrera =
                 this.filtroCarreras.size === 0 ||
                 this.filtroCarreras.has(e.carrera ?? '');
-            return texto && asist && carrera;
+            const notif =
+                this.filtroNotif === 'TODOS' ||
+                (this.filtroNotif === 'ACTIVAS'    && this.estadoNotif(e) === 'activa') ||
+                (this.filtroNotif === 'PENDIENTES' && this.estadoNotif(e) !== 'activa');
+            return texto && asist && carrera && notif;
         });
 
         if (this.ordenarPorCarrera) {
@@ -533,7 +730,6 @@ export class ModalVincular implements OnChanges {
         this.estudiantesFiltrados = lista;
     }
 
-    // ── Agregar después de filtrar() ──
     toggleFiltroCarrera(carrera: string): void {
         this.filtroCarreras.has(carrera)
             ? this.filtroCarreras.delete(carrera)
@@ -550,6 +746,7 @@ export class ModalVincular implements OnChanges {
         this.ordenarPorCarrera = !this.ordenarPorCarrera;
         this.filtrar();
     }
+
     setFiltroAsistencia(f: 'TODOS' | 'PRESENTE' | 'AUSENTE'): void {
         this.filtroAsistencia = f;
         this.filtrar();

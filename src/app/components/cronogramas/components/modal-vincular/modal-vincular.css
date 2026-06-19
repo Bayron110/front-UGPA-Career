@@ -29,7 +29,6 @@
     flex-direction: column;
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.70), 0 0 30px rgba(0, 229, 255, 0.06);
     animation: slideUp 0.25s ease;
-    /* CRÍTICO: el modal no debe crecer más allá de su ancho máximo */
     overflow: hidden;
     min-width: 0;
     box-sizing: border-box;
@@ -110,7 +109,7 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
-    min-width: 0;       /* ← evita que el contenido empuje el ancho */
+    min-width: 0;
     overflow: hidden;
 }
 
@@ -170,7 +169,7 @@
 
 .buscador input {
     flex: 1;
-    min-width: 0;       /* ← evita overflow del input */
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
@@ -197,6 +196,37 @@
 }
 
 .stat.vinculados { color: #00e5ff; }
+
+/* ── Botón exportar Excel ── */
+.btn-exportar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border: 1px solid rgba(34, 197, 94, 0.30);
+    border-radius: 9px;
+    background: rgba(34, 197, 94, 0.10);
+    color: #86efac;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-exportar:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.50);
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.15);
+}
+
+.btn-exportar:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.btn-exportar .ti { font-size: 14px; }
 
 /* ── Filtros asistencia ── */
 .filtros-asistencia {
@@ -305,6 +335,122 @@
     flex-shrink: 0;
 }
 
+/* ══ Panel de filtros — vista Vinculados ══ */
+.filtros-vinculados-panel {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 14px 20px 16px;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.07);
+    flex-shrink: 0;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.filtro-grupo-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(0, 229, 255, 0.38);
+}
+
+.filtro-grupo-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Dropdown carrera/cargo */
+.filtro-grupo-select {
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 13, 26, 0.80);
+    border: 1px solid rgba(0, 229, 255, 0.16);
+    border-radius: 8px;
+    padding: 0 10px;
+    transition: border-color 0.2s;
+}
+
+.select-wrapper:focus-within { border-color: rgba(0, 229, 255, 0.42); }
+
+.select-wrapper > .ti:first-child {
+    font-size: 14px;
+    color: rgba(0, 229, 255, 0.40);
+    flex-shrink: 0;
+}
+
+.select-wrapper select {
+    flex: 1;
+    min-width: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font-size: 12px;
+    padding: 9px 8px;
+    cursor: pointer;
+}
+
+.select-wrapper select option {
+    background: #001020;
+    color: #e2e8f0;
+}
+
+.select-caret {
+    font-size: 13px;
+    color: rgba(0, 229, 255, 0.35);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* Dots adicionales para filtro de notificaciones */
+.dot.amarillo { background: #eab308; }
+.dot.gris     { background: rgba(148, 163, 184, 0.55); }
+
+/* Botón limpiar filtros — ahora vive en línea dentro del panel */
+.filtros-vinculados-panel .btn-limpiar-todo {
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.btn-limpiar-todo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.06);
+    color: #fca5a5;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    height: fit-content;
+}
+
+.btn-limpiar-todo:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.40);
+}
+
 /* ── Estados carga / vacío ── */
 .estado-carga,
 .estado-vacio {
@@ -336,7 +482,7 @@
 .tabla-wrapper {
     flex: 1;
     overflow-y: auto;
-    overflow-x: auto;   /* scroll horizontal dentro del modal, no fuera */
+    overflow-x: auto;
     min-height: 0;
     min-width: 0;
 }
@@ -348,11 +494,9 @@
     border-radius: 3px;
 }
 
-/* La tabla tiene un ancho mínimo para que las columnas respiren,
-   pero el scroll se contiene en .tabla-wrapper */
 table {
     width: 100%;
-    min-width: 620px;   /* ← umbral donde aparece el scroll horizontal */
+    min-width: 700px;
     border-collapse: collapse;
     table-layout: auto;
 }
@@ -397,14 +541,15 @@ tbody td {
     color: #94a3b8;
 }
 
-.td-check    { width: 40px; text-align: center; }
-.td-cedula   { font-family: monospace; color: rgba(0, 229, 255, 0.55); font-size: 12px; white-space: nowrap; }
-.td-nombre   { color: #e2e8f0; font-weight: 500; min-width: 120px; }
-.td-carrera  { font-size: 12px; color: rgba(0, 229, 255, 0.40); min-width: 100px; }
-.td-telegram { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+.td-check      { width: 40px; text-align: center; }
+.td-cedula     { font-family: monospace; color: rgba(0, 229, 255, 0.55); font-size: 12px; white-space: nowrap; }
+.td-nombre     { color: #e2e8f0; font-weight: 500; min-width: 120px; }
+.td-carrera    { font-size: 12px; color: rgba(0, 229, 255, 0.40); min-width: 100px; }
+.td-telegram   { font-size: 12px; color: #94a3b8; white-space: nowrap; }
 .td-telegram .ti { font-size: 13px; margin-right: 4px; }
 .td-asistencia { white-space: nowrap; }
-.td-accion   { width: 44px; text-align: center; }
+.td-accion     { width: 44px; text-align: center; }
+.td-notif      { white-space: nowrap; }
 
 .sin-dato { color: rgba(0, 229, 255, 0.20); }
 
@@ -450,6 +595,40 @@ tbody td {
     border: 1px solid rgba(234, 179, 8, 0.25);
 }
 
+/* ── Badge notificaciones ── */
+.badge-notif {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.badge-notif.activa {
+    background: rgba(34, 197, 94, 0.10);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    /* pulso sutil para indicar que está activa */
+    animation: notif-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes notif-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    50%       { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12); }
+}
+
+.badge-notif.pendiente {
+    background: rgba(234, 179, 8, 0.08);
+    color: #fde68a;
+    border: 1px solid rgba(234, 179, 8, 0.20);
+}
+
+/* ── Badge tipo ── */
 .badge-tipo {
     display: inline-flex;
     align-items: center;
@@ -1141,6 +1320,27 @@ tbody td {
     flex-shrink: 0;
 }
 
+/* ── Btn danger sm (desvincular) ── */
+.btn-danger-sm {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 7px;
+    background: rgba(239, 68, 68, 0.06);
+    color: #fca5a5;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+}
+
+.btn-danger-sm:hover {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
     .overlay { padding: 0; }
@@ -1157,11 +1357,25 @@ tbody td {
     .modal-footer  { padding: 12px 14px; gap: 8px; }
 
     .btn-manual,
-    .btn-ver-vinculados { font-size: 11px; padding: 8px 10px; }
+    .btn-ver-vinculados,
+    .btn-exportar { font-size: 11px; padding: 8px 10px; }
 
     .toolbar-stats { display: none; }
 
     .filtros-asistencia { padding: 8px 14px; }
     .filtros-carreras   { padding: 8px 14px; }
     .nav-grupo { padding: 10px 14px; }
+
+    .filtros-vinculados-panel {
+        padding: 12px 14px 14px;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .filtro-grupo-select { max-width: 100%; }
+
+    .filtros-vinculados-panel .btn-limpiar-todo {
+        margin-left: 0;
+        align-self: flex-start;
+    }
 }
