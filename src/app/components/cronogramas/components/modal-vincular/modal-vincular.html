@@ -88,7 +88,6 @@
                     (click)="setFiltroAsistencia('AUSENTE')">
                     <span class="dot rojo"></span> Sin asistencia
                 </button>
-                <!-- ── Filtro notificaciones ── -->
                 <button class="filtro-btn" [class.active]="filtroNotif === 'ACTIVAS'"
                     (click)="setFiltroNotif('ACTIVAS')">
                     <i class="ti ti-bell-ringing"></i> Notif. activas
@@ -174,7 +173,6 @@
                                 </span>
                                 <span class="sin-dato" *ngIf="!e.telegramUser">—</span>
                             </td>
-                            <!-- ── NUEVA COLUMNA NOTIFICACIONES ── -->
                             <td class="td-notif">
                                 <span class="badge-notif activa"
                                     *ngIf="estadoNotif(e) === 'activa'"
@@ -212,7 +210,6 @@
         <!-- ══ PASO 3: INGRESO MANUAL ══ -->
         <div class="paso-manual" *ngIf="vista === 'manual'">
 
-            <!-- Breadcrumb con retroceso -->
             <div class="nav-grupo">
                 <button class="btn-volver" (click)="volverDesdeManual()">
                     <i class="ti ti-arrow-left"></i>
@@ -224,7 +221,6 @@
 
             <div class="manual-body">
 
-                <!-- Toggle tipo persona -->
                 <div class="tipo-selector">
                     <button class="tipo-btn"
                         [class.active]="tipoPersona === 'estudiante'"
@@ -240,7 +236,6 @@
                     </button>
                 </div>
 
-                <!-- Error -->
                 <div class="manual-error" *ngIf="manualError">
                     <i class="ti ti-alert-triangle"></i> {{ manualError }}
                 </div>
@@ -308,7 +303,6 @@
                 <!-- ══ SECCIÓN DOCENTE ══ -->
                 <div *ngIf="tipoPersona === 'docente'">
 
-                    <!-- Sub-vista: LISTA de docentes guardados -->
                     <div *ngIf="vistaDocente === 'lista'">
 
                         <div class="manual-intro">
@@ -377,7 +371,6 @@
                         </ng-container>
                     </div>
 
-                    <!-- Sub-vista: FORMULARIO nuevo docente -->
                     <div *ngIf="vistaDocente === 'nuevo'">
 
                         <div class="nav-sub">
@@ -428,7 +421,6 @@
                     </div>
 
                 </div>
-                <!-- fin sección docente -->
 
             </div>
         </div>
@@ -436,7 +428,6 @@
         <!-- ══ PASO: VINCULADOS ══ -->
         <div class="paso-estudiantes" *ngIf="vista === 'vinculados'">
 
-            <!-- Breadcrumb con retroceso -->
             <div class="nav-grupo">
                 <button class="btn-volver" (click)="volverDesdeVinculados()">
                     <i class="ti ti-arrow-left"></i>
@@ -454,14 +445,21 @@
                     <input type="text" placeholder="Buscar por cédula o nombre..."
                         [(ngModel)]="busquedaVinculados">
                 </div>
-                <!-- ── Botón exportar Excel (descarga TODOS los vinculados, sin filtros) ── -->
                 <button class="btn-exportar"
                     [disabled]="exportando || personasVinculadas.length === 0"
                     (click)="exportarExcel()"
-                    title="Descargar Excel con todos los vinculados (estudiantes y docentes)">
+                    title="Descargar Excel con todos los vinculados">
                     <div class="spinner-sm" *ngIf="exportando"></div>
                     <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
                     {{ exportando ? 'Generando...' : 'Descargar Excel' }}
+                </button>
+                <button class="btn-migrar-telegram"
+                    [disabled]="migrandoTelegram"
+                    (click)="migrarTelegramChatIds()"
+                    title="Copiar telegramChatId desde Realtime Database hacia Firestore (colección Estudiantes)">
+                    <div class="spinner-sm" *ngIf="migrandoTelegram"></div>
+                    <i class="ti ti-brand-telegram" *ngIf="!migrandoTelegram"></i>
+                    {{ migrandoTelegram ? 'Migrando...' : 'Migrar Telegram a Firestore' }}
                 </button>
                 <div class="toolbar-stats">
                     <span class="stat">
@@ -470,7 +468,6 @@
                 </div>
             </div>
 
-            <!-- ══ BARRA DE FILTROS (vinculados) ══ -->
             <div class="filtros-vinculados-panel">
 
                 <div class="filtro-grupo">
@@ -501,11 +498,11 @@
                             (click)="setFiltroNotifVinculados('TODOS')">
                             Todas
                         </button>
-                        <button class="filtro-btn notif-activa" [class.active]="filtroNotifVinculados === 'ACTIVAS'"
+                        <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'ACTIVAS'"
                             (click)="setFiltroNotifVinculados('ACTIVAS')">
                             <span class="dot verde"></span> Activas
                         </button>
-                        <button class="filtro-btn notif-pendiente" [class.active]="filtroNotifVinculados === 'PENDIENTES'"
+                        <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'PENDIENTES'"
                             (click)="setFiltroNotifVinculados('PENDIENTES')">
                             <span class="dot amarillo"></span> Pendientes
                         </button>
@@ -551,6 +548,7 @@
                             <th>Carrera / Cargo</th>
                             <th>Telegram</th>
                             <th>Notif.</th>
+                            <th>Requisitos</th>
                             <th class="th-accion"></th>
                         </tr>
                     </thead>
@@ -575,7 +573,6 @@
                                 </span>
                                 <span class="sin-dato" *ngIf="!p.telegramUser">—</span>
                             </td>
-                            <!-- ── NUEVA COLUMNA NOTIFICACIONES en vinculados ── -->
                             <td class="td-notif">
                                 <span class="badge-notif activa"
                                     *ngIf="p.notificacionesActivas && p.telegramChatId"
@@ -589,6 +586,15 @@
                                 </span>
                                 <span class="sin-dato"
                                     *ngIf="!p.notificacionesActivas && !p.telegramUser">—</span>
+                            </td>
+                            <td class="td-requisitos" (click)="$event.stopPropagation()">
+                                <button class="btn-requisitos" *ngIf="p.tipo === 'estudiante'"
+                                    (click)="abrirRequisitos(p)"
+                                    title="Ver requisitos de titulación">
+                                    <i class="ti ti-clipboard-check"></i>
+                                    <span>Verificar</span>
+                                </button>
+                                <span class="sin-dato" *ngIf="p.tipo === 'docente'">—</span>
                             </td>
                             <td class="td-accion">
                                 <button class="btn-danger-sm"
@@ -605,7 +611,6 @@
         <!-- ══ FOOTER ══ -->
         <div class="modal-footer">
 
-            <!-- Botones izquierda (solo en grupos/estudiantes) -->
             <button class="btn-manual"
                 *ngIf="vista === 'grupos' || vista === 'estudiantes'"
                 (click)="irAManual()">
@@ -627,7 +632,6 @@
 
             <button class="btn-cancelar" (click)="cerrar()">Cancelar</button>
 
-            <!-- Vincular desde lista de estudiantes -->
             <button class="btn-vincular"
                 *ngIf="vista === 'estudiantes'"
                 [disabled]="seleccionados.size === 0 || guardando"
@@ -638,7 +642,6 @@
                    ' estudiante' + (seleccionados.size !== 1 ? 's' : '') }}
             </button>
 
-            <!-- Guardar manual estudiante -->
             <button class="btn-vincular"
                 *ngIf="vista === 'manual' && tipoPersona === 'estudiante'"
                 [disabled]="!manualDatos.cedula || !manualDatos.nombres || guardando"
@@ -647,7 +650,6 @@
                 {{ guardando ? 'Guardando...' : 'Guardar estudiante' }}
             </button>
 
-            <!-- Vincular docente existente -->
             <button class="btn-vincular docente-btn"
                 *ngIf="vista === 'manual' && tipoPersona === 'docente' && vistaDocente === 'lista'"
                 [disabled]="!docenteSeleccionado || estaDocenteVinculado(docenteSeleccionado) || guardando"
@@ -656,7 +658,6 @@
                 {{ guardando ? 'Vinculando...' : 'Vincular docente' }}
             </button>
 
-            <!-- Guardar nuevo docente -->
             <button class="btn-vincular docente-btn"
                 *ngIf="vista === 'manual' && tipoPersona === 'docente' && vistaDocente === 'nuevo'"
                 [disabled]="!docenteForm.cedula || !docenteForm.nombres || !docenteForm.cargo || guardando"
@@ -668,4 +669,95 @@
         </div>
 
     </div>
+
+    <!-- ══ MINI-MODAL REQUISITOS DE TITULACIÓN ══ -->
+    <div class="req-overlay" *ngIf="requisitosModal.visible" (click)="cerrarRequisitos()">
+        <div class="req-modal" (click)="$event.stopPropagation()">
+
+            <div class="req-header">
+                <div>
+                    <p class="req-label">Requisitos de titulación</p>
+                    <h3 class="req-nombre">{{ requisitosModal.nombres }}</h3>
+                    <p class="req-cedula">
+                        <i class="ti ti-id"></i> {{ requisitosModal.cedula }}
+                    </p>
+                </div>
+                <button class="btn-cerrar" (click)="cerrarRequisitos()">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            <!-- Cargando -->
+            <div class="estado-carga" *ngIf="requisitosModal.cargando">
+                <div class="spinner"></div>
+                <p>Consultando requisitos...</p>
+            </div>
+
+            <!-- Error -->
+            <div class="req-error" *ngIf="!requisitosModal.cargando && requisitosModal.error">
+                <i class="ti ti-alert-triangle"></i>
+                {{ requisitosModal.error }}
+            </div>
+
+            <!-- Resultados -->
+            <div class="req-body" *ngIf="!requisitosModal.cargando && !requisitosModal.error && requisitosModal.items.length > 0">
+
+                <!-- Resumen numérico -->
+                <div class="req-resumen">
+                    <div class="req-stat verde">
+                        <span class="req-stat-num">{{ requisitosModal.totalCumple }}</span>
+                        <span class="req-stat-label">Cumplidos</span>
+                    </div>
+                    <div class="req-stat-sep"></div>
+                    <div class="req-stat rojo">
+                        <span class="req-stat-num">{{ requisitosModal.totalNoCumple }}</span>
+                        <span class="req-stat-label">Pendientes</span>
+                    </div>
+                    <div class="req-stat-sep"></div>
+                    <div class="req-stat gris">
+                        <span class="req-stat-num">{{ requisitosModal.items.length }}</span>
+                        <span class="req-stat-label">Total</span>
+                    </div>
+                </div>
+
+                <!-- Barra de progreso -->
+                <div class="req-progreso-wrap">
+                    <div class="req-progreso-bar">
+                        <div class="req-progreso-fill"
+                            [style.width.%]="(requisitosModal.totalCumple / requisitosModal.items.length) * 100">
+                        </div>
+                    </div>
+                    <span class="req-progreso-pct">
+                        {{ ((requisitosModal.totalCumple / requisitosModal.items.length) * 100) | number:'1.0-0' }}%
+                    </span>
+                </div>
+
+                <!-- Lista de requisitos -->
+                <div class="req-lista">
+                    <div class="req-item"
+                        *ngFor="let r of requisitosModal.items"
+                        [class.cumple]="r.estado === 'CUMPLE'"
+                        [class.no-cumple]="r.estado === 'NO CUMPLE'">
+                        <div class="req-item-icono">
+                            <i class="ti"
+                                [class.ti-circle-check]="r.estado === 'CUMPLE'"
+                                [class.ti-circle-x]="r.estado === 'NO CUMPLE'">
+                            </i>
+                        </div>
+                        <span class="req-item-nombre">{{ r.nombre }}</span>
+                        <span class="req-item-badge">{{ r.estado }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sin datos -->
+            <div class="estado-vacio"
+                *ngIf="!requisitosModal.cargando && !requisitosModal.error && requisitosModal.items.length === 0">
+                <i class="ti ti-clipboard-off"></i>
+                <p>No se encontraron requisitos para este estudiante</p>
+            </div>
+
+        </div>
+    </div>
+
 </div>

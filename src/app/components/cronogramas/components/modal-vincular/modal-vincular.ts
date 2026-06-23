@@ -12,9 +12,7 @@ import { Docente, DocentesService } from '../../firebase/Docentes.service';
 
 type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados';
 type TipoPersona = 'estudiante' | 'docente';
-/** Sub-vista dentro del paso manual para docentes */
 type VistaDocente = 'lista' | 'nuevo';
-/** Estado de notificaciones de un estudiante */
 type EstadoNotif = 'activa' | 'pendiente' | 'sin-telegram';
 
 interface ManualDatos {
@@ -33,6 +31,18 @@ interface DocenteForm {
     departamento: string;
 }
 
+// ── NUEVA INTERFAZ: estado del mini-modal de requisitos ──────────────────────
+interface RequisitosModal {
+    visible: boolean;
+    cargando: boolean;
+    error: string;
+    cedula: string;
+    nombres: string;
+    items: { nombre: string; estado: string }[];
+    totalCumple: number;
+    totalNoCumple: number;
+}
+
 @Component({
     selector: 'app-modal-vincular',
     standalone: true,
@@ -47,7 +57,7 @@ export class ModalVincular implements OnChanges {
     @Output() cerrarEvento = new EventEmitter<void>();
     @Output() vinculadoEvento = new EventEmitter<number>();
 
-    // ── Paso 1: grupos ─────────────────────────────────────────────────────
+    // ── Paso 1: grupos ──────────────────────────────────────────────────────
     vista: Vista = 'grupos';
     grupos: GrupoInduccion[] = [];
     grupoSeleccionado: GrupoInduccion | null = null;
@@ -58,7 +68,6 @@ export class ModalVincular implements OnChanges {
     seleccionados = new Set<string>();
     busqueda = '';
     filtroAsistencia: 'TODOS' | 'PRESENTE' | 'AUSENTE' = 'TODOS';
-    /** Filtro por estado de notificaciones */
     filtroNotif: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' = 'TODOS';
 
     // ── Paso 3: tipo de persona ─────────────────────────────────────────────
@@ -66,24 +75,19 @@ export class ModalVincular implements OnChanges {
     origenManual: 'grupos' | 'estudiantes' = 'grupos';
 
     // ── Sub-vista docente ───────────────────────────────────────────────────
-    /** 'lista' = mostrar docentes guardados | 'nuevo' = formulario nuevo docente */
     vistaDocente: VistaDocente = 'lista';
     docentes: Docente[] = [];
     docentesFiltrados: Docente[] = [];
     busquedaDocentes = '';
     cargandoDocentes = false;
-    /** Docente seleccionado de la lista para vincular */
     docenteSeleccionado: Docente | null = null;
 
     // ── Paso vinculados ─────────────────────────────────────────────────────
     origenVinculados: 'grupos' | 'estudiantes' = 'grupos';
     busquedaVinculados = '';
     filtroTipoVinculado: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES' = 'TODOS';
-    /** Filtro por estado de notificaciones en la vista de vinculados */
     filtroNotifVinculados: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' = 'TODOS';
-    /** Filtro por carrera/cargo en la vista de vinculados (dropdown, valor único) */
     filtroCarreraVinculadosSeleccionada = '';
-    /** Indica si se está generando el archivo Excel */
     exportando = false;
 
     // ── Formularios ─────────────────────────────────────────────────────────
@@ -94,13 +98,30 @@ export class ModalVincular implements OnChanges {
     // ── Estado de carga ─────────────────────────────────────────────────────
     cargando = false;
     guardando = false;
+    migrandoTelegram = false;
 
-    // ── Filtros carrera / orden ──────────────────────────────────────────────
+    // ── Filtros carrera / orden ─────────────────────────────────────────────
     carrerasDisponibles: string[] = [];
     filtroCarreras = new Set<string>();
     ordenarPorCarrera = false;
 
-    // ── Computed: personas vinculadas al cronograma actual ──────────────────
+    // ── NUEVO: Mini-modal de requisitos ─────────────────────────────────────
+    requisitosModal: RequisitosModal = this.requisitosModalVacio();
+
+    /**
+     * Campos del documento de Firestore que NO son requisitos de titulación.
+     * Ajusta esta lista si tu colección tiene más campos informativos.
+     */
+    private readonly CAMPOS_NO_REQUISITO = new Set([
+        'Celular', 'CodigoCarrera', 'CorreoInstitucional', 'CorreoPersonal',
+        'HorarioComplexivo', 'Nombres', 'Apellidos', 'NombreCompleto',
+        'Carrera', 'Semestre', 'FechaIngreso', 'FechaNacimiento',
+        'Direccion', 'Telefono', 'Email', 'Grupo', 'telegramUser',
+        'telegramChatId', 'notificacionesActivas', 'asistencia',
+        'fechaVinculacion', 'ingresadoManual', 'cedula', 'id'
+    ]);
+
+    // ── Computed: personas vinculadas ───────────────────────────────────────
     get personasVinculadas(): any[] {
         const estudiantes = Object.values((this.cronograma as any)?.estudiantesVinculados ?? {})
             .map((e: any) => ({ ...e, tipo: 'estudiante' }));
@@ -109,7 +130,6 @@ export class ModalVincular implements OnChanges {
         return [...docentes, ...estudiantes];
     }
 
-    /** Carreras/cargos únicos entre los vinculados, para los chips de filtro */
     get carrerasVinculadosDisponibles(): string[] {
         const valores = this.personasVinculadas
             .map(p => (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '')
@@ -117,7 +137,6 @@ export class ModalVincular implements OnChanges {
         return [...new Set(valores)].sort((a, b) => a.localeCompare(b, 'es'));
     }
 
-    /** Estado de notificaciones de una persona ya vinculada (estudiante o docente) */
     estadoNotifVinculado(p: any): EstadoNotif {
         if (p.notificacionesActivas && p.telegramChatId) return 'activa';
         if (p.telegramUser || p.telegramChatId) return 'pendiente';
@@ -175,6 +194,14 @@ export class ModalVincular implements OnChanges {
         return { cedula: '', nombres: '', cargo: '', departamento: '' };
     }
 
+    private requisitosModalVacio(): RequisitosModal {
+        return {
+            visible: false, cargando: false, error: '',
+            cedula: '', nombres: '', items: [],
+            totalCumple: 0, totalNoCumple: 0
+        };
+    }
+
     private resetear(): void {
         this.vista = 'grupos';
         this.grupos = [];
@@ -196,6 +223,7 @@ export class ModalVincular implements OnChanges {
         this.filtroNotifVinculados = 'TODOS';
         this.filtroCarreraVinculadosSeleccionada = '';
         this.exportando = false;
+        this.migrandoTelegram = false;
         this.origenVinculados = 'grupos';
         this.vistaDocente = 'lista';
         this.docentes = [];
@@ -205,22 +233,11 @@ export class ModalVincular implements OnChanges {
         this.carrerasDisponibles = [];
         this.filtroCarreras = new Set<string>();
         this.ordenarPorCarrera = false;
+        this.requisitosModal = this.requisitosModalVacio();
     }
 
     // ── Notificaciones ──────────────────────────────────────────────────────
-
-    /**
-     * Devuelve el estado de notificaciones de un estudiante.
-     * Lee desde estudiantesVinculados del cronograma si el estudiante ya está
-     * vinculado (tiene telegramChatId/notificacionesActivas), o directamente
-     * del objeto Estudiante si aún no está vinculado.
-     *
-     * 'activa'       → tiene telegramChatId y notificacionesActivas: true
-     * 'pendiente'    → tiene telegramUser pero no ha iniciado el bot aún
-     * 'sin-telegram' → no tiene telegramUser registrado
-     */
     estadoNotif(e: Estudiante): EstadoNotif {
-        // Intentar leer desde el nodo vinculados del cronograma (tiene los campos frescos)
         const vinculados = (this.cronograma as any)?.estudiantesVinculados ?? {};
         const vinc = e.cedula ? vinculados[e.cedula] : null;
 
@@ -233,10 +250,88 @@ export class ModalVincular implements OnChanges {
         return 'sin-telegram';
     }
 
-    /** Filtro por estado de notificaciones */
     setFiltroNotif(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES'): void {
         this.filtroNotif = f;
         this.filtrar();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // NUEVO: Lógica del mini-modal de requisitos
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Abre el mini-modal y consulta Firestore (proyecto utet-4387a) por la
+     * cédula del estudiante. Lee todos los campos del documento y filtra
+     * solo los que tienen valor "CUMPLE" o "NO CUMPLE", ignorando campos
+     * informativos. Sirve tanto para Estudiante (paso 2) como para una
+     * persona ya vinculada (vista Vinculados).
+     */
+    async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
+        this.requisitosModal = {
+            ...this.requisitosModalVacio(),
+            visible: true,
+            cargando: true,
+            cedula: e.cedula ?? '',
+            nombres: e.nombres ?? ''
+        };
+        this.cdr.detectChanges();
+
+        try {
+            const { doc, getDoc } = await import('firebase/firestore');
+            const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+            const db = getUtetFirestore();
+            const snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
+
+            if (!snap.exists()) {
+                this.requisitosModal = {
+                    ...this.requisitosModal,
+                    cargando: false,
+                    error: 'No se encontró el registro de este estudiante en la base de datos.'
+                };
+                this.cdr.detectChanges();
+                return;
+            }
+
+            const data = snap.data() as Record<string, any>;
+            const items: { nombre: string; estado: string }[] = [];
+
+            for (const [key, value] of Object.entries(data)) {
+                // Solo procesar campos que sean exactamente "CUMPLE" o "NO CUMPLE"
+                if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
+                if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
+                items.push({ nombre: key, estado: value as string });
+            }
+
+            // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
+            items.sort((a, b) => {
+                if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
+                return a.nombre.localeCompare(b.nombre, 'es');
+            });
+
+            this.requisitosModal = {
+                ...this.requisitosModal,
+                cargando: false,
+                items,
+                totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
+                totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
+            };
+
+        } catch (err) {
+            console.error('Error al cargar requisitos:', err);
+            this.requisitosModal = {
+                ...this.requisitosModal,
+                cargando: false,
+                error: 'Error al consultar la base de datos. Intenta de nuevo.'
+            };
+        }
+
+        this.cdr.detectChanges();
+    }
+
+    /** Cierra el mini-modal de requisitos */
+    cerrarRequisitos(): void {
+        this.requisitosModal = this.requisitosModalVacio();
+        this.cdr.detectChanges();
     }
 
     // ── Vinculados ──────────────────────────────────────────────────────────
@@ -260,13 +355,11 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
     }
 
-    /** Filtro por estado de notificaciones, en la vista de vinculados */
     setFiltroNotifVinculados(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM'): void {
         this.filtroNotifVinculados = f;
         this.cdr.detectChanges();
     }
 
-    /** Selecciona una carrera/cargo desde el dropdown de filtro de vinculados */
     setFiltroCarreraVinculados(valor: string): void {
         this.filtroCarreraVinculadosSeleccionada = valor;
         this.cdr.detectChanges();
@@ -319,13 +412,6 @@ export class ModalVincular implements OnChanges {
     }
 
     // ── Exportar a Excel ────────────────────────────────────────────────────
-    /**
-     * Genera y descarga un archivo .xlsx con TODAS las personas vinculadas al
-     * cronograma (estudiantes + docentes), sin importar filtros o búsqueda
-     * activos en pantalla. Usa la librería SheetJS (xlsx), cargada
-     * dinámicamente desde CDN si aún no está disponible en window, para no
-     * añadir una dependencia pesada al bundle cuando la función no se usa.
-     */
     async exportarExcel(): Promise<void> {
         const datos = this.personasVinculadas;
         if (datos.length === 0) {
@@ -353,17 +439,9 @@ export class ModalVincular implements OnChanges {
 
             const hoja = XLSX.utils.json_to_sheet(filas);
 
-            // Ancho de columnas aproximado según contenido
             hoja['!cols'] = [
-                { wch: 12 }, // Tipo
-                { wch: 14 }, // Cédula
-                { wch: 28 }, // Nombre
-                { wch: 26 }, // Carrera / Cargo
-                { wch: 18 }, // Departamento
-                { wch: 18 }, // Telegram
-                { wch: 14 }, // Notificaciones
-                { wch: 12 }, // Asistencia
-                { wch: 18 }  // Fecha de vinculación
+                { wch: 12 }, { wch: 14 }, { wch: 28 }, { wch: 26 },
+                { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 18 }
             ];
 
             const libro = XLSX.utils.book_new();
@@ -404,11 +482,8 @@ export class ModalVincular implements OnChanges {
             .replace(/(^-|-$)/g, '');
     }
 
-    /** Carga SheetJS (xlsx) desde CDN una sola vez y la deja cacheada en window */
     private cargarSheetJS(): Promise<any> {
-        if ((window as any).XLSX) {
-            return Promise.resolve((window as any).XLSX);
-        }
+        if ((window as any).XLSX) return Promise.resolve((window as any).XLSX);
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
@@ -417,6 +492,96 @@ export class ModalVincular implements OnChanges {
             document.head.appendChild(script);
         });
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // NUEVO: Migrar telegramChatId desde Realtime Database hacia Firestore
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Recorre los estudiantes vinculados a este cronograma (RTDB) y, para
+     * cada uno que tenga telegramChatId, lo copia hacia el documento
+     * correspondiente en Firestore (proyecto utet-4387a, colección
+     * "Estudiantes"), usando merge para no pisar los demás campos.
+     * Si el documento no existe en Firestore para esa cédula, no lo crea
+     * (se cuenta como "sin documento") para evitar registros huérfanos.
+     */
+async migrarTelegramChatIds(): Promise<void> {
+    const estudiantesConTelegram = this.personasVinculadas.filter(
+        (p: any) => p.tipo === 'estudiante' && p.telegramChatId && p.cedula
+    );
+
+    console.log('[Migración] Estudiantes con telegramChatId encontrados:', estudiantesConTelegram.length);
+    console.table(estudiantesConTelegram.map((p: any) => ({ cedula: p.cedula, nombres: p.nombres, telegramChatId: p.telegramChatId })));
+
+    if (estudiantesConTelegram.length === 0) {
+        alert('No hay estudiantes vinculados con telegramChatId para migrar.');
+        return;
+    }
+
+    const confirmado = confirm(
+        `Se copiará el campo telegramChatId de ${estudiantesConTelegram.length} ` +
+        `estudiante(s) desde Realtime Database hacia Firestore (colección Estudiantes). ` +
+        `¿Continuar?`
+    );
+    if (!confirmado) {
+        console.warn('[Migración] Cancelada por el usuario en el confirm().');
+        return;
+    }
+
+    this.migrandoTelegram = true;
+    this.cdr.detectChanges();
+
+    let exito = 0;
+    let fallidos = 0;
+    let sinDocFirestore = 0;
+
+    try {
+        const { doc, getDoc, setDoc } = await import('firebase/firestore');
+        const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+        const db = getUtetFirestore();
+
+        for (const p of estudiantesConTelegram) {
+            console.group(`[Migración] Cédula ${p.cedula} (${p.nombres})`);
+            try {
+                const ref = doc(db, 'Estudiantes', p.cedula);
+                const snap = await getDoc(ref);
+
+                console.log('¿Existe documento en Firestore?', snap.exists());
+
+                if (!snap.exists()) {
+                    console.warn('No se encontró el documento con ese ID exacto. Revisa el formato de la cédula.');
+                    sinDocFirestore++;
+                    console.groupEnd();
+                    continue;
+                }
+
+                console.log('telegramChatId a escribir:', p.telegramChatId);
+                await setDoc(ref, { telegramChatId: p.telegramChatId }, { merge: true });
+                console.log('✔ Escritura exitosa.');
+                exito++;
+            } catch (err) {
+                console.error('✘ Error al migrar esta cédula:', err);
+                fallidos++;
+            }
+            console.groupEnd();
+        }
+
+        console.log(`[Migración] Resumen final → Éxito: ${exito} | Sin documento: ${sinDocFirestore} | Errores: ${fallidos}`);
+
+        alert(
+            `Migración completada.\n` +
+            `✔ Actualizados en Firestore: ${exito}\n` +
+            `– Sin documento en Firestore: ${sinDocFirestore}\n` +
+            `✘ Errores: ${fallidos}`
+        );
+    } catch (error) {
+        console.error('Error general en migración de telegramChatId:', error);
+        alert('Ocurrió un error al migrar. Revisa la consola.');
+    } finally {
+        this.migrandoTelegram = false;
+        this.cdr.detectChanges();
+    }
+}
 
     // ── Manual: navegación ──────────────────────────────────────────────────
     irAManual(): void {
@@ -449,14 +614,13 @@ export class ModalVincular implements OnChanges {
         this.manualError = '';
         this.docenteSeleccionado = null;
         this.vistaDocente = 'lista';
-
         if (tipo === 'docente' && this.docentes.length === 0) {
             this.cargarDocentes();
         }
         this.cdr.detectChanges();
     }
 
-    // ── Docentes: cargar y filtrar ──────────────────────────────────────────
+    // ── Docentes ────────────────────────────────────────────────────────────
     private async cargarDocentes(): Promise<void> {
         this.cargandoDocentes = true;
         this.cdr.detectChanges();
@@ -564,16 +728,13 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
         try {
             const nuevoDocente: Docente = {
-                cedula,
-                nombres,
-                cargo,
+                cedula, nombres, cargo,
                 departamento: this.docenteForm.departamento.trim() || '',
                 creadoEn: new Date().toISOString(),
                 cronogramasAsignados: []
             };
 
             await this.docentesService.guardarDocente(nuevoDocente);
-
             await this.docentesService.vincularAcronograma(
                 nuevoDocente,
                 this.cronograma.id!,
@@ -584,9 +745,7 @@ export class ModalVincular implements OnChanges {
             (this.cronograma as any).docentesVinculados = {
                 ...docentesActuales,
                 [cedula]: {
-                    cedula,
-                    nombres,
-                    cargo,
+                    cedula, nombres, cargo,
                     fechaVinculacion: new Date().toISOString()
                 }
             };
@@ -624,8 +783,7 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
         try {
             const nuevoEstudiante = {
-                cedula,
-                nombres,
+                cedula, nombres,
                 carrera: this.manualDatos.carrera.trim() || '',
                 telegramUser: this.manualDatos.telegramUser.trim() || '',
                 asistencia: this.manualDatos.asistencia,
@@ -701,7 +859,7 @@ export class ModalVincular implements OnChanges {
         this.cdr.detectChanges();
     }
 
-    // ── Paso 2: filtros y selección ─────────────────────────────────────────
+    // ── Filtros y selección ─────────────────────────────────────────────────
     filtrar(): void {
         const q = this.busqueda.toLowerCase().trim();
         let lista = this.estudiantes.filter(e => {
