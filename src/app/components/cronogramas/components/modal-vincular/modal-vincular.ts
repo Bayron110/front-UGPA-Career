@@ -266,67 +266,74 @@ export class ModalVincular implements OnChanges {
      * informativos. Sirve tanto para Estudiante (paso 2) como para una
      * persona ya vinculada (vista Vinculados).
      */
-    async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
-        this.requisitosModal = {
-            ...this.requisitosModalVacio(),
-            visible: true,
-            cargando: true,
-            cedula: e.cedula ?? '',
-            nombres: e.nombres ?? ''
-        };
-        this.cdr.detectChanges();
+async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
+    this.requisitosModal = {
+        ...this.requisitosModalVacio(),
+        visible: true,
+        cargando: true,
+        cedula: e.cedula ?? '',
+        nombres: e.nombres ?? ''
+    };
+    this.cdr.detectChanges();
 
-        try {
-            const { doc, getDoc } = await import('firebase/firestore');
-            const { getUtetFirestore } = await import('../../firebase/utet-firestore');
-            const db = getUtetFirestore();
-            const snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
+    try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+        const db = getUtetFirestore();
 
-            if (!snap.exists()) {
-                this.requisitosModal = {
-                    ...this.requisitosModal,
-                    cargando: false,
-                    error: 'No se encontró el registro de este estudiante en la base de datos.'
-                };
-                this.cdr.detectChanges();
-                return;
-            }
+        // Intento 1: cédula tal como viene
+        let snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
 
-            const data = snap.data() as Record<string, any>;
-            const items: { nombre: string; estado: string }[] = [];
-
-            for (const [key, value] of Object.entries(data)) {
-                // Solo procesar campos que sean exactamente "CUMPLE" o "NO CUMPLE"
-                if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
-                if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
-                items.push({ nombre: key, estado: value as string });
-            }
-
-            // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
-            items.sort((a, b) => {
-                if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
-                return a.nombre.localeCompare(b.nombre, 'es');
-            });
-
-            this.requisitosModal = {
-                ...this.requisitosModal,
-                cargando: false,
-                items,
-                totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
-                totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
-            };
-
-        } catch (err) {
-            console.error('Error al cargar requisitos:', err);
-            this.requisitosModal = {
-                ...this.requisitosModal,
-                cargando: false,
-                error: 'Error al consultar la base de datos. Intenta de nuevo.'
-            };
+        // Intento 2: si empieza con '0', probar sin el cero inicial
+        if (!snap.exists() && e.cedula!.startsWith('0')) {
+            const cedulaSin0 = e.cedula!.slice(1);
+            snap = await getDoc(doc(db, 'Estudiantes', cedulaSin0));
         }
 
-        this.cdr.detectChanges();
+        if (!snap.exists()) {
+            this.requisitosModal = {
+                ...this.requisitosModal,
+                cargando: false,
+                error: 'No se encontró el registro de este estudiante en la base de datos.'
+            };
+            this.cdr.detectChanges();
+            return;
+        }
+
+        const data = snap.data() as Record<string, any>;
+        const items: { nombre: string; estado: string }[] = [];
+
+        for (const [key, value] of Object.entries(data)) {
+            if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
+            if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
+            items.push({ nombre: key, estado: value as string });
+        }
+
+        // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
+        items.sort((a, b) => {
+            if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
+            return a.nombre.localeCompare(b.nombre, 'es');
+        });
+
+        this.requisitosModal = {
+            ...this.requisitosModal,
+            cargando: false,
+            items,
+            totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
+            totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
+        };
+
+    } catch (err) {
+        console.error('Error al cargar requisitos:', err);
+        this.requisitosModal = {
+            ...this.requisitosModal,
+            cargando: false,
+            error: 'Error al consultar la base de datos. Intenta de nuevo.'
+        };
     }
+
+    this.cdr.detectChanges();
+}
 
     /** Cierra el mini-modal de requisitos */
     cerrarRequisitos(): void {
@@ -511,7 +518,7 @@ async migrarTelegramChatIds(): Promise<void> {
     );
 
     console.log('[Migración] Estudiantes con telegramChatId encontrados:', estudiantesConTelegram.length);
-    console.table(estudiantesConTelegram.map((p: any) => ({ cedula: p.cedula, nombres: p.nombres, telegramChatId: p.telegramChatId })));
+    console.table(estudiantesConTelegram.map((p: any) => ({ cedula: p.cedula, nombres: p.nombres, telegramChatId: p.telegramChatId, telegramUser: p.telegramUser })));
 
     if (estudiantesConTelegram.length === 0) {
         alert('No hay estudiantes vinculados con telegramChatId para migrar.');
@@ -543,10 +550,19 @@ async migrarTelegramChatIds(): Promise<void> {
         for (const p of estudiantesConTelegram) {
             console.group(`[Migración] Cédula ${p.cedula} (${p.nombres})`);
             try {
-                const ref = doc(db, 'Estudiantes', p.cedula);
-                const snap = await getDoc(ref);
+                // Intento 1: cédula tal como viene
+                let ref = doc(db, 'Estudiantes', p.cedula);
+                let snap = await getDoc(ref);
 
                 console.log('¿Existe documento en Firestore?', snap.exists());
+
+                // Intento 2: si empieza con '0', probar sin el cero inicial
+                if (!snap.exists() && p.cedula.startsWith('0')) {
+                    const cedulaSin0 = p.cedula.slice(1);
+                    ref = doc(db, 'Estudiantes', cedulaSin0);
+                    snap = await getDoc(ref);
+                    console.log('Reintentando sin cero inicial, cédula:', cedulaSin0, '¿Existe?', snap.exists());
+                }
 
                 if (!snap.exists()) {
                     console.warn('No se encontró el documento con ese ID exacto. Revisa el formato de la cédula.');
@@ -556,9 +572,14 @@ async migrarTelegramChatIds(): Promise<void> {
                 }
 
                 console.log('telegramChatId a escribir:', p.telegramChatId);
-                await setDoc(ref, { telegramChatId: p.telegramChatId }, { merge: true });
+                console.log('telegramUser a escribir:', p.telegramUser);
+                await setDoc(ref, 
+                    { telegramChatId: p.telegramChatId, telegramUser: p.telegramUser }, 
+                    { merge: true });
+                    
                 console.log('✔ Escritura exitosa.');
                 exito++;
+                
             } catch (err) {
                 console.error('✘ Error al migrar esta cédula:', err);
                 fallidos++;
