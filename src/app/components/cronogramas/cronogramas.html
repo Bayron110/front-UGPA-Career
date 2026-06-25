@@ -20,6 +20,11 @@
                 (click)="cambiarVista('historial')">
                 <i class="ti ti-history"></i> Historial
             </button>
+            <button class="menu-btn" [class.active]="menuSeleccionado === 'defensas'"
+                (click)="cambiarVista('defensas')">
+                <i class="ti ti-school"></i>
+                Defensas
+            </button>
         </nav>
         <div class="sidebar-footer">
             <span class="estado-dot"></span>
@@ -38,6 +43,13 @@
                 (vincularEvento)="abrirModalVincular($event)">
             </app-historial-cronogramas>
         </div>
+        <div class="modal" (click)="$event.stopPropagation()">
+            <div *ngIf="menuSeleccionado === 'defensas'">
+                <app-defensas-estudiantes></app-defensas-estudiantes>
+            </div>
+
+            <!-- resto del modal -->
+        </div>
 
     </main>
 
@@ -46,7 +58,9 @@
 <!-- ── MODAL EDITAR ── -->
 <div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
     <div class="modal" (click)="$event.stopPropagation()">
-
+        <div *ngIf="menuSeleccionado === 'defensas'">
+            <app-defensas-estudiantes></app-defensas-estudiantes>
+        </div>
         <div class="modal-header">
             <div>
                 <p class="modal-label">Editar cronograma</p>

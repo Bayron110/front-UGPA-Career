@@ -11,11 +11,12 @@ import {
   ActividadCronograma,
   Cronograma
 } from './firebase/cronogramas';
+import { DefensasEstudiantes } from './components/defensas-estudiantes/defensas-estudiantes';
 
 @Component({
   selector: 'app-cronogramas',
   standalone: true,
-  imports: [CommonModule, FormsModule, PublicarCronogramas, HistorialCronogramas, ModalVincular],
+  imports: [CommonModule, FormsModule, PublicarCronogramas, HistorialCronogramas, ModalVincular, DefensasEstudiantes,],
   templateUrl: './cronogramas.html',
   styleUrl: './cronogramas.css'
 })
