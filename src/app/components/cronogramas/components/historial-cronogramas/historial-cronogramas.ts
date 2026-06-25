@@ -26,34 +26,42 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
   cronogramas: Cronograma[] = [];
   cargando = true;
 
-  // ── Filtros ──────────────────────────────────────────────
   filtroEstado: 'TODOS' | 'VIGENTE' | 'PROGRAMADO' | 'FINALIZADO' = 'TODOS';
   filtroTexto = '';
 
-  // ── Backend monitor ──────────────────────────────────────
   estadoBackend: 'verificando' | 'dormido' | 'despertando' | 'activo' = 'verificando';
-  private pollingWakeTimer: any;   // polling cada 3s mientras despierta
-  private keepaliveTimer: any;     // ping cada 25s para mantener activo
-  keepaliveActivo = false;         // true cuando el keepalive está corriendo
+  private pollingWakeTimer: any;
+  private keepaliveTimer: any;
+  keepaliveActivo = false;
 
-  // ── Auto-heartbeat (pre-cron) ────────────────────────────
   private heartbeatGeneralTimer: any;
   private heartbeatCronTimer: any;
 
-  private readonly INTERVALO_GENERAL_MS = 10 * 60 * 1000; // 10 min
-  private readonly INTERVALO_CRON_MS    =      60 * 1000; //  1 min
-  private readonly INTERVALO_KEEPALIVE  =      25 * 1000; // 25 s
-  private readonly INTERVALO_POLLING    =       3 * 1000; //  3 s
-  private readonly TIMEOUT_PING         =      15 * 1000; // 15 s
+  private readonly INTERVALO_GENERAL_MS = 10 * 60 * 1000;
+  private readonly INTERVALO_CRON_MS    =      60 * 1000;
+  private readonly INTERVALO_KEEPALIVE  =      25 * 1000;
+  private readonly INTERVALO_POLLING    =       3 * 1000;
+  private readonly TIMEOUT_PING         =      15 * 1000;
 
   private readonly BACKEND_URL = 'https://itsqmet-bot-backend.onrender.com';
+
+  // ── Preferencia del usuario persistida en localStorage ──
+  private get _usuarioDetuvo(): boolean {
+    return localStorage.getItem('backend_keepalive_detenido') === 'true';
+  }
+  private set _usuarioDetuvo(value: boolean) {
+    if (value) {
+      localStorage.setItem('backend_keepalive_detenido', 'true');
+    } else {
+      localStorage.removeItem('backend_keepalive_detenido');
+    }
+  }
 
   constructor(
     private cronogramaService: CronogramaService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  // ────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.cronogramaService.escucharCronogramas(lista => {
       this.cronogramas = lista.sort(
@@ -65,7 +73,6 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
 
-    // Verificar estado real del backend al cargar
     this.verificarEstadoInicial();
     this.iniciarHeartbeat();
   }
@@ -115,11 +122,9 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     return this.cronogramas.filter(c => {
       const coincideEstado =
         this.filtroEstado === 'TODOS' || this.estadoReal(c) === this.filtroEstado;
-
       const coincideTexto =
         !this.filtroTexto.trim() ||
         c.nombre.toLowerCase().includes(this.filtroTexto.trim().toLowerCase());
-
       return coincideEstado && coincideTexto;
     });
   }
@@ -138,7 +143,7 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  // ── Verificación inicial del estado real ─────────────────
+  // ── Verificación inicial ─────────────────────────────────
   private async verificarEstadoInicial(): Promise<void> {
     this.estadoBackend = 'verificando';
     this.cdr.markForCheck();
@@ -146,9 +151,14 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     const activo = await this.pingBackend();
 
     if (activo) {
-      console.log('[Backend] ✅ Ya estaba activo al cargar.');
-      this.estadoBackend = 'activo';
-      this.iniciarKeepalive();
+      if (!this._usuarioDetuvo) {
+        console.log('[Backend] ✅ Ya estaba activo al cargar.');
+        this.estadoBackend = 'activo';
+        this.iniciarKeepalive();
+      } else {
+        console.log('[Backend] 🔕 Activo pero el usuario detuvo el keepalive, respetando.');
+        this.estadoBackend = 'dormido';
+      }
     } else {
       console.log('[Backend] 💤 Dormido al cargar.');
       this.estadoBackend = 'dormido';
@@ -161,14 +171,14 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
   async despertarBackend(): Promise<void> {
     if (this.estadoBackend === 'despertando' || this.estadoBackend === 'verificando') return;
 
+    this._usuarioDetuvo = false;
+
     this.estadoBackend = 'despertando';
     this.cdr.markForCheck();
     console.log('[Backend] 🔄 Iniciando polling para despertar...');
 
-    // Primer ping inmediato
     await this.pingBackend();
 
-    // Polling cada 3s hasta que responda
     this.pollingWakeTimer = setInterval(async () => {
       const activo = await this.pingBackend();
 
@@ -185,9 +195,21 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
 
   // ── Botón: Finalizar keepalive ───────────────────────────
   finalizarKeepalive(): void {
+    this._usuarioDetuvo = true;
+
     this.detenerKeepalive();
+
+    if (this.heartbeatGeneralTimer) {
+      clearInterval(this.heartbeatGeneralTimer);
+      this.heartbeatGeneralTimer = null;
+    }
+    if (this.heartbeatCronTimer) {
+      clearInterval(this.heartbeatCronTimer);
+      this.heartbeatCronTimer = null;
+    }
+
     this.estadoBackend = 'dormido';
-    console.log('[Backend] 🛑 Keepalive detenido. El servidor dormirá por inactividad.');
+    console.log('[Backend] 🛑 Preferencia guardada en localStorage. El servidor dormirá por inactividad.');
     this.cdr.markForCheck();
   }
 
@@ -203,7 +225,6 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
       if (activo) {
         console.log(`[Keepalive] 💚 Backend sigue activo — ${hora}`);
       } else {
-        // Si perdió conexión, actualizar estado
         console.warn(`[Keepalive] ⚠️ Backend no responde — ${hora}`);
         this.estadoBackend = 'dormido';
         this.keepaliveActivo = false;
@@ -228,10 +249,7 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     }
   }
 
-  // ── Ping real al backend ─────────────────────────────────
-  /**
-   * Hace GET /ping. Devuelve true si responde OK, false si falla.
-   */
+  // ── Ping ─────────────────────────────────────────────────
   private async pingBackend(): Promise<boolean> {
     try {
       const res = await fetch(`${this.BACKEND_URL}/ping`, {
@@ -244,7 +262,7 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     }
   }
 
-  // ── Auto-heartbeat (pre-cron, no modifica estadoBackend) ─
+  // ── Auto-heartbeat ────────────────────────────────────────
   private ahoraEcuador(): Date {
     return new Date(
       new Date().toLocaleString('en-US', { timeZone: 'America/Guayaquil' })
@@ -270,19 +288,21 @@ export class HistorialCronogramas implements OnInit, OnDestroy {
     }
 
     this.heartbeatCronTimer = setInterval(() => {
-      if (this.debeDespertarAntesDelCron()) {
+      if (!this._usuarioDetuvo && this.debeDespertarAntesDelCron()) {
         console.log('[Heartbeat] ⏰ Pre-cron: despertando backend...');
         this.enviarHeartbeat();
       }
     }, this.INTERVALO_CRON_MS);
 
-    if (this.esDentroDeHorario()) {
+    if (!this._usuarioDetuvo && this.esDentroDeHorario()) {
       this.enviarHeartbeat();
     }
 
     this.heartbeatGeneralTimer = setInterval(() => {
-      if (this.esDentroDeHorario()) {
+      if (!this._usuarioDetuvo && this.esDentroDeHorario()) {
         this.enviarHeartbeat();
+      } else if (this._usuarioDetuvo) {
+        console.log('[Heartbeat] 🔕 Usuario detuvo keepalive, omitiendo ping.');
       } else {
         console.log(
           `[Heartbeat] 💤 Fuera de horario ` +
