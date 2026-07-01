@@ -171,6 +171,21 @@ export class ModalVincular implements OnChanges {
         return this.personasVinculadas.filter(p => p.tipo === tipo).length;
     }
 
+    // ── NUEVO: contador de Chat ID (Telegram) ───────────────────────────────
+    /**
+     * Cuenta cuántas personas vinculadas (estudiantes + docentes) ya tienen
+     * telegramChatId guardado. Si prefieres contar solo estudiantes, cambia
+     * el filtro a: p.tipo === 'estudiante' && !!p.telegramChatId
+     */
+    get totalConChatId(): number {
+        return this.personasVinculadas.filter((p: any) => !!p.telegramChatId).length;
+    }
+
+    /** Cuenta cuántas personas vinculadas todavía NO tienen telegramChatId */
+    get totalSinChatId(): number {
+        return this.personasVinculadas.length - this.totalConChatId;
+    }
+
     constructor(
         private estudiantesService: EstudiantesService,
         private cronogramaService: CronogramaService,
@@ -266,74 +281,74 @@ export class ModalVincular implements OnChanges {
      * informativos. Sirve tanto para Estudiante (paso 2) como para una
      * persona ya vinculada (vista Vinculados).
      */
-async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
-    this.requisitosModal = {
-        ...this.requisitosModalVacio(),
-        visible: true,
-        cargando: true,
-        cedula: e.cedula ?? '',
-        nombres: e.nombres ?? ''
-    };
-    this.cdr.detectChanges();
+    async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
+        this.requisitosModal = {
+            ...this.requisitosModalVacio(),
+            visible: true,
+            cargando: true,
+            cedula: e.cedula ?? '',
+            nombres: e.nombres ?? ''
+        };
+        this.cdr.detectChanges();
 
-    try {
-        const { doc, getDoc } = await import('firebase/firestore');
-        const { getUtetFirestore } = await import('../../firebase/utet-firestore');
-        const db = getUtetFirestore();
+        try {
+            const { doc, getDoc } = await import('firebase/firestore');
+            const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+            const db = getUtetFirestore();
 
-        // Intento 1: cédula tal como viene
-        let snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
+            // Intento 1: cédula tal como viene
+            let snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
 
-        // Intento 2: si empieza con '0', probar sin el cero inicial
-        if (!snap.exists() && e.cedula!.startsWith('0')) {
-            const cedulaSin0 = e.cedula!.slice(1);
-            snap = await getDoc(doc(db, 'Estudiantes', cedulaSin0));
-        }
+            // Intento 2: si empieza con '0', probar sin el cero inicial
+            if (!snap.exists() && e.cedula!.startsWith('0')) {
+                const cedulaSin0 = e.cedula!.slice(1);
+                snap = await getDoc(doc(db, 'Estudiantes', cedulaSin0));
+            }
 
-        if (!snap.exists()) {
+            if (!snap.exists()) {
+                this.requisitosModal = {
+                    ...this.requisitosModal,
+                    cargando: false,
+                    error: 'No se encontró el registro de este estudiante en la base de datos.'
+                };
+                this.cdr.detectChanges();
+                return;
+            }
+
+            const data = snap.data() as Record<string, any>;
+            const items: { nombre: string; estado: string }[] = [];
+
+            for (const [key, value] of Object.entries(data)) {
+                if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
+                if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
+                items.push({ nombre: key, estado: value as string });
+            }
+
+            // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
+            items.sort((a, b) => {
+                if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
+                return a.nombre.localeCompare(b.nombre, 'es');
+            });
+
             this.requisitosModal = {
                 ...this.requisitosModal,
                 cargando: false,
-                error: 'No se encontró el registro de este estudiante en la base de datos.'
+                items,
+                totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
+                totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
             };
-            this.cdr.detectChanges();
-            return;
+
+        } catch (err) {
+            console.error('Error al cargar requisitos:', err);
+            this.requisitosModal = {
+                ...this.requisitosModal,
+                cargando: false,
+                error: 'Error al consultar la base de datos. Intenta de nuevo.'
+            };
         }
 
-        const data = snap.data() as Record<string, any>;
-        const items: { nombre: string; estado: string }[] = [];
-
-        for (const [key, value] of Object.entries(data)) {
-            if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
-            if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
-            items.push({ nombre: key, estado: value as string });
-        }
-
-        // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
-        items.sort((a, b) => {
-            if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
-            return a.nombre.localeCompare(b.nombre, 'es');
-        });
-
-        this.requisitosModal = {
-            ...this.requisitosModal,
-            cargando: false,
-            items,
-            totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
-            totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
-        };
-
-    } catch (err) {
-        console.error('Error al cargar requisitos:', err);
-        this.requisitosModal = {
-            ...this.requisitosModal,
-            cargando: false,
-            error: 'Error al consultar la base de datos. Intenta de nuevo.'
-        };
+        this.cdr.detectChanges();
     }
-
-    this.cdr.detectChanges();
-}
 
     /** Cierra el mini-modal de requisitos */
     cerrarRequisitos(): void {
@@ -512,97 +527,97 @@ async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
      * Si el documento no existe en Firestore para esa cédula, no lo crea
      * (se cuenta como "sin documento") para evitar registros huérfanos.
      */
-async migrarTelegramChatIds(): Promise<void> {
-    const estudiantesConTelegram = this.personasVinculadas.filter(
-        (p: any) => p.tipo === 'estudiante' && p.telegramChatId && p.cedula
-    );
+    async migrarTelegramChatIds(): Promise<void> {
+        const estudiantesConTelegram = this.personasVinculadas.filter(
+            (p: any) => p.tipo === 'estudiante' && p.telegramChatId && p.cedula
+        );
 
-    console.log('[Migración] Estudiantes con telegramChatId encontrados:', estudiantesConTelegram.length);
-    console.table(estudiantesConTelegram.map((p: any) => ({ cedula: p.cedula, nombres: p.nombres, telegramChatId: p.telegramChatId, telegramUser: p.telegramUser })));
+        console.log('[Migración] Estudiantes con telegramChatId encontrados:', estudiantesConTelegram.length);
+        console.table(estudiantesConTelegram.map((p: any) => ({ cedula: p.cedula, nombres: p.nombres, telegramChatId: p.telegramChatId, telegramUser: p.telegramUser })));
 
-    if (estudiantesConTelegram.length === 0) {
-        alert('No hay estudiantes vinculados con telegramChatId para migrar.');
-        return;
-    }
-
-    const confirmado = confirm(
-        `Se copiará el campo telegramChatId de ${estudiantesConTelegram.length} ` +
-        `estudiante(s) desde Realtime Database hacia Firestore (colección Estudiantes). ` +
-        `¿Continuar?`
-    );
-    if (!confirmado) {
-        console.warn('[Migración] Cancelada por el usuario en el confirm().');
-        return;
-    }
-
-    this.migrandoTelegram = true;
-    this.cdr.detectChanges();
-
-    let exito = 0;
-    let fallidos = 0;
-    let sinDocFirestore = 0;
-
-    try {
-        const { doc, getDoc, setDoc } = await import('firebase/firestore');
-        const { getUtetFirestore } = await import('../../firebase/utet-firestore');
-        const db = getUtetFirestore();
-
-        for (const p of estudiantesConTelegram) {
-            console.group(`[Migración] Cédula ${p.cedula} (${p.nombres})`);
-            try {
-                // Intento 1: cédula tal como viene
-                let ref = doc(db, 'Estudiantes', p.cedula);
-                let snap = await getDoc(ref);
-
-                console.log('¿Existe documento en Firestore?', snap.exists());
-
-                // Intento 2: si empieza con '0', probar sin el cero inicial
-                if (!snap.exists() && p.cedula.startsWith('0')) {
-                    const cedulaSin0 = p.cedula.slice(1);
-                    ref = doc(db, 'Estudiantes', cedulaSin0);
-                    snap = await getDoc(ref);
-                    console.log('Reintentando sin cero inicial, cédula:', cedulaSin0, '¿Existe?', snap.exists());
-                }
-
-                if (!snap.exists()) {
-                    console.warn('No se encontró el documento con ese ID exacto. Revisa el formato de la cédula.');
-                    sinDocFirestore++;
-                    console.groupEnd();
-                    continue;
-                }
-
-                console.log('telegramChatId a escribir:', p.telegramChatId);
-                console.log('telegramUser a escribir:', p.telegramUser);
-                await setDoc(ref, 
-                    { telegramChatId: p.telegramChatId, telegramUser: p.telegramUser }, 
-                    { merge: true });
-                    
-                console.log('✔ Escritura exitosa.');
-                exito++;
-                
-            } catch (err) {
-                console.error('✘ Error al migrar esta cédula:', err);
-                fallidos++;
-            }
-            console.groupEnd();
+        if (estudiantesConTelegram.length === 0) {
+            alert('No hay estudiantes vinculados con telegramChatId para migrar.');
+            return;
         }
 
-        console.log(`[Migración] Resumen final → Éxito: ${exito} | Sin documento: ${sinDocFirestore} | Errores: ${fallidos}`);
-
-        alert(
-            `Migración completada.\n` +
-            `✔ Actualizados en Firestore: ${exito}\n` +
-            `– Sin documento en Firestore: ${sinDocFirestore}\n` +
-            `✘ Errores: ${fallidos}`
+        const confirmado = confirm(
+            `Se copiará el campo telegramChatId de ${estudiantesConTelegram.length} ` +
+            `estudiante(s) desde Realtime Database hacia Firestore (colección Estudiantes). ` +
+            `¿Continuar?`
         );
-    } catch (error) {
-        console.error('Error general en migración de telegramChatId:', error);
-        alert('Ocurrió un error al migrar. Revisa la consola.');
-    } finally {
-        this.migrandoTelegram = false;
+        if (!confirmado) {
+            console.warn('[Migración] Cancelada por el usuario en el confirm().');
+            return;
+        }
+
+        this.migrandoTelegram = true;
         this.cdr.detectChanges();
+
+        let exito = 0;
+        let fallidos = 0;
+        let sinDocFirestore = 0;
+
+        try {
+            const { doc, getDoc, setDoc } = await import('firebase/firestore');
+            const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+            const db = getUtetFirestore();
+
+            for (const p of estudiantesConTelegram) {
+                console.group(`[Migración] Cédula ${p.cedula} (${p.nombres})`);
+                try {
+                    // Intento 1: cédula tal como viene
+                    let ref = doc(db, 'Estudiantes', p.cedula);
+                    let snap = await getDoc(ref);
+
+                    console.log('¿Existe documento en Firestore?', snap.exists());
+
+                    // Intento 2: si empieza con '0', probar sin el cero inicial
+                    if (!snap.exists() && p.cedula.startsWith('0')) {
+                        const cedulaSin0 = p.cedula.slice(1);
+                        ref = doc(db, 'Estudiantes', cedulaSin0);
+                        snap = await getDoc(ref);
+                        console.log('Reintentando sin cero inicial, cédula:', cedulaSin0, '¿Existe?', snap.exists());
+                    }
+
+                    if (!snap.exists()) {
+                        console.warn('No se encontró el documento con ese ID exacto. Revisa el formato de la cédula.');
+                        sinDocFirestore++;
+                        console.groupEnd();
+                        continue;
+                    }
+
+                    console.log('telegramChatId a escribir:', p.telegramChatId);
+                    console.log('telegramUser a escribir:', p.telegramUser);
+                    await setDoc(ref,
+                        { telegramChatId: p.telegramChatId, telegramUser: p.telegramUser },
+                        { merge: true });
+
+                    console.log('✔ Escritura exitosa.');
+                    exito++;
+
+                } catch (err) {
+                    console.error('✘ Error al migrar esta cédula:', err);
+                    fallidos++;
+                }
+                console.groupEnd();
+            }
+
+            console.log(`[Migración] Resumen final → Éxito: ${exito} | Sin documento: ${sinDocFirestore} | Errores: ${fallidos}`);
+
+            alert(
+                `Migración completada.\n` +
+                `✔ Actualizados en Firestore: ${exito}\n` +
+                `– Sin documento en Firestore: ${sinDocFirestore}\n` +
+                `✘ Errores: ${fallidos}`
+            );
+        } catch (error) {
+            console.error('Error general en migración de telegramChatId:', error);
+            alert('Ocurrió un error al migrar. Revisa la consola.');
+        } finally {
+            this.migrandoTelegram = false;
+            this.cdr.detectChanges();
+        }
     }
-}
 
     // ── Manual: navegación ──────────────────────────────────────────────────
     irAManual(): void {

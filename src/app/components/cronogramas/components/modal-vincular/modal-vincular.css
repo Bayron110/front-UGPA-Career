@@ -1676,3 +1676,19 @@ tbody td {
 }
 
 .btn-migrar-telegram .ti { font-size: 14px; }
+/* ── Contador de Chat ID (Telegram) — vista Vinculados ── */
+.stat.con-chatid {
+    color: #86efac;
+}
+
+.stat.con-chatid .ti {
+    color: #4ade80;
+}
+
+.stat.sin-chatid {
+    color: #fca5a5;
+}
+
+.stat.sin-chatid .ti {
+    color: #f87171;
+}
