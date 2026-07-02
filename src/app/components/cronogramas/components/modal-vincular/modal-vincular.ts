@@ -43,6 +43,17 @@ interface RequisitosModal {
     totalNoCumple: number;
 }
 
+interface TransferirModal {
+    visible: boolean;
+    cargando: boolean;
+    guardando: boolean;
+    error: string;
+    persona: any | null;
+    cronogramas: Cronograma[];
+    cronogramaDestinoId: string;
+    eliminarDeOrigen: boolean;
+}
+
 @Component({
     selector: 'app-modal-vincular',
     standalone: true,
@@ -107,6 +118,7 @@ export class ModalVincular implements OnChanges {
 
     // ── NUEVO: Mini-modal de requisitos ─────────────────────────────────────
     requisitosModal: RequisitosModal = this.requisitosModalVacio();
+    transferirModal: TransferirModal = this.transferirModalVacio();
 
     /**
      * Campos del documento de Firestore que NO son requisitos de titulación.
@@ -216,6 +228,13 @@ export class ModalVincular implements OnChanges {
             totalCumple: 0, totalNoCumple: 0
         };
     }
+    private transferirModalVacio(): TransferirModal {
+    return {
+        visible: false, cargando: false, guardando: false, error: '',
+        persona: null, cronogramas: [], cronogramaDestinoId: '',
+        eliminarDeOrigen: true
+    };
+}
 
     private resetear(): void {
         this.vista = 'grupos';
@@ -249,6 +268,7 @@ export class ModalVincular implements OnChanges {
         this.filtroCarreras = new Set<string>();
         this.ordenarPorCarrera = false;
         this.requisitosModal = this.requisitosModalVacio();
+        this.transferirModal = this.transferirModalVacio();
     }
 
     // ── Notificaciones ──────────────────────────────────────────────────────
@@ -355,6 +375,98 @@ export class ModalVincular implements OnChanges {
         this.requisitosModal = this.requisitosModalVacio();
         this.cdr.detectChanges();
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+// NUEVO: Transferir estudiante a otro cronograma
+// ══════════════════════════════════════════════════════════════════════
+
+/** Abre el mini-modal y carga la lista de cronogramas disponibles como destino */
+async abrirTransferir(persona: any): Promise<void> {
+    if (persona.tipo !== 'estudiante') return;
+
+    this.transferirModal = {
+        ...this.transferirModalVacio(),
+        visible: true,
+        cargando: true,
+        persona
+    };
+    this.cdr.detectChanges();
+
+    try {
+        // ⚠️ Ajusta este método si tu CronogramaService usa otro nombre
+        const todos = await this.cronogramaService.obtenerCronogramas();
+        this.transferirModal.cronogramas = todos.filter(c => c.id !== this.cronograma?.id);
+    } catch (error) {
+        console.error('Error al cargar cronogramas:', error);
+        this.transferirModal.error = 'No se pudieron cargar los cronogramas disponibles.';
+    } finally {
+        this.transferirModal.cargando = false;
+        this.cdr.detectChanges();
+    }
+}
+
+/** Cierra el mini-modal de transferencia */
+cerrarTransferir(): void {
+    this.transferirModal = this.transferirModalVacio();
+    this.cdr.detectChanges();
+}
+
+/** Copia (y opcionalmente mueve) al estudiante hacia el cronograma destino */
+async confirmarTransferir(): Promise<void> {
+    const { persona, cronogramaDestinoId, cronogramas, eliminarDeOrigen } = this.transferirModal;
+    if (!persona || !cronogramaDestinoId || !this.cronograma?.id) return;
+
+    const destino = cronogramas.find(c => c.id === cronogramaDestinoId);
+    if (!destino?.id) {
+        this.transferirModal.error = 'Cronograma destino no válido.';
+        return;
+    }
+
+    this.transferirModal.guardando = true;
+    this.cdr.detectChanges();
+
+    try {
+        const cedula = persona.cedula;
+        // Quitamos el campo "tipo" que agrega el getter personasVinculadas,
+        // no debe guardarse como parte del registro del estudiante.
+        const { tipo, ...datosEstudiante } = persona;
+
+        // 1) Escribir en el cronograma destino
+        const mapaDestino = { ...((destino as any).estudiantesVinculados ?? {}) };
+        mapaDestino[cedula] = {
+            ...datosEstudiante,
+            fechaVinculacion: new Date().toISOString()
+        };
+        await this.cronogramaService.actualizarCronograma(
+            destino.id!,
+            { estudiantesVinculados: mapaDestino } as any
+        );
+
+        // 2) Si corresponde, eliminar del cronograma actual (mover en vez de copiar)
+        if (eliminarDeOrigen) {
+            const mapaOrigen = { ...((this.cronograma as any).estudiantesVinculados ?? {}) };
+            delete mapaOrigen[cedula];
+            await this.cronogramaService.actualizarCronograma(
+                this.cronograma.id!,
+                { estudiantesVinculados: mapaOrigen } as any
+            );
+            (this.cronograma as any).estudiantesVinculados = mapaOrigen;
+        }
+
+        this.cerrarTransferir();
+        alert(
+            eliminarDeOrigen
+                ? `Estudiante movido a "${destino.nombre}" correctamente.`
+                : `Estudiante copiado a "${destino.nombre}" correctamente.`
+        );
+    } catch (error) {
+        console.error('Error al transferir estudiante:', error);
+        this.transferirModal.error = 'Ocurrió un error al transferir. Intenta de nuevo.';
+    } finally {
+        this.transferirModal.guardando = false;
+        this.cdr.detectChanges();
+    }
+}
 
     // ── Vinculados ──────────────────────────────────────────────────────────
     irAVinculados(): void {

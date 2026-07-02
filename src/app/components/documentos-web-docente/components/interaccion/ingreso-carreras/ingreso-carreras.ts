@@ -28,6 +28,19 @@ interface CarreraItem {
   limpiando?: boolean;
 }
 
+interface CapacitacionGenericaItem {
+  key: string;
+  data: CapacitacionData;
+  eliminando?: boolean;
+}
+
+interface CapCombinada {
+  key: string;
+  data: CapacitacionData;
+  esGenerica: boolean;
+  eliminandoGenerica?: boolean;
+}
+
 function temasVacios(n: number): TemaData[] {
   return Array.from({ length: n }, () => ({ titulo: '' }));
 }
@@ -44,9 +57,10 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   // ── Nueva carrera ─────────────────────────────────────────────────
   nuevaCarrera = '';
 
-  // ── Modal: agregar capacitación ───────────────────────────────────
+  // ── Modal: agregar capacitación (específica o genérica) ───────────
   modalCapVisible = false;
   carreraSeleccionada: CarreraItem | null = null;
+  capModoGenerica = false; // true = se está creando una capacitación genérica
   capNuevaNombre = '';
   capNuevaHoras: number | null = null;
   capNuevaFechaInicio = '';
@@ -56,8 +70,9 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   capNuevaPracticaTemas: TemaData[] = temasVacios(3);
   guardandoCapNueva = false;
 
-  // ── Modal: editar capacitación ────────────────────────────────────
+  // ── Modal: editar capacitación (específica o genérica) ────────────
   modalEditarCapVisible = false;
+  editCapModoGenerica = false; // true = se está editando una capacitación genérica
   editCapKey = '';
   editCapNombre = '';
   editCapHoras: number | null = null;
@@ -82,14 +97,26 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   guardando = false;
   mensaje = '';
 
+  // ── Capacitaciones genéricas (aplican a todas las carreras) ───────
+  capacitacionesGenericas: { [key: string]: CapacitacionData } = {};
+  capacitacionesGenericasArray: CapacitacionGenericaItem[] = [];
+
   private refCarreras = ref(dbDocente, 'carreras');
+  private refCapsGenericas = ref(dbDocente, 'capacitacionesGenericas');
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void { this.escucharCarreras(); }
-  ngOnDestroy(): void { off(this.refCarreras); }
+  ngOnInit(): void {
+    this.escucharCarreras();
+    this.escucharCapacitacionesGenericas();
+  }
 
-  // ── Firebase listener ─────────────────────────────────────────────
+  ngOnDestroy(): void {
+    off(this.refCarreras);
+    off(this.refCapsGenericas);
+  }
+
+  // ── Firebase listeners ────────────────────────────────────────────
 
   escucharCarreras(): void {
     this.cargando = true;
@@ -152,6 +179,50 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     });
   }
 
+  escucharCapacitacionesGenericas(): void {
+    onValue(this.refCapsGenericas, (snap) => {
+      const eliminandoKeys = new Set(
+        this.capacitacionesGenericasArray.filter(c => c.eliminando).map(c => c.key)
+      );
+
+      if (!snap.exists()) {
+        this.capacitacionesGenericas = {};
+        this.capacitacionesGenericasArray = [];
+        this.cdr.detectChanges();
+        return;
+      }
+
+      const data = snap.val();
+      const caps: { [key: string]: CapacitacionData } = {};
+
+      Object.entries(data).forEach(([k, v]: any) => {
+        caps[k] = {
+          capacitacion: v.capacitacion || '',
+          tipo: v.tipo || 'Aprobación',
+          horas: Number(v.horas || 0),
+          fechaInicio: v.fechaInicio || '',
+          fechaFin: v.fechaFin || '',
+          estado: this.calcularEstado(v.fechaInicio || '', v.fechaFin || ''),
+          teoriaTemas: Array.isArray(v.teoriaTemas)
+            ? v.teoriaTemas.map((t: any) => ({ titulo: t?.titulo || '' }))
+            : temasVacios(3),
+          practicaTemas: Array.isArray(v.practicaTemas)
+            ? v.practicaTemas.map((t: any) => ({ titulo: t?.titulo || '' }))
+            : temasVacios(3)
+        };
+      });
+
+      this.capacitacionesGenericas = caps;
+      this.capacitacionesGenericasArray = this.capComoArray(caps).map(c => ({
+        key: c.key,
+        data: c.data,
+        eliminando: eliminandoKeys.has(c.key)
+      }));
+
+      this.cdr.detectChanges();
+    });
+  }
+
   // ── Computed ──────────────────────────────────────────────────────
 
   get carrerasFiltradas(): CarreraItem[] {
@@ -162,8 +233,28 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
       Object.values(item.capacitaciones).some(c =>
         c.capacitacion.toLowerCase().includes(t) ||
         c.estado.toLowerCase().includes(t)
+      ) ||
+      this.capacitacionesGenericasArray.some(c =>
+        c.data.capacitacion.toLowerCase().includes(t) ||
+        c.data.estado.toLowerCase().includes(t)
       )
     );
+  }
+
+  /** Combina las capacitaciones específicas de una carrera con las genéricas globales. */
+  capsCombinadas(item: CarreraItem): CapCombinada[] {
+    const especificas: CapCombinada[] = this.capComoArray(item.capacitaciones).map(c => ({
+      key: c.key,
+      data: c.data,
+      esGenerica: false
+    }));
+    const genericas: CapCombinada[] = this.capacitacionesGenericasArray.map(c => ({
+      key: c.key,
+      data: c.data,
+      esGenerica: true,
+      eliminandoGenerica: c.eliminando
+    }));
+    return [...especificas, ...genericas];
   }
 
   // ── Helpers ───────────────────────────────────────────────────────
@@ -243,6 +334,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.capNuevaTipo = 'Aprobación';
     this.capNuevaTeoriaTemas = temasVacios(3);
     this.capNuevaPracticaTemas = temasVacios(3);
+    this.capModoGenerica = false;
   }
 
   limpiarFormEditCap(): void {
@@ -254,6 +346,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.editCapTipo = 'Aprobación';
     this.editCapTeoriaTemas = temasVacios(3);
     this.editCapPracticaTemas = temasVacios(3);
+    this.editCapModoGenerica = false;
   }
 
   // ── Guardar nueva carrera ─────────────────────────────────────────
@@ -286,11 +379,23 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Modal: agregar capacitación ───────────────────────────────────
+  // ── Modal: agregar capacitación (específica) ───────────────────────
 
   abrirModalCapacitacion(item: CarreraItem): void {
     this.carreraSeleccionada = item;
     this.limpiarFormCapNueva();
+    this.capModoGenerica = false;
+    this.mensajeModal = '';
+    this.modalCapVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  // ── Modal: agregar capacitación (genérica) ─────────────────────────
+
+  abrirModalCapacitacionGenerica(): void {
+    this.carreraSeleccionada = null;
+    this.limpiarFormCapNueva();
+    this.capModoGenerica = true;
     this.mensajeModal = '';
     this.modalCapVisible = true;
     this.cdr.detectChanges();
@@ -312,7 +417,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   }
 
   async guardarCapNueva(): Promise<void> {
-    if (!this.carreraSeleccionada) return;
+    if (!this.capModoGenerica && !this.carreraSeleccionada) return;
 
     this.capNuevaTeoriaTemas   = this.normalizarTemas(this.capNuevaTeoriaTemas);
     this.capNuevaPracticaTemas = this.normalizarTemas(this.capNuevaPracticaTemas);
@@ -330,8 +435,6 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      const nuevaKey = this.siguienteCapKey(this.carreraSeleccionada.capacitaciones);
-
       const nuevaCap: CapacitacionData = {
         capacitacion: this.capNuevaNombre.trim(),
         tipo: this.capNuevaTipo,
@@ -347,14 +450,21 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         }))
       };
 
-      await set(
-        ref(dbDocente, `carreras/${this.carreraSeleccionada.id}/capacitaciones/${nuevaKey}`),
-        nuevaCap
-      );
+      if (this.capModoGenerica) {
+        const nuevaKey = this.siguienteCapKey(this.capacitacionesGenericas);
+        await set(ref(dbDocente, `capacitacionesGenericas/${nuevaKey}`), nuevaCap);
+        this.mostrarMensaje('✅ Capacitación genérica agregada — ya aplica a todas las carreras');
+      } else {
+        const nuevaKey = this.siguienteCapKey(this.carreraSeleccionada!.capacitaciones);
+        await set(
+          ref(dbDocente, `carreras/${this.carreraSeleccionada!.id}/capacitaciones/${nuevaKey}`),
+          nuevaCap
+        );
+        this.mostrarMensaje('✅ Capacitación agregada correctamente');
+      }
 
       this.modalCapVisible = false;
       this.limpiarFormCapNueva();
-      this.mostrarMensaje('✅ Capacitación agregada correctamente');
     } catch (e) {
       console.error(e);
       this.mostrarMensajeModal('❌ Error al guardar la capacitación');
@@ -364,17 +474,39 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Modal: editar capacitación ────────────────────────────────────
+  // ── Modal: editar capacitación (específica) ────────────────────────
 
   abrirModalEditarCapacitacion(item: CarreraItem, capKey: string, capData: CapacitacionData): void {
     this.carreraSeleccionada  = item;
+    this.editCapModoGenerica  = false;
     this.editCapKey           = capKey;
     this.editCapNombre        = capData.capacitacion;
     this.editCapHoras         = capData.horas;
     this.editCapFechaInicio   = capData.fechaInicio;
     this.editCapFechaFin      = capData.fechaFin;
     this.editCapTipo          = capData.tipo;
-    // Clonar los temas para no mutar el objeto original mientras el usuario edita
+    this.editCapTeoriaTemas   = capData.teoriaTemas.length
+      ? capData.teoriaTemas.map(t => ({ titulo: t.titulo }))
+      : temasVacios(3);
+    this.editCapPracticaTemas = capData.practicaTemas.length
+      ? capData.practicaTemas.map(t => ({ titulo: t.titulo }))
+      : temasVacios(3);
+    this.mensajeModal         = '';
+    this.modalEditarCapVisible = true;
+    this.cdr.detectChanges();
+  }
+
+  // ── Modal: editar capacitación (genérica) ──────────────────────────
+
+  abrirModalEditarCapacitacionGenerica(capKey: string, capData: CapacitacionData): void {
+    this.carreraSeleccionada  = null;
+    this.editCapModoGenerica  = true;
+    this.editCapKey           = capKey;
+    this.editCapNombre        = capData.capacitacion;
+    this.editCapHoras         = capData.horas;
+    this.editCapFechaInicio   = capData.fechaInicio;
+    this.editCapFechaFin      = capData.fechaFin;
+    this.editCapTipo          = capData.tipo;
     this.editCapTeoriaTemas   = capData.teoriaTemas.length
       ? capData.teoriaTemas.map(t => ({ titulo: t.titulo }))
       : temasVacios(3);
@@ -402,7 +534,8 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   }
 
   async guardarEditCapacitacion(): Promise<void> {
-    if (!this.carreraSeleccionada || !this.editCapKey) return;
+    if (!this.editCapModoGenerica && (!this.carreraSeleccionada || !this.editCapKey)) return;
+    if (this.editCapModoGenerica && !this.editCapKey) return;
 
     this.editCapTeoriaTemas   = this.normalizarTemas(this.editCapTeoriaTemas);
     this.editCapPracticaTemas = this.normalizarTemas(this.editCapPracticaTemas);
@@ -435,14 +568,19 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         }))
       };
 
-      await set(
-        ref(dbDocente, `carreras/${this.carreraSeleccionada.id}/capacitaciones/${this.editCapKey}`),
-        capActualizada
-      );
+      const path = this.editCapModoGenerica
+        ? `capacitacionesGenericas/${this.editCapKey}`
+        : `carreras/${this.carreraSeleccionada!.id}/capacitaciones/${this.editCapKey}`;
+
+      await set(ref(dbDocente, path), capActualizada);
 
       this.modalEditarCapVisible = false;
       this.limpiarFormEditCap();
-      this.mostrarMensaje('✅ Capacitación actualizada correctamente');
+      this.mostrarMensaje(
+        this.editCapModoGenerica
+          ? '✅ Capacitación genérica actualizada — el cambio aplica a todas las carreras'
+          : '✅ Capacitación actualizada correctamente'
+      );
     } catch (e) {
       console.error(e);
       this.mostrarMensajeModal('❌ Error al guardar los cambios');
@@ -452,18 +590,18 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Limpiar capacitaciones ────────────────────────────────────────
+  // ── Limpiar capacitaciones específicas de una carrera ──────────────
 
   async limpiarCapacitaciones(item: CarreraItem): Promise<void> {
     if (this.capComoArray(item.capacitaciones).length === 0) return;
-    if (!confirm(`¿Borrar todas las capacitaciones de "${item.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Borrar todas las capacitaciones específicas de "${item.nombre}"? Las capacitaciones genéricas no se verán afectadas. Esta acción no se puede deshacer.`)) return;
 
     item.limpiando = true;
     this.cdr.detectChanges();
 
     try {
       await set(ref(dbDocente, `carreras/${item.id}/capacitaciones`), {});
-      this.mostrarMensaje('✅ Capacitaciones eliminadas correctamente');
+      this.mostrarMensaje('✅ Capacitaciones específicas eliminadas correctamente');
     } catch (e) {
       console.error(e);
       this.mostrarMensaje('❌ Error al limpiar las capacitaciones');
@@ -531,7 +669,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   // ── Eliminar carrera ──────────────────────────────────────────────
 
   async eliminarCarrera(id: string): Promise<void> {
-    if (!confirm('¿Eliminar esta carrera y todas sus capacitaciones?')) return;
+    if (!confirm('¿Eliminar esta carrera y todas sus capacitaciones específicas? (Las genéricas no se eliminan, viven aparte)')) return;
 
     const item = this.carreras.find(c => c.id === id);
     if (item) { item.eliminando = true; this.cdr.detectChanges(); }
@@ -546,7 +684,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Eliminar capacitación ─────────────────────────────────────────
+  // ── Eliminar capacitación específica ───────────────────────────────
 
   async eliminarCapacitacion(carreraId: string, capKey: string, totalCaps: number): Promise<void> {
     if (!confirm('¿Eliminar esta capacitación?')) return;
@@ -557,6 +695,24 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error(e);
       this.mostrarMensaje('❌ Error al eliminar capacitación');
+    }
+  }
+
+  // ── Eliminar capacitación genérica ─────────────────────────────────
+
+  async eliminarCapacitacionGenerica(capKey: string): Promise<void> {
+    if (!confirm('¿Eliminar esta capacitación genérica? Se quitará de TODAS las carreras. Esta acción no se puede deshacer.')) return;
+
+    const item = this.capacitacionesGenericasArray.find(c => c.key === capKey);
+    if (item) { item.eliminando = true; this.cdr.detectChanges(); }
+
+    try {
+      await remove(ref(dbDocente, `capacitacionesGenericas/${capKey}`));
+      this.mostrarMensaje('✅ Capacitación genérica eliminada de todas las carreras');
+    } catch (e) {
+      console.error(e);
+      this.mostrarMensaje('❌ Error al eliminar la capacitación genérica');
+      if (item) { item.eliminando = false; this.cdr.detectChanges(); }
     }
   }
 

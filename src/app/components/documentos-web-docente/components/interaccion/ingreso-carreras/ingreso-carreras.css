@@ -585,6 +585,76 @@
     padding-bottom: 4px;
 }
 
+/* ═══ Chip de capacitación genérica (colapsado por defecto) ═══ */
+
+.cap-chip-generica {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(37, 99, 235, 0.1);
+    flex-shrink: 0;
+}
+
+.cap-chip-generica:first-child {
+    padding-top: 0;
+}
+
+.cap-chip-generica:last-child {
+    border-bottom: none;
+    padding-bottom: 4px;
+}
+
+.cap-chip-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.cap-chip-summary::-webkit-details-marker {
+    display: none;
+}
+
+.cap-chip-summary .cap-index {
+    flex-shrink: 0;
+}
+
+.cap-chip-summary .cap-nombre {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.cap-chip-summary .badge-generica,
+.cap-chip-summary .badge-estado {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.cap-chip-hint {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--c-text-faint);
+    width: 14px;
+    text-align: center;
+    transition: transform 0.18s;
+}
+
+.cap-chip-generica[open] .cap-chip-hint {
+    transform: rotate(180deg);
+}
+
+.cap-chip-generica>*:not(.cap-chip-summary) {
+    margin-top: 10px;
+}
+
+.cap-chip-footer {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
 .cap-header {
     display: flex;
     align-items: center;
@@ -625,6 +695,20 @@
     font-size: 13px;
     font-weight: 500;
     color: var(--c-text-primary);
+}
+
+.badge-generica {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: rgba(124, 58, 237, 0.12);
+    color: var(--c-purple-light);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    white-space: nowrap;
 }
 
 .bloque-grid-4 {
@@ -887,6 +971,12 @@
     color: var(--c-cyan-light);
 }
 
+.modal-icon--generica {
+    background: var(--c-purple-glow);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: var(--c-purple-light);
+}
+
 .modal-titulo {
     color: var(--c-text-primary);
     font-size: 15px;
@@ -948,6 +1038,16 @@
 
 .modal-body--compact {
     gap: 14px;
+}
+
+.aviso-generica {
+    background: rgba(124, 58, 237, 0.06);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--c-purple-light);
+    line-height: 1.5;
 }
 
 .modal-footer {
@@ -1049,4 +1149,39 @@
     .modal-footer {
         padding: 12px 16px;
     }
+}
+.card--colapsable {
+    padding: 0;
+}
+
+.card--colapsable > .card-head--clickable {
+    padding: 28px;
+    margin-bottom: 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.card--colapsable > .card-head--clickable::-webkit-details-marker {
+    display: none;
+}
+
+.card--colapsable[open] > .card-head--clickable {
+    border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+    margin-bottom: 24px;
+}
+
+.card--colapsable > *:not(.card-head--clickable) {
+    padding: 0 28px 28px;
+}
+
+.card-chip-hint {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--c-text-faint);
+    transition: transform 0.18s;
+    flex-shrink: 0;
+}
+
+.card--colapsable[open] .card-chip-hint {
+    transform: rotate(180deg);
 }
