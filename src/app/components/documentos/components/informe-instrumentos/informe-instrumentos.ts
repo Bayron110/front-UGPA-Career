@@ -26,7 +26,7 @@ export class InformeInstrumentos implements OnInit {
   // ==========================================
   // RUTA DE LA PLANTILLA A UTILIZAR
   // ==========================================
-  private readonly RUTA_PLANTILLA = '/assets/planificacion/document-Instrumento/Informe-Instrumento.docx';
+  private readonly RUTA_PLANTILLA = 'assets/planificacion/document-Instrumento/Informe-Instrumento.docx';
 
   constructor(private informeInstrumentoService: InformeInstrumentoService) { }
 

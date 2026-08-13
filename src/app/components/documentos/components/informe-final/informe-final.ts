@@ -43,7 +43,7 @@ export class InformeFinal implements OnInit {
   // ==========================================
   // RUTA DE LA PLANTILLA A UTILIZAR
   // ==========================================
-  private readonly RUTA_PLANTILLA = '/assets/planificacion/document-final/Informe-Final-E.docx';
+  private readonly RUTA_PLANTILLA = 'assets/planificacion/document-final/Informe-Final-E.docx';
 
   // ==========================================
   // ⚠️ TODO: mueve esto a tu backend (Express) o a un servicio compartido.
