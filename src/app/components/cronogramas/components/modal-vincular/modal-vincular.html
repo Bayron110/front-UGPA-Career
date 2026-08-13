@@ -141,6 +141,7 @@
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Carrera</th>
+                            <th>Sede</th>
                             <th>Telegram</th>
                             <th>Notif.</th>
                             <th>Asistencia</th>
@@ -157,6 +158,10 @@
                             <td class="td-cedula">{{ e.cedula }}</td>
                             <td class="td-nombre">{{ e.nombres }}</td>
                             <td class="td-carrera">{{ e.carrera }}</td>
+                            <td class="td-sede">
+                                <span *ngIf="e.sede">{{ e.sede }}</span>
+                                <span class="sin-dato" *ngIf="!e.sede">—</span>
+                            </td>
                             <td class="td-telegram">
                                 <span *ngIf="e.telegramUser">
                                     <i class="ti ti-brand-telegram"></i> {{ e.telegramUser }}
@@ -254,18 +259,25 @@
                                     [(ngModel)]="manualDatos.carrera">
                             </div>
                             <div class="form-group">
+                                <label>Sede</label>
+                                <input type="text" placeholder="Ej. Quito"
+                                    [(ngModel)]="manualDatos.sede">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label>Usuario Telegram</label>
                                 <div class="input-prefix">
                                     <span class="prefix">@</span>
                                     <input type="text" placeholder="usuario" [(ngModel)]="manualDatos.telegramUser">
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Grupo</label>
                                 <input type="text" placeholder="Ej. Grupo A" [(ngModel)]="manualDatos.grupo">
                             </div>
+                        </div>
+                        <div class="form-row">
                             <div class="form-group form-group-check">
                                 <label>Asistencia</label>
                                 <label class="toggle-asistencia">
@@ -424,8 +436,8 @@
                         <i class="ti ti-search"></i>
                         <input type="text" placeholder="Buscar por cédula o nombre..." [(ngModel)]="busquedaVinculados">
                     </div>
-                    <button class="btn-exportar" [disabled]="exportando || personasVinculadas.length === 0"
-                        (click)="exportarExcel()" title="Descargar Excel con todos los vinculados">
+                    <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
+                        (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
                         <div class="spinner-sm" *ngIf="exportando"></div>
                         <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
                         {{ exportando ? 'Generando...' : 'Descargar Excel' }}
@@ -435,6 +447,13 @@
                         <div class="spinner-sm" *ngIf="migrandoTelegram"></div>
                         <i class="ti ti-brand-telegram" *ngIf="!migrandoTelegram"></i>
                         {{ migrandoTelegram ? 'Migrando...' : 'Migrar Telegram a Firestore' }}
+                    </button>
+                    <button class="btn-migrar-telegram" [disabled]="actualizandoSede || totalSinSede === 0"
+                        (click)="actualizarSedeVinculados()"
+                        title="Busca la sede de los estudiantes vinculados sin sede en los grupos de inducción y la actualiza">
+                        <div class="spinner-sm" *ngIf="actualizandoSede"></div>
+                        <i class="ti ti-map-pin" *ngIf="!actualizandoSede"></i>
+                        {{ actualizandoSede ? 'Actualizando...' : 'Actualizar sede' }}
                     </button>
                 </div>
                 <div class="toolbar-stats">
@@ -446,6 +465,15 @@
                     </span>
                     <span class="stat sin-chatid" title="Personas sin telegramChatId todavía">
                         <i class="ti ti-brand-telegram-off"></i> {{ totalSinChatId }} sin Chat ID
+                    </span>
+                    <span class="stat con-chatid" title="Estudiantes con sede guardada">
+                        <i class="ti ti-map-pin"></i> {{ totalConSede }} con sede
+                    </span>
+                    <span class="stat sin-chatid" title="Estudiantes sin sede todavía">
+                        <i class="ti ti-map-pin-off"></i> {{ totalSinSede }} sin sede
+                    </span>
+                    <span class="stat sin-chatid" *ngIf="totalConChatIdDuplicado > 0" title="Personas con un Chat ID repetido">
+                        <i class="ti ti-alert-triangle"></i> {{ totalConChatIdDuplicado }} Chat ID duplicado
                     </span>
                 </div>
             </div>
@@ -492,6 +520,11 @@
                             (click)="setFiltroNotifVinculados('SIN_TELEGRAM')">
                             <span class="dot gris"></span> Sin Telegram
                         </button>
+                        <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'DUPLICADOS'"
+                            (click)="setFiltroNotifVinculados('DUPLICADOS')">
+                            <i class="ti ti-alert-triangle"></i> Chat ID duplicado
+                            <span class="filtro-mini-count" *ngIf="totalConChatIdDuplicado > 0">{{ totalConChatIdDuplicado }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -528,8 +561,9 @@
                             <th>Cédula</th>
                             <th>Nombre</th>
                             <th>Carrera / Cargo</th>
+                            <th>Sede</th>
                             <th>Telegram</th>
-                            <th>Notif.</th>
+                            <th>Chat ID</th>
                             <th>Requisitos</th>
                             <th class="th-accion"></th>
                         </tr>
@@ -548,6 +582,10 @@
                             <td class="td-carrera">
                                 {{ p.tipo === 'docente' ? p.cargo : (p.carrera || '—') }}
                             </td>
+                            <td class="td-sede">
+                                <span *ngIf="p.tipo === 'estudiante' && p.sede">{{ p.sede }}</span>
+                                <span class="sin-dato" *ngIf="p.tipo === 'docente' || !p.sede">—</span>
+                            </td>
                             <td class="td-telegram">
                                 <span *ngIf="p.telegramUser">
                                     <i class="ti ti-brand-telegram"></i> {{ p.telegramUser }}
@@ -555,15 +593,18 @@
                                 <span class="sin-dato" *ngIf="!p.telegramUser">—</span>
                             </td>
                             <td class="td-notif">
-                                <span class="badge-notif activa" *ngIf="p.notificacionesActivas && p.telegramChatId"
-                                    title="Notificaciones activadas">
-                                    <i class="ti ti-bell-ringing"></i> Activa
+                                <span class="badge-notif activa" *ngIf="p.telegramChatId"
+                                    [class.duplicado]="chatIdsDuplicados.has(p.telegramChatId + '')"
+                                    [title]="chatIdsDuplicados.has(p.telegramChatId + '') ? 'Chat ID duplicado con otra persona' : 'Chat ID de Telegram'">
+                                    <i class="ti" [class.ti-brand-telegram]="!chatIdsDuplicados.has(p.telegramChatId + '')"
+                                        [class.ti-alert-triangle]="chatIdsDuplicados.has(p.telegramChatId + '')"></i>
+                                    {{ p.telegramChatId }}
                                 </span>
-                                <span class="badge-notif pendiente" *ngIf="!p.notificacionesActivas && p.telegramUser"
+                                <span class="badge-notif pendiente" *ngIf="!p.telegramChatId && p.telegramUser"
                                     title="Tiene Telegram pero no ha iniciado el bot">
                                     <i class="ti ti-bell-off"></i> Pendiente
                                 </span>
-                                <span class="sin-dato" *ngIf="!p.notificacionesActivas && !p.telegramUser">—</span>
+                                <span class="sin-dato" *ngIf="!p.telegramChatId && !p.telegramUser">—</span>
                             </td>
                             <td class="td-requisitos" (click)="$event.stopPropagation()">
                                 <button class="btn-requisitos" *ngIf="p.tipo === 'estudiante'"
@@ -588,6 +629,170 @@
             </div>
         </div>
 
+        <!-- ══ PASO: ESTADÍSTICAS ══ -->
+        <div class="paso-estadisticas" *ngIf="vista === 'estadisticas'">
+
+            <div class="nav-grupo">
+                <button class="btn-volver" (click)="volverDesdeEstadisticas()">
+                    <i class="ti ti-arrow-left"></i>
+                    {{ origenEstadisticas === 'estudiantes' ? (grupoSeleccionado?.nombres || 'Estudiantes')
+                       : origenEstadisticas === 'vinculados' ? 'Vinculados'
+                       : 'Grupos' }}
+                </button>
+                <span class="nav-sep">/</span>
+                <span class="nav-grupo-nombre">Estadísticas</span>
+            </div>
+
+            <div class="estado-vacio" *ngIf="statsGenerales.total === 0">
+                <i class="ti ti-chart-bar-off"></i>
+                <p>Todavía no hay estudiantes vinculados para mostrar estadísticas</p>
+            </div>
+
+            <ng-container *ngIf="statsGenerales.total > 0">
+
+                <!-- KPIs -->
+                <div class="stats-kpis">
+                    <div class="stat-kpi">
+                        <span class="stat-kpi-num">{{ statsGenerales.total }}</span>
+                        <span class="stat-kpi-label">Estudiantes vinculados</span>
+                    </div>
+                    <div class="stat-kpi kpi-verde">
+                        <span class="stat-kpi-num">{{ statsGenerales.activas }}</span>
+                        <span class="stat-kpi-label">Con notificaciones activas ({{ statsGenerales.pctActivas }}%)</span>
+                    </div>
+                    <div class="stat-kpi kpi-rojo">
+                        <span class="stat-kpi-num">{{ statsGenerales.sinActivar }}</span>
+                        <span class="stat-kpi-label">Sin activar notificaciones ({{ statsGenerales.pctSinActivar }}%)</span>
+                    </div>
+                    <div class="stat-kpi kpi-gris">
+                        <span class="stat-kpi-num">{{ statsGenerales.sinTelegram }}</span>
+                        <span class="stat-kpi-label">Sin Telegram registrado</span>
+                    </div>
+                    <div class="stat-kpi kpi-azul">
+                        <span class="stat-kpi-num">{{ statsGenerales.pctAsistencia }}%</span>
+                        <span class="stat-kpi-label">Asistencia ({{ statsGenerales.presentes }}/{{ statsGenerales.total }})</span>
+                    </div>
+                </div>
+
+                <!-- Estado general de notificaciones -->
+                <div class="stats-charts-grid">
+                    <div class="stat-chart-card">
+                        <p class="stat-chart-title">
+                            <i class="ti ti-chart-donut"></i> Estado de notificaciones (general)
+                        </p>
+                        <div class="stat-chart-canvas-wrap stat-chart-canvas-wrap--sm">
+                            <canvas #canvasNotifDonut></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ POR SEDE ══ -->
+                <h3 class="stats-seccion-titulo">
+                    <i class="ti ti-building-community"></i> Por sede
+                </h3>
+
+                <div class="stats-charts-grid">
+                    <div class="stat-chart-card stat-chart-card--wide">
+                        <p class="stat-chart-title">Notificaciones por sede</p>
+                        <div class="stat-chart-canvas-wrap">
+                            <canvas #canvasSedeStack></canvas>
+                        </div>
+                    </div>
+
+                    <div class="stat-chart-card stat-chart-card--wide">
+                        <p class="stat-chart-title">
+                            <i class="ti ti-bell-off"></i> Sin activar notificaciones por sede
+                        </p>
+                        <div class="stat-chart-canvas-wrap">
+                            <canvas #canvasSedeSinActivar></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabla-wrapper stats-tabla-sede">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sede</th>
+                                <th>Total</th>
+                                <th>Activas</th>
+                                <th>Pendientes</th>
+                                <th>Sin Telegram</th>
+                                <th>Sin activar</th>
+                                <th>Presentes</th>
+                                <th>Ausentes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let s of statsPorSede">
+                                <td class="td-nombre">{{ s.sede }}</td>
+                                <td>{{ s.total }}</td>
+                                <td class="stats-celda-verde">{{ s.activas }}</td>
+                                <td class="stats-celda-amarillo">{{ s.pendientes }}</td>
+                                <td class="stats-celda-gris">{{ s.sinTelegram }}</td>
+                                <td class="stats-celda-rojo">{{ s.sinActivar }}</td>
+                                <td class="stats-celda-verde">{{ s.presentes }}</td>
+                                <td class="stats-celda-rojo">{{ s.ausentes }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ══ POR CARRERA ══ -->
+                <h3 class="stats-seccion-titulo">
+                    <i class="ti ti-school"></i> Por carrera
+                </h3>
+
+                <div class="stats-charts-grid">
+                    <div class="stat-chart-card stat-chart-card--wide">
+                        <p class="stat-chart-title">Notificaciones por carrera</p>
+                        <div class="stat-chart-canvas-wrap">
+                            <canvas #canvasCarreraStack></canvas>
+                        </div>
+                    </div>
+
+                    <div class="stat-chart-card stat-chart-card--wide">
+                        <p class="stat-chart-title">
+                            <i class="ti ti-bell-off"></i> Sin activar notificaciones por carrera
+                        </p>
+                        <div class="stat-chart-canvas-wrap">
+                            <canvas #canvasCarreraSinActivar></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabla-wrapper stats-tabla-sede">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Carrera</th>
+                                <th>Total</th>
+                                <th>Activas</th>
+                                <th>Pendientes</th>
+                                <th>Sin Telegram</th>
+                                <th>Sin activar</th>
+                                <th>Presentes</th>
+                                <th>Ausentes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of statsPorCarrera">
+                                <td class="td-nombre">{{ c.carrera }}</td>
+                                <td>{{ c.total }}</td>
+                                <td class="stats-celda-verde">{{ c.activas }}</td>
+                                <td class="stats-celda-amarillo">{{ c.pendientes }}</td>
+                                <td class="stats-celda-gris">{{ c.sinTelegram }}</td>
+                                <td class="stats-celda-rojo">{{ c.sinActivar }}</td>
+                                <td class="stats-celda-verde">{{ c.presentes }}</td>
+                                <td class="stats-celda-rojo">{{ c.ausentes }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </ng-container>
+        </div>
+
         <!-- ══ FOOTER ══ -->
         <div class="modal-footer">
 
@@ -601,6 +806,11 @@
                 <span class="badge-count" *ngIf="personasVinculadas.length > 0">
                     {{ personasVinculadas.length }}
                 </span>
+            </button>
+
+            <button class="btn-ver-vinculados" *ngIf="vista === 'grupos' || vista === 'estudiantes'"
+                (click)="irAEstadisticas()">
+                <i class="ti ti-chart-bar"></i> Ver estadísticas
             </button>
 
             <div class="footer-spacer" *ngIf="vista === 'grupos' || vista === 'estudiantes'">

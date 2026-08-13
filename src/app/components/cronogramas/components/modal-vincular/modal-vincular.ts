@@ -1,16 +1,19 @@
 import {
     Component, Input, Output, EventEmitter,
-    OnChanges, SimpleChanges, ChangeDetectorRef
+    OnChanges, SimpleChanges, ChangeDetectorRef,
+    OnDestroy, ViewChild, ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Chart, registerables } from 'chart.js';
 
 import { EstudiantesService, Estudiante, GrupoInduccion } from '../../firebase/estudiante';
 import { CronogramaService, Cronograma } from '../../firebase/cronogramas';
 import { Docente, DocentesService } from '../../firebase/Docentes.service';
 
+Chart.register(...registerables);
 
-type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados';
+type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados' | 'estadisticas';
 type TipoPersona = 'estudiante' | 'docente';
 type VistaDocente = 'lista' | 'nuevo';
 type EstadoNotif = 'activa' | 'pendiente' | 'sin-telegram';
@@ -19,6 +22,7 @@ interface ManualDatos {
     cedula: string;
     nombres: string;
     carrera: string;
+    sede: string;
     telegramUser: string;
     grupo: string;
     asistencia: boolean;
@@ -61,12 +65,24 @@ interface TransferirModal {
     templateUrl: './modal-vincular.html',
     styleUrl: './modal-vincular.css'
 })
-export class ModalVincular implements OnChanges {
+export class ModalVincular implements OnChanges, OnDestroy {
 
     @Input() visible: boolean = false;
     @Input() cronograma: Cronograma | null = null;
     @Output() cerrarEvento = new EventEmitter<void>();
     @Output() vinculadoEvento = new EventEmitter<number>();
+
+    @ViewChild('canvasNotifDonut') canvasNotifDonutRef?: ElementRef<HTMLCanvasElement>;
+    @ViewChild('canvasSedeStack') canvasSedeStackRef?: ElementRef<HTMLCanvasElement>;
+    @ViewChild('canvasSedeSinActivar') canvasSedeSinActivarRef?: ElementRef<HTMLCanvasElement>;
+    @ViewChild('canvasCarreraStack') canvasCarreraStackRef?: ElementRef<HTMLCanvasElement>;
+    @ViewChild('canvasCarreraSinActivar') canvasCarreraSinActivarRef?: ElementRef<HTMLCanvasElement>;
+
+    private chartNotifDonut?: Chart;
+    private chartSedeStack?: Chart;
+    private chartSedeSinActivar?: Chart;
+    private chartCarreraStack?: Chart;
+    private chartCarreraSinActivar?: Chart;
 
     // ── Paso 1: grupos ──────────────────────────────────────────────────────
     vista: Vista = 'grupos';
@@ -97,9 +113,12 @@ export class ModalVincular implements OnChanges {
     origenVinculados: 'grupos' | 'estudiantes' = 'grupos';
     busquedaVinculados = '';
     filtroTipoVinculado: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES' = 'TODOS';
-    filtroNotifVinculados: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' = 'TODOS';
+    filtroNotifVinculados: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' | 'DUPLICADOS'= 'TODOS';
     filtroCarreraVinculadosSeleccionada = '';
     exportando = false;
+
+    // ── Paso estadísticas ───────────────────────────────────────────────────
+    origenEstadisticas: 'grupos' | 'estudiantes' | 'vinculados' = 'grupos';
 
     // ── Formularios ─────────────────────────────────────────────────────────
     manualDatos: ManualDatos = this.manualVacio();
@@ -110,6 +129,7 @@ export class ModalVincular implements OnChanges {
     cargando = false;
     guardando = false;
     migrandoTelegram = false;
+    actualizandoSede = false;
 
     // ── Filtros carrera / orden ─────────────────────────────────────────────
     carrerasDisponibles: string[] = [];
@@ -155,29 +175,31 @@ export class ModalVincular implements OnChanges {
         return 'sin-telegram';
     }
 
-    get vinculadosFiltrados(): any[] {
-        const q = this.busquedaVinculados.toLowerCase().trim();
-        return this.personasVinculadas.filter(p => {
-            const coincideTipo =
-                this.filtroTipoVinculado === 'TODOS' ||
-                (this.filtroTipoVinculado === 'ESTUDIANTES' && p.tipo === 'estudiante') ||
-                (this.filtroTipoVinculado === 'DOCENTES' && p.tipo === 'docente');
-            const coincideTexto = !q ||
-                p.cedula?.toLowerCase().includes(q) ||
-                p.nombres?.toLowerCase().includes(q);
-            const estadoNotif = this.estadoNotifVinculado(p);
-            const coincideNotif =
-                this.filtroNotifVinculados === 'TODOS' ||
-                (this.filtroNotifVinculados === 'ACTIVAS' && estadoNotif === 'activa') ||
-                (this.filtroNotifVinculados === 'PENDIENTES' && estadoNotif === 'pendiente') ||
-                (this.filtroNotifVinculados === 'SIN_TELEGRAM' && estadoNotif === 'sin-telegram');
-            const carreraOcargo = (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '';
-            const coincideCarrera =
-                !this.filtroCarreraVinculadosSeleccionada ||
-                carreraOcargo === this.filtroCarreraVinculadosSeleccionada;
-            return coincideTipo && coincideTexto && coincideNotif && coincideCarrera;
-        });
-    }
+get vinculadosFiltrados(): any[] {
+    const q = this.busquedaVinculados.toLowerCase().trim();
+    const duplicados = this.chatIdsDuplicados;
+    return this.personasVinculadas.filter(p => {
+        const coincideTipo =
+            this.filtroTipoVinculado === 'TODOS' ||
+            (this.filtroTipoVinculado === 'ESTUDIANTES' && p.tipo === 'estudiante') ||
+            (this.filtroTipoVinculado === 'DOCENTES' && p.tipo === 'docente');
+        const coincideTexto = !q ||
+            p.cedula?.toLowerCase().includes(q) ||
+            p.nombres?.toLowerCase().includes(q);
+        const estadoNotif = this.estadoNotifVinculado(p);
+        const coincideNotif =
+            this.filtroNotifVinculados === 'TODOS' ||
+            (this.filtroNotifVinculados === 'ACTIVAS' && estadoNotif === 'activa') ||
+            (this.filtroNotifVinculados === 'PENDIENTES' && estadoNotif === 'pendiente') ||
+            (this.filtroNotifVinculados === 'SIN_TELEGRAM' && estadoNotif === 'sin-telegram') ||
+            (this.filtroNotifVinculados === 'DUPLICADOS' && !!p.telegramChatId && duplicados.has(String(p.telegramChatId)));
+        const carreraOcargo = (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '';
+        const coincideCarrera =
+            !this.filtroCarreraVinculadosSeleccionada ||
+            carreraOcargo === this.filtroCarreraVinculadosSeleccionada;
+        return coincideTipo && coincideTexto && coincideNotif && coincideCarrera;
+    });
+}
 
     contarVinculados(tipo: 'estudiante' | 'docente'): number {
         return this.personasVinculadas.filter(p => p.tipo === tipo).length;
@@ -198,6 +220,137 @@ export class ModalVincular implements OnChanges {
         return this.personasVinculadas.length - this.totalConChatId;
     }
 
+    /** Chat IDs que aparecen en más de una persona vinculada */
+get chatIdsDuplicados(): Set<string> {
+    const conteo = new Map<string, number>();
+    this.personasVinculadas.forEach((p: any) => {
+        if (p.telegramChatId) {
+            const id = String(p.telegramChatId);
+            conteo.set(id, (conteo.get(id) ?? 0) + 1);
+        }
+    });
+    const duplicados = new Set<string>();
+    conteo.forEach((cant, id) => { if (cant > 1) duplicados.add(id); });
+    return duplicados;
+}
+
+/** Cuántas personas vinculadas tienen un Chat ID que está duplicado */
+get totalConChatIdDuplicado(): number {
+    const duplicados = this.chatIdsDuplicados;
+    return this.personasVinculadas.filter(
+        (p: any) => p.telegramChatId && duplicados.has(String(p.telegramChatId))
+    ).length;
+}
+
+    // ── NUEVO: contador de Sede ──────────────────────────────────────────────
+    /** Cuenta cuántos estudiantes vinculados YA tienen sede guardada */
+    get totalConSede(): number {
+        return this.personasVinculadas.filter(
+            (p: any) => p.tipo === 'estudiante' && !!(p.sede && p.sede.trim())
+        ).length;
+    }
+
+    /** Cuenta cuántos estudiantes vinculados NO tienen sede todavía */
+    get totalSinSede(): number {
+        return this.personasVinculadas.filter(
+            (p: any) => p.tipo === 'estudiante' && !(p.sede && p.sede.trim())
+        ).length;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // NUEVO: Estadísticas para la pestaña "Estadísticas"
+    // ══════════════════════════════════════════════════════════════════════
+
+    /** Solo los estudiantes vinculados (los docentes no aplican para estas métricas) */
+    get estudiantesVinculadosLista(): any[] {
+        return this.personasVinculadas.filter(p => p.tipo === 'estudiante');
+    }
+
+    /** KPIs generales del cronograma actual */
+    get statsGenerales() {
+        const lista = this.estudiantesVinculadosLista;
+        const total = lista.length;
+        const activas = lista.filter(p => this.estadoNotifVinculado(p) === 'activa').length;
+        const pendientes = lista.filter(p => this.estadoNotifVinculado(p) === 'pendiente').length;
+        const sinTelegram = lista.filter(p => this.estadoNotifVinculado(p) === 'sin-telegram').length;
+        const sinActivar = pendientes + sinTelegram;
+        const presentes = lista.filter(p => p.asistencia).length;
+
+        return {
+            total,
+            activas,
+            pendientes,
+            sinTelegram,
+            sinActivar,
+            presentes,
+            ausentes: total - presentes,
+            pctActivas: total ? Math.round((activas / total) * 100) : 0,
+            pctSinActivar: total ? Math.round((sinActivar / total) * 100) : 0,
+            pctAsistencia: total ? Math.round((presentes / total) * 100) : 0
+        };
+    }
+
+    /**
+     * Agrupa a los estudiantes vinculados por un campo dado ("sede" o "carrera")
+     * y cuenta, dentro de cada grupo: notificaciones activas, pendientes, sin
+     * Telegram, y asistencia (presentes/ausentes). Los que no tienen ese dato
+     * registrado se agrupan bajo "Sin sede" / "Sin carrera".
+     * Ordenado de mayor a menor cantidad de estudiantes.
+     */
+    private agruparEstudiantesPor(campo: 'sede' | 'carrera'): {
+        etiqueta: string; total: number;
+        activas: number; pendientes: number; sinTelegram: number; sinActivar: number;
+        presentes: number; ausentes: number;
+    }[] {
+        const lista = this.estudiantesVinculadosLista;
+        const etiquetaVacia = campo === 'sede' ? 'Sin sede' : 'Sin carrera';
+
+        const mapa = new Map<string, {
+            activas: number; pendientes: number; sinTelegram: number; presentes: number; total: number;
+        }>();
+
+        for (const p of lista) {
+            const valorCrudo = (p as any)[campo];
+            const clave = (valorCrudo && String(valorCrudo).trim()) ? String(valorCrudo).trim() : etiquetaVacia;
+
+            if (!mapa.has(clave)) {
+                mapa.set(clave, { activas: 0, pendientes: 0, sinTelegram: 0, presentes: 0, total: 0 });
+            }
+
+            const entry = mapa.get(clave)!;
+            const estado = this.estadoNotifVinculado(p);
+            if (estado === 'activa') entry.activas++;
+            else if (estado === 'pendiente') entry.pendientes++;
+            else entry.sinTelegram++;
+
+            if (p.asistencia) entry.presentes++;
+            entry.total++;
+        }
+
+        return [...mapa.entries()]
+            .map(([etiqueta, v]) => ({
+                etiqueta,
+                activas: v.activas,
+                pendientes: v.pendientes,
+                sinTelegram: v.sinTelegram,
+                sinActivar: v.pendientes + v.sinTelegram,
+                presentes: v.presentes,
+                ausentes: v.total - v.presentes,
+                total: v.total
+            }))
+            .sort((a, b) => b.total - a.total);
+    }
+
+    /** Desglose por sede (notificaciones + asistencia) */
+    get statsPorSede() {
+        return this.agruparEstudiantesPor('sede').map(s => ({ sede: s.etiqueta, ...s }));
+    }
+
+    /** Desglose por carrera (notificaciones + asistencia) */
+    get statsPorCarrera() {
+        return this.agruparEstudiantesPor('carrera').map(s => ({ carrera: s.etiqueta, ...s }));
+    }
+
     constructor(
         private estudiantesService: EstudiantesService,
         private cronogramaService: CronogramaService,
@@ -210,11 +363,18 @@ export class ModalVincular implements OnChanges {
             this.resetear();
             this.cargarGrupos();
         }
+        if (changes['visible']?.currentValue === false) {
+            this.destruirGraficas();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.destruirGraficas();
     }
 
     // ── Vaciadores ──────────────────────────────────────────────────────────
     private manualVacio(): ManualDatos {
-        return { cedula: '', nombres: '', carrera: '', telegramUser: '', grupo: '', asistencia: false };
+        return { cedula: '', nombres: '', carrera: '', sede: '', telegramUser: '', grupo: '', asistencia: false };
     }
 
     private docenteFormVacio(): DocenteForm {
@@ -237,6 +397,7 @@ export class ModalVincular implements OnChanges {
 }
 
     private resetear(): void {
+        this.destruirGraficas();
         this.vista = 'grupos';
         this.grupos = [];
         this.grupoSeleccionado = null;
@@ -258,7 +419,9 @@ export class ModalVincular implements OnChanges {
         this.filtroCarreraVinculadosSeleccionada = '';
         this.exportando = false;
         this.migrandoTelegram = false;
+        this.actualizandoSede = false;
         this.origenVinculados = 'grupos';
+        this.origenEstadisticas = 'grupos';
         this.vistaDocente = 'lista';
         this.docentes = [];
         this.docentesFiltrados = [];
@@ -489,10 +652,10 @@ async confirmarTransferir(): Promise<void> {
         this.cdr.detectChanges();
     }
 
-    setFiltroNotifVinculados(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM'): void {
-        this.filtroNotifVinculados = f;
-        this.cdr.detectChanges();
-    }
+setFiltroNotifVinculados(f: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' | 'DUPLICADOS'): void {
+    this.filtroNotifVinculados = f;
+    this.cdr.detectChanges();
+}
 
     setFiltroCarreraVinculados(valor: string): void {
         this.filtroCarreraVinculadosSeleccionada = valor;
@@ -512,6 +675,198 @@ async confirmarTransferir(): Promise<void> {
             this.filtroNotifVinculados !== 'TODOS' ||
             this.filtroCarreraVinculadosSeleccionada !== '' ||
             this.busquedaVinculados.trim() !== '';
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // NUEVO: Pestaña de estadísticas (gráficas con Chart.js)
+    // ══════════════════════════════════════════════════════════════════════
+
+    irAEstadisticas(): void {
+        this.origenEstadisticas =
+            this.vista === 'estudiantes' ? 'estudiantes' :
+            this.vista === 'vinculados'  ? 'vinculados'  : 'grupos';
+
+        this.vista = 'estadisticas';
+        this.cdr.detectChanges();
+
+        // Esperamos DOS frames de pintado (no solo un setTimeout(0)) para
+        // asegurar que Angular ya insertó los <canvas> en el DOM con su
+        // tamaño final antes de que Chart.js los mida. Esto es lo que
+        // causaba el bug de la dona mostrando solo un color: Chart.js
+        // media un canvas de 0px o aún no visible en el primer intento.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => this.renderizarGraficas());
+        });
+    }
+
+    volverDesdeEstadisticas(): void {
+        this.destruirGraficas();
+        this.vista = this.origenEstadisticas;
+        this.cdr.detectChanges();
+    }
+
+    /**
+     * Además de destruir nuestras propias instancias, le preguntamos a
+     * Chart.js directamente si ese <canvas> ya tiene un chart "huérfano"
+     * registrado (por ejemplo si Angular reutilizó el nodo del DOM antes
+     * de que nuestra referencia se actualizara) y lo destruimos también.
+     * Esto evita el bug donde una serie queda "pegada" con datos viejos.
+     */
+    private limpiarChartDeCanvas(ref?: ElementRef<HTMLCanvasElement>): void {
+        if (!ref) return;
+        Chart.getChart(ref.nativeElement)?.destroy();
+    }
+
+    private renderizarGraficas(): void {
+        this.destruirGraficas();
+        [
+            this.canvasNotifDonutRef, this.canvasSedeStackRef, this.canvasSedeSinActivarRef,
+            this.canvasCarreraStackRef, this.canvasCarreraSinActivarRef
+        ].forEach(ref => this.limpiarChartDeCanvas(ref));
+
+        const stats = this.statsGenerales;
+        if (stats.total === 0) return;
+
+        const porSede = this.statsPorSede;
+        const porCarrera = this.statsPorCarrera;
+
+        const colorActiva      = '#22c55e';
+        const colorPendiente   = '#f59e0b';
+        const colorSinTelegram = '#6b7280';
+        const colorSinActivar  = '#ef4444';
+        const colorTexto       = '#cbd5e1';
+        const colorGrilla      = 'rgba(255,255,255,0.06)';
+
+        if (this.canvasNotifDonutRef) {
+            this.chartNotifDonut = new Chart(this.canvasNotifDonutRef.nativeElement, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Activas', 'Pendientes', 'Sin Telegram'],
+                    datasets: [{
+                        data: [stats.activas, stats.pendientes, stats.sinTelegram],
+                        backgroundColor: [colorActiva, colorPendiente, colorSinTelegram],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: colorTexto } }
+                    }
+                }
+            });
+        }
+
+        if (this.canvasSedeStackRef) {
+            this.chartSedeStack = this.crearBarraApilada(
+                this.canvasSedeStackRef.nativeElement,
+                porSede.map(s => s.sede),
+                porSede.map(s => s.activas), porSede.map(s => s.pendientes), porSede.map(s => s.sinTelegram),
+                colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
+            );
+        }
+
+        if (this.canvasSedeSinActivarRef) {
+            const ordenado = [...porSede].sort((a, b) => b.sinActivar - a.sinActivar);
+            this.chartSedeSinActivar = this.crearBarraRanking(
+                this.canvasSedeSinActivarRef.nativeElement,
+                ordenado.map(s => s.sede), ordenado.map(s => s.sinActivar),
+                colorSinActivar, colorTexto, colorGrilla
+            );
+        }
+
+        if (this.canvasCarreraStackRef) {
+            this.chartCarreraStack = this.crearBarraApilada(
+                this.canvasCarreraStackRef.nativeElement,
+                porCarrera.map(c => c.carrera),
+                porCarrera.map(c => c.activas), porCarrera.map(c => c.pendientes), porCarrera.map(c => c.sinTelegram),
+                colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
+            );
+        }
+
+        if (this.canvasCarreraSinActivarRef) {
+            const ordenado = [...porCarrera].sort((a, b) => b.sinActivar - a.sinActivar);
+            this.chartCarreraSinActivar = this.crearBarraRanking(
+                this.canvasCarreraSinActivarRef.nativeElement,
+                ordenado.map(c => c.carrera), ordenado.map(c => c.sinActivar),
+                colorSinActivar, colorTexto, colorGrilla
+            );
+        }
+    }
+
+    /** Barra apilada reutilizable (Activas / Pendientes / Sin Telegram) por categoría */
+    private crearBarraApilada(
+        canvasEl: HTMLCanvasElement,
+        etiquetas: string[],
+        activas: number[], pendientes: number[], sinTelegram: number[],
+        colorActiva: string, colorPendiente: string, colorSinTelegram: string,
+        colorTexto: string, colorGrilla: string
+    ): Chart {
+        return new Chart(canvasEl, {
+            type: 'bar',
+            data: {
+                labels: etiquetas,
+                datasets: [
+                    { label: 'Activas',      data: activas,     backgroundColor: colorActiva },
+                    { label: 'Pendientes',   data: pendientes,  backgroundColor: colorPendiente },
+                    { label: 'Sin Telegram', data: sinTelegram, backgroundColor: colorSinTelegram }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, ticks: { color: colorTexto }, grid: { color: colorGrilla } },
+                    y: { stacked: true, beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: colorTexto } }
+                }
+            }
+        });
+    }
+
+    /** Barra horizontal de ranking reutilizable (ej. "sin activar" de mayor a menor) */
+    private crearBarraRanking(
+        canvasEl: HTMLCanvasElement,
+        etiquetas: string[], valores: number[],
+        color: string, colorTexto: string, colorGrilla: string
+    ): Chart {
+        return new Chart(canvasEl, {
+            type: 'bar',
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    label: 'Sin activar notificaciones',
+                    data: valores,
+                    backgroundColor: color
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } },
+                    y: { ticks: { color: colorTexto }, grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    private destruirGraficas(): void {
+        this.chartNotifDonut?.destroy();
+        this.chartSedeStack?.destroy();
+        this.chartSedeSinActivar?.destroy();
+        this.chartCarreraStack?.destroy();
+        this.chartCarreraSinActivar?.destroy();
+        this.chartNotifDonut = undefined;
+        this.chartSedeStack = undefined;
+        this.chartSedeSinActivar = undefined;
+        this.chartCarreraStack = undefined;
+        this.chartCarreraSinActivar = undefined;
     }
 
     async desvincular(persona: any): Promise<void> {
@@ -547,9 +902,10 @@ async confirmarTransferir(): Promise<void> {
 
     // ── Exportar a Excel ────────────────────────────────────────────────────
     async exportarExcel(): Promise<void> {
-        const datos = this.personasVinculadas;
+        const datos = this.personasVinculadas.filter(p => p.tipo === 'estudiante');
+
         if (datos.length === 0) {
-            alert('No hay personas vinculadas para exportar.');
+            alert('No hay estudiantes vinculados para exportar.');
             return;
         }
 
@@ -560,30 +916,29 @@ async confirmarTransferir(): Promise<void> {
             const XLSX = await this.cargarSheetJS();
 
             const filas = datos.map(p => ({
-                'Tipo': p.tipo === 'docente' ? 'Docente' : 'Estudiante',
                 'Cédula': p.cedula ?? '',
                 'Nombre': p.nombres ?? '',
-                'Carrera / Cargo': (p.tipo === 'docente' ? p.cargo : p.carrera) ?? '',
-                'Departamento': p.departamento ?? '',
+                'Carrera': p.carrera ?? '',
+                'Sede': p.sede ?? '',
                 'Telegram': p.telegramUser ? '@' + p.telegramUser : '',
                 'Notificaciones': this.etiquetaNotif(this.estadoNotifVinculado(p)),
-                'Asistencia': p.tipo === 'estudiante' ? (p.asistencia ? 'Presente' : 'Ausente') : '',
+                'Asistencia': p.asistencia ? 'Presente' : 'Ausente',
                 'Fecha de vinculación': this.formatearFecha(p.fechaVinculacion)
             }));
 
             const hoja = XLSX.utils.json_to_sheet(filas);
 
             hoja['!cols'] = [
-                { wch: 12 }, { wch: 14 }, { wch: 28 }, { wch: 26 },
-                { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 18 }
+                { wch: 14 }, { wch: 28 }, { wch: 26 }, { wch: 20 },
+                { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 18 }
             ];
 
             const libro = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(libro, hoja, 'Vinculados');
+            XLSX.utils.book_append_sheet(libro, hoja, 'Estudiantes');
 
             const nombreCrono = (this.cronograma as any)?.nombre ?? 'cronograma';
             const fecha = new Date().toISOString().slice(0, 10);
-            const nombreArchivo = `vinculados_${this.slug(nombreCrono)}_${fecha}.xlsx`;
+            const nombreArchivo = `estudiantes_${this.slug(nombreCrono)}_${fecha}.xlsx`;
 
             XLSX.writeFile(libro, nombreArchivo);
         } catch (error) {
@@ -727,6 +1082,86 @@ async confirmarTransferir(): Promise<void> {
             alert('Ocurrió un error al migrar. Revisa la consola.');
         } finally {
             this.migrandoTelegram = false;
+            this.cdr.detectChanges();
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // NUEVO: Actualizar sede de los estudiantes vinculados
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Recorre los estudiantes ya vinculados a este cronograma que NO tienen
+     * "sede" guardada (o la tienen vacía), busca su cédula entre TODOS los
+     * grupos de inducción (misma base de datos que usa "grupos") y, si la
+     * encuentra, actualiza únicamente el campo "sede" en Firebase.
+     *
+     * No sobrescribe ningún otro campo del estudiante ya vinculado, y no
+     * toca a los que ya tienen sede o no aparecen en ningún grupo.
+     */
+    async actualizarSedeVinculados(): Promise<void> {
+        if (!this.cronograma?.id) return;
+
+        const estudiantesSinSede = this.personasVinculadas.filter(
+            (p: any) => p.tipo === 'estudiante' && p.cedula && !(p.sede && String(p.sede).trim())
+        );
+
+        if (estudiantesSinSede.length === 0) {
+            alert('Todos los estudiantes vinculados ya tienen sede registrada.');
+            return;
+        }
+
+        const confirmado = confirm(
+            `Se buscará la sede de ${estudiantesSinSede.length} estudiante(s) sin sede ` +
+            `en los grupos de inducción y se actualizará solo ese campo. ¿Continuar?`
+        );
+        if (!confirmado) return;
+
+        this.actualizandoSede = true;
+        this.cdr.detectChanges();
+
+        let actualizados = 0;
+        let sinCoincidencia = 0;
+
+        try {
+            const mapaEstudiantes = await this.estudiantesService.obtenerTodosLosEstudiantes();
+
+            const vinculadosActuales = { ...((this.cronograma as any).estudiantesVinculados ?? {}) };
+
+            for (const p of estudiantesSinSede) {
+                const encontrado = mapaEstudiantes.get(p.cedula);
+                const sedeEncontrada = encontrado?.sede?.trim();
+
+                if (!sedeEncontrada) {
+                    sinCoincidencia++;
+                    continue;
+                }
+
+                vinculadosActuales[p.cedula] = {
+                    ...vinculadosActuales[p.cedula],
+                    sede: sedeEncontrada
+                };
+                actualizados++;
+            }
+
+            if (actualizados > 0) {
+                await this.cronogramaService.actualizarCronograma(
+                    this.cronograma.id!,
+                    { estudiantesVinculados: vinculadosActuales } as any
+                );
+                (this.cronograma as any).estudiantesVinculados = vinculadosActuales;
+            }
+
+            alert(
+                `Actualización de sede completada.\n` +
+                `✔ Actualizados: ${actualizados}\n` +
+                `– Sin coincidencia en ningún grupo: ${sinCoincidencia}`
+            );
+        } catch (error) {
+            console.error('Error al actualizar sede:', error);
+            alert('Ocurrió un error al actualizar la sede. Revisa la consola.');
+        } finally {
+            this.actualizandoSede = false;
             this.cdr.detectChanges();
         }
     }
@@ -933,6 +1368,7 @@ async confirmarTransferir(): Promise<void> {
             const nuevoEstudiante = {
                 cedula, nombres,
                 carrera: this.manualDatos.carrera.trim() || '',
+                sede: this.manualDatos.sede.trim() || '',
                 telegramUser: this.manualDatos.telegramUser.trim() || '',
                 asistencia: this.manualDatos.asistencia,
                 grupo: this.manualDatos.grupo.trim() || '',
@@ -1100,6 +1536,7 @@ async confirmarTransferir(): Promise<void> {
                     cedula: e.cedula,
                     nombres: e.nombres,
                     carrera: e.carrera,
+                    sede: e.sede ?? '',
                     telegramUser: e.telegramUser ?? '',
                     asistencia: e.asistencia ?? false,
                     grupo: this.grupoSeleccionado?.nombres ?? '',

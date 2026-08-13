@@ -1,0 +1,298 @@
+.informe-instrumentos-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #e2e8f0;
+    position: relative;
+    z-index: 1;
+}
+
+h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00e5ff;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+    padding-bottom: 14px;
+}
+
+/* ========================================== */
+/* ESTADOS DE CARGA / SIN DATOS */
+/* ========================================== */
+.estado-carga {
+    padding: 12px 16px;
+    background-color: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.18);
+    border-radius: 10px;
+    color: rgba(0, 229, 255, 0.65);
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.sin-datos {
+    padding: 12px 16px;
+    background-color: rgba(0, 13, 26, 0.65);
+    border: 1px solid rgba(0, 229, 255, 0.10);
+    border-radius: 10px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* ========================================== */
+/* SELECTOR DE CAPACITACIÓN */
+/* ========================================== */
+.selector-capacitacion {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-width: 420px;
+}
+
+.selector-capacitacion label {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(0, 229, 255, 0.45);
+}
+
+.selector-capacitacion select {
+    padding: 11px 14px;
+    border: 1px solid rgba(0, 229, 255, 0.14);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: rgba(0, 13, 26, 0.85);
+    color: #e2e8f0;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.selector-capacitacion select option {
+    background: #000d1a;
+    color: #e2e8f0;
+}
+
+.selector-capacitacion select:focus {
+    border-color: rgba(0, 229, 255, 0.40);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+}
+
+/* ========================================== */
+/* AVISO: SIN INFORME FINAL */
+/* ========================================== */
+.aviso-sin-final {
+    padding: 14px 16px;
+    background-color: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 10px;
+    color: #fca5a5;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* ========================================== */
+/* RESUMEN DE LA CAPACITACIÓN */
+/* ========================================== */
+.resumen-capacitacion {
+    padding: 16px 20px;
+    background: rgba(0, 13, 26, 0.65);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.resumen-capacitacion h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgba(0, 229, 255, 0.75);
+}
+
+.resumen-capacitacion p {
+    margin: 4px 0;
+    font-size: 0.92rem;
+    color: rgba(226, 232, 240, 0.7);
+}
+
+.nota-origen-datos {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* ========================================== */
+/* PERÍODO */
+/* ========================================== */
+.datos-periodo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-width: 420px;
+}
+
+.datos-periodo label {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(0, 229, 255, 0.45);
+}
+
+.datos-periodo input {
+    padding: 11px 14px;
+    border: 1px solid rgba(0, 229, 255, 0.14);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: rgba(0, 13, 26, 0.85);
+    color: #e2e8f0;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.datos-periodo input::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+}
+
+.datos-periodo input:focus {
+    outline: none;
+    border-color: rgba(0, 229, 255, 0.40);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+}
+
+/* ========================================== */
+/* PREVIEW DEL CÓDIGO */
+/* ========================================== */
+.preview-codigo {
+    padding: 10px 16px;
+    background-color: rgba(0, 229, 255, 0.06);
+    border: 1px solid rgba(0, 229, 255, 0.20);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: #00e5ff;
+}
+
+/* ========================================== */
+/* TABLA DE DOCENTES */
+/* ========================================== */
+.tabla-docentes {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    background: rgba(0, 13, 26, 0.55);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 229, 255, 0.10);
+}
+
+.tabla-docentes th,
+.tabla-docentes td {
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 229, 255, 0.06);
+    text-align: left;
+}
+
+.tabla-docentes th {
+    background-color: rgba(0, 229, 255, 0.08);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(0, 229, 255, 0.70);
+}
+
+.tabla-docentes td {
+    color: #94a3b8;
+}
+
+.tabla-docentes tbody tr:nth-child(even) {
+    background-color: rgba(0, 229, 255, 0.02);
+}
+
+.tabla-docentes tbody tr:hover {
+    background-color: rgba(0, 229, 255, 0.05);
+}
+
+.sin-resultados {
+    text-align: center;
+    color: rgba(148, 163, 184, 0.6);
+    font-style: italic;
+}
+
+/* ========================================== */
+/* AVISO: YA EXISTE INSTRUMENTO */
+/* ========================================== */
+.informe-ya-generado {
+    padding: 14px 16px;
+    background-color: rgba(217, 119, 6, 0.08);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    border-radius: 10px;
+    color: #fbbf24;
+    margin-bottom: 20px;
+}
+
+.informe-ya-generado p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
+.informe-ya-generado-nota {
+    font-size: 0.8rem;
+    font-style: italic;
+    opacity: 0.9;
+}
+
+/* ========================================== */
+/* BOTÓN DE GENERACIÓN */
+/* ========================================== */
+.acciones-generacion {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.btn-generar {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75), rgba(109, 40, 217, 0.85));
+    color: #ede9fe;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(124, 58, 237, 0.18);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.btn-generar:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 26px rgba(124, 58, 237, 0.32);
+}
+
+.btn-generar:disabled {
+    background: rgba(0, 229, 255, 0.08);
+    color: rgba(0, 229, 255, 0.30);
+    border-color: rgba(0, 229, 255, 0.14);
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+.estado-generacion {
+    font-size: 0.85rem;
+    color: rgba(0, 229, 255, 0.55);
+    font-style: italic;
+}

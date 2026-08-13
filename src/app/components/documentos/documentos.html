@@ -1,0 +1,43 @@
+<br>
+<br>
+<br>
+
+<div class="tabs">
+
+    <button [class.active]="pantalla=='planificacion'" (click)="cambiar('planificacion')">
+        Informe de Planificación
+    </button>
+
+    <button [class.active]="pantalla=='final'" (click)="cambiar('final')">
+        Informe Final
+    </button>
+
+    <button [class.active]="pantalla=='instrumentos'" (click)="cambiar('instrumento')">
+        Informe de Instrumentos
+    </button>
+
+    <button [class.active]="pantalla=='impacto'" (click)="cambiar('impacto')">
+        Informe de Impacto
+    </button>
+
+</div>
+
+<div class="contenido">
+
+    @if(pantalla=='planificacion'){
+    <app-informe-planificacion />
+    }
+
+    @if(pantalla=='final'){
+    <app-informe-final />
+    }
+
+    @if(pantalla == 'instrumento'){
+    <app-informe-instrumentos />
+    }
+
+    @if(pantalla == 'impacto'){
+    <app-informe-impacto />
+    }
+
+</div>

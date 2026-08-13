@@ -1,0 +1,199 @@
+<div class="informe-final-container">
+
+  <h2>Informe Final de Capacitación</h2>
+
+  <!-- ========================================== -->
+  <!-- CARGANDO CAPACITACIONES -->
+  <!-- ========================================== -->
+  <div *ngIf="cargandoCapacitaciones" class="estado-carga">
+    Cargando capacitaciones...
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SELECTOR DE CAPACITACIÓN -->
+  <!-- ========================================== -->
+  <div *ngIf="!cargandoCapacitaciones" class="selector-capacitacion">
+    <label for="capacitacion">Seleccione una capacitación:</label>
+    <select id="capacitacion" [ngModel]="capacitacionSeleccionada?.slug"
+      (ngModelChange)="seleccionarCapacitacion($event)">
+      <option [ngValue]="undefined" disabled>-- Seleccione --</option>
+      <option *ngFor="let c of capacitaciones" [value]="c.slug">
+        {{ c.capacitacion }} ({{ c.carrera }})
+      </option>
+    </select>
+  </div>
+
+  <div *ngIf="capacitaciones.length === 0 && !cargandoCapacitaciones" class="sin-datos">
+    No hay capacitaciones con docentes registrados.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- DETALLE DE LA CAPACITACIÓN SELECCIONADA -->
+  <!-- ========================================== -->
+  <ng-container *ngIf="capacitacionSeleccionada as cap">
+
+    <div class="resumen-capacitacion">
+      <h3>{{ cap.capacitacion }}</h3>
+      <p><strong>Carrera:</strong> {{ cap.carrera }}</p>
+
+      <!-- Fechas leídas automáticamente desde la base de datos (solo lectura) -->
+      <p *ngIf="fechaInicio && fechaFin">
+        <strong>Fecha de inicio:</strong> {{ fechaInicio }} &nbsp;|&nbsp;
+        <strong>Fecha de fin:</strong> {{ fechaFin }}
+      </p>
+      <p *ngIf="!fechaInicio || !fechaFin" class="sin-fechas">
+        No se encontraron fechas registradas para esta capacitación.
+      </p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FACILITADOR -->
+    <!-- ========================================== -->
+    <div class="datos-facilitador">
+      <label for="facilitador">Facilitador:</label>
+      <input id="facilitador" type="text" [(ngModel)]="facilitador" placeholder="Nombre del facilitador" required>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VISTA PREVIA DEL CÓDIGO DEL DOCUMENTO -->
+    <!-- Se calcula a partir del año-mes de la fecha de fin -->
+    <!-- ========================================== -->
+    <div class="preview-codigo" *ngIf="previewAnioMesCodigo">
+      <p>
+        <strong>Año-mes del código:</strong> {{ previewAnioMesCodigo }}
+        <span class="preview-codigo-nota">(el código final se genera al crear el informe)</span>
+      </p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- FILTRO DE BÚSQUEDA (nombre o cédula) -->
+    <!-- ========================================== -->
+    <div class="filtro-docentes">
+      <label for="filtro">Buscar docente:</label>
+      <input id="filtro" type="text" [(ngModel)]="filtroTexto" placeholder="Nombre o cédula...">
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TABLA DE DOCENTES -->
+    <!-- ========================================== -->
+    <table class="tabla-docentes">
+      <thead>
+        <tr>
+          <th>Cédula</th>
+          <th>Nombre</th>
+          <th>Género</th>
+          <th>Código</th>
+          <th>Entregado</th>
+          <th>Estado</th>
+          <th>Certificado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let docente of docentesFiltrados">
+          <td>{{ docente.cedula }}</td>
+          <td>{{ docente.nombre }}</td>
+          <td>{{ docente.genero }}</td>
+          <td>{{ docente.codigo }}</td>
+          <td>{{ docente.entregado ? 'Sí' : 'No' }}</td>
+
+          <!-- Estado aprobado/reprobado (toggle) -->
+          <td>
+            <button type="button" class="badge-toggle" [class.aprobado]="docente.aprobado"
+              [class.reprobado]="!docente.aprobado" (click)="toggleAprobado(docente)">
+              {{ docente.aprobado ? 'Aprobado' : 'Reprobado' }}
+            </button>
+          </td>
+
+          <!-- Certificado -->
+          <td>
+            <span *ngIf="docente.certificado" class="certificado-ok">
+              {{ docente.certificado.name }}
+            </span>
+            <span *ngIf="!docente.certificado">Sin certificado</span>
+          </td>
+        </tr>
+
+        <tr *ngIf="docentesFiltrados.length === 0">
+          <td colspan="7" class="sin-resultados">
+            No se encontraron docentes con ese criterio de búsqueda.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ========================================== -->
+    <!-- CARGA DE CERTIFICADOS PDF -->
+    <!-- ========================================== -->
+    <div class="carga-certificados">
+      <label for="certificados">Cargar certificados (PDF):</label>
+      <input id="certificados" type="file" accept="application/pdf" multiple
+        (change)="onCertificadosSeleccionados($event)">
+    </div>
+
+    <!-- Certificados sin emparejar -> asignación manual -->
+    <div *ngIf="certificadosSinAsignar.length > 0" class="certificados-sin-asignar">
+      <p>Certificados sin emparejar automáticamente. Asigne manualmente:</p>
+
+      <div *ngFor="let archivo of certificadosSinAsignar" class="fila-sin-asignar">
+        <span>{{ archivo.name }}</span>
+        <select #selectDocente>
+          <option [value]="-1" disabled selected>-- Asignar a docente --</option>
+          <option *ngFor="let docente of cap.docentes; let i = index" [value]="i">
+            {{ docente.nombre }} ({{ docente.cedula }})
+          </option>
+        </select>
+        <button type="button" (click)="asignarCertificadoManual(cap.docentes[+selectDocente.value], archivo)">
+          Asignar
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- RESUMEN DE ESTADÍSTICAS -->
+    <!-- ========================================== -->
+    <div class="resumen-estadisticas">
+      <div class="stat">
+        <span class="stat-label">Aprobados</span>
+        <span class="stat-valor">{{ totalAprobados }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Reprobados</span>
+        <span class="stat-valor">{{ totalReprobados }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Hombres</span>
+        <span class="stat-valor">{{ totalHombres }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Mujeres</span>
+        <span class="stat-valor">{{ totalMujeres }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="registroExistente" class="informe-ya-generado">
+      <p>
+        ⚠️ Esta capacitación ya tiene un informe generado el <strong>{{ registroExistente.fechaCreacion }}</strong>
+        con código <strong>{{ registroExistente.codigo }}</strong>
+        (facilitador: {{ registroExistente.facilitador }}).
+      </p>
+      <p class="informe-ya-generado-nota">
+        Puede volver a descargarlo con el mismo código; no se creará un nuevo registro.
+      </p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- BOTÓN DE GENERACIÓN -->
+    <!-- ========================================== -->
+    <div class="acciones-generacion">
+      <button type="button" class="btn-generar" [disabled]="generando" (click)="generarInforme()">
+        {{ generando ? 'Generando...' : (registroExistente ? 'Volver a Descargar' : 'Generar Informe Final') }}
+      </button>
+
+      <p *ngIf="generando" class="estado-generacion">
+        {{ estadoGeneracion }}
+      </p>
+    </div>
+
+  </ng-container>
+
+</div>

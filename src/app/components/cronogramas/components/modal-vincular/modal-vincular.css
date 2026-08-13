@@ -1880,3 +1880,215 @@ tbody td {
         padding: 0;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADÍSTICAS — pega este bloque al final de tu modal-vincular.css
+   (no depende de variables externas, es autocontenido)
+══════════════════════════════════════════════════════════════ */
+
+.stats-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.stat-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-kpi-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.1;
+}
+
+.stat-kpi-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.stat-kpi.kpi-verde .stat-kpi-num { color: #22c55e; }
+.stat-kpi.kpi-rojo  .stat-kpi-num { color: #ef4444; }
+.stat-kpi.kpi-gris  .stat-kpi-num { color: #9ca3af; }
+.stat-kpi.kpi-azul  .stat-kpi-num { color: #38bdf8; }
+
+.stats-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-chart-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.stat-chart-card--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .stat-chart-card--wide {
+    grid-column: span 1;
+  }
+}
+
+.stat-chart-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin: 0 0 12px;
+}
+
+.stat-chart-canvas-wrap {
+  position: relative;
+  height: 260px;
+  width: 100%;
+}
+
+.stat-chart-canvas-wrap--sm {
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.stats-tabla-sede {
+  margin-top: 8px;
+}
+
+.stats-celda-verde    { color: #22c55e; font-weight: 600; }
+.stats-celda-amarillo { color: #f59e0b; font-weight: 600; }
+.stats-celda-gris     { color: #9ca3af; font-weight: 600; }
+.stats-celda-rojo     { color: #ef4444; font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADÍSTICAS — pega este bloque al final de tu modal-vincular.css
+   (no depende de variables externas, es autocontenido)
+══════════════════════════════════════════════════════════════ */
+
+.stats-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.stat-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-kpi-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1.1;
+}
+
+.stat-kpi-label {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.stat-kpi.kpi-verde .stat-kpi-num { color: #22c55e; }
+.stat-kpi.kpi-rojo  .stat-kpi-num { color: #ef4444; }
+.stat-kpi.kpi-gris  .stat-kpi-num { color: #9ca3af; }
+.stat-kpi.kpi-azul  .stat-kpi-num { color: #38bdf8; }
+
+.stats-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-chart-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.stat-chart-card--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .stat-chart-card--wide {
+    grid-column: span 1;
+  }
+}
+
+.stat-chart-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin: 0 0 12px;
+}
+
+.stat-chart-canvas-wrap {
+  position: relative;
+  height: 260px;
+  width: 100%;
+}
+
+.stat-chart-canvas-wrap--sm {
+  height: 220px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Refuerzo de scroll: por si el contenido es más alto que en las otras
+   pestañas (donut + 2 gráficas de sede + 2 de carrera + 2 tablas).
+   No debería pisar nada de .paso-estudiantes, solo asegura que el
+   overflow quede activo también aquí. */
+.paso-estadisticas {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stats-tabla-sede {
+  margin-top: 8px;
+  margin-bottom: 28px;
+}
+
+.stats-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 8px 0 14px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stats-celda-verde    { color: #22c55e; font-weight: 600; }
+.stats-celda-amarillo { color: #f59e0b; font-weight: 600; }
+.stats-celda-gris     { color: #9ca3af; font-weight: 600; }
+.stats-celda-rojo     { color: #ef4444; font-weight: 600; }

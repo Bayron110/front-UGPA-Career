@@ -1288,3 +1288,59 @@
   .btn-exito-redescargar,
   .btn-exito-cerrar { width: 100% !important; justify-content: center !important; }
 }
+
+/* ════════════════════════════════════════════════════
+   HEADER RIGHT (wrapper: botón excel + stat-pill)
+════════════════════════════════════════════════════ */
+.historial-wrap .header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* ════════════════════════════════════════════════════
+   BOTÓN EXPORTAR EXCEL
+════════════════════════════════════════════════════ */
+.historial-wrap .btn-excel {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px 20px !important;
+  background: linear-gradient(135deg, rgba(34,197,94,.14), rgba(21,128,61,.1)) !important;
+  border: 1px solid rgba(34,197,94,.3) !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #4ade80 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: all .22s ease !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+.historial-wrap .btn-excel svg { stroke: #4ade80 !important; }
+.historial-wrap .btn-excel:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: #4ade80 !important;
+  background: rgba(34,197,94,.2) !important;
+  box-shadow: 0 0 20px rgba(34,197,94,.25), 0 8px 24px rgba(0,0,0,.3) !important;
+}
+.historial-wrap .btn-excel:active {
+  transform: scale(.97) !important;
+}
+
+/* Responsive: en pantallas chicas, el header-right se apila abajo del título */
+@media (max-width: 700px) {
+  .historial-wrap .card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .historial-wrap .header-right {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+  .historial-wrap .btn-excel {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+}

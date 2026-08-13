@@ -1,0 +1,141 @@
+<div class="informe-instrumentos-container">
+
+  <h2>Instrumento de Evaluación de la Capacitación</h2>
+
+  <!-- ========================================== -->
+  <!-- CARGANDO CAPACITACIONES -->
+  <!-- ========================================== -->
+  <div *ngIf="cargandoCapacitaciones" class="estado-carga">
+    Cargando capacitaciones...
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SELECTOR DE CAPACITACIÓN -->
+  <!-- ========================================== -->
+  <div *ngIf="!cargandoCapacitaciones" class="selector-capacitacion">
+    <label for="capacitacion">Seleccione una capacitación:</label>
+    <select id="capacitacion" [ngModel]="capacitacionSeleccionada?.slug"
+      (ngModelChange)="seleccionarCapacitacion($event)">
+      <option [ngValue]="undefined" disabled>-- Seleccione --</option>
+      <option *ngFor="let c of capacitaciones" [value]="c.slug">
+        {{ c.capacitacion }} ({{ c.carrera }})
+      </option>
+    </select>
+  </div>
+
+  <div *ngIf="capacitaciones.length === 0 && !cargandoCapacitaciones" class="sin-datos">
+    No hay capacitaciones con docentes registrados.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- CARGANDO REGISTRO DEL INFORME FINAL -->
+  <!-- ========================================== -->
+  <div *ngIf="cargandoRegistroFinal" class="estado-carga">
+    Verificando Informe Final de la capacitación...
+  </div>
+
+  <!-- ========================================== -->
+  <!-- AVISO: NO HAY INFORME FINAL -->
+  <!-- ========================================== -->
+  <div *ngIf="capacitacionSeleccionada && !cargandoRegistroFinal && !registroFinal" class="aviso-sin-final">
+    ⚠️ Esta capacitación aún no tiene un <strong>Informe Final</strong> generado.
+    Debe generarlo primero antes de crear el instrumento de evaluación.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- DETALLE DE LA CAPACITACIÓN SELECCIONADA -->
+  <!-- ========================================== -->
+  <ng-container *ngIf="capacitacionSeleccionada as cap">
+    <ng-container *ngIf="registroFinal as rf">
+
+      <div class="resumen-capacitacion">
+        <h3>{{ cap.capacitacion }}</h3>
+        <p><strong>Carrera:</strong> {{ cap.carrera }}</p>
+        <p><strong>Facilitador:</strong> {{ rf.facilitador }}</p>
+        <p>
+          <strong>Total docentes:</strong> {{ rf.totalDocentes }} &nbsp;|&nbsp;
+          <strong>Aprobados:</strong> {{ rf.totalAprobados }} &nbsp;|&nbsp;
+          <strong>Reprobados:</strong> {{ rf.totalReprobados }}
+        </p>
+        <p class="nota-origen-datos">
+          Estos datos provienen del Informe Final ya generado para esta capacitación.
+        </p>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- PERÍODO (INGRESO MANUAL) -->
+      <!-- ========================================== -->
+      <div class="datos-periodo">
+        <label for="periodo">Período de la capacitación:</label>
+        <input id="periodo" type="text" [(ngModel)]="periodo"
+          placeholder="Ej. 01 al 15 de julio de 2026" required>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VISTA PREVIA DEL CÓDIGO -->
+      <!-- ========================================== -->
+      <div class="preview-codigo" *ngIf="codigoDocumento">
+        <p>
+          <strong>Código del documento:</strong> {{ codigoDocumento }}
+        </p>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TABLA DE DOCENTES (SOLO LECTURA) -->
+      <!-- ========================================== -->
+      <table class="tabla-docentes">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cédula</th>
+            <th>Nombre</th>
+            <th>Género</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let docente of cap.docentes; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ docente.cedula }}</td>
+            <td>{{ docente.nombre }}</td>
+            <td>{{ docente.genero === 'M' ? 'Masculino' : 'Femenino' }}</td>
+          </tr>
+
+          <tr *ngIf="cap.docentes.length === 0">
+            <td colspan="4" class="sin-resultados">
+              No hay docentes registrados para esta capacitación.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ========================================== -->
+      <!-- AVISO: YA EXISTE INSTRUMENTO -->
+      <!-- ========================================== -->
+      <div *ngIf="registroExistente" class="informe-ya-generado">
+        <p>
+          ⚠️ Esta capacitación ya tiene un instrumento generado el
+          <strong>{{ registroExistente.fechaCreacion }}</strong>
+          con código <strong>{{ registroExistente.codigo }}</strong>.
+        </p>
+        <p class="informe-ya-generado-nota">
+          Puede volver a descargarlo con el mismo código; no se creará un nuevo registro.
+        </p>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- BOTÓN DE GENERACIÓN -->
+      <!-- ========================================== -->
+      <div class="acciones-generacion">
+        <button type="button" class="btn-generar" [disabled]="generando" (click)="generarInstrumento()">
+          {{ generando ? 'Generando...' : (registroExistente ? 'Volver a Descargar' : 'Generar Instrumento') }}
+        </button>
+
+        <p *ngIf="generando" class="estado-generacion">
+          {{ estadoGeneracion }}
+        </p>
+      </div>
+
+    </ng-container>
+  </ng-container>
+
+</div>

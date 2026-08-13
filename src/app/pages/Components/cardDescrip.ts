@@ -29,6 +29,15 @@ export const HOME_CARDS: HomeCard[] = [
                 action: 'irACronogramas'
         },
 
+                {
+                badge: 'Informes UGPA',
+                title: 'informes del Proceso de Capacitación Docente',
+                description: 'Generar informes del proceso de capacitación docente.',
+                footer: 'Informes UGPA',
+                image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
+                action: 'irAInformesUGPA'
+        },
+
         {
                 badge: 'Agenda',
                 title: 'Agenda de Actividades',

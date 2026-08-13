@@ -1,0 +1,106 @@
+<div class="contenedor-informe">
+
+    <h2>Generación de Informe de Planificación</h2>
+
+    <!-- ========================= -->
+    <!-- CAPACITACIÓN -->
+    <!-- ========================= -->
+
+    <div class="card">
+        <h3>Capacitación</h3>
+
+        <div *ngIf="cargandoCapacitaciones" class="estado-carga">
+            Cargando capacitaciones...
+        </div>
+
+        <div *ngIf="!cargandoCapacitaciones" class="campo">
+            <select [ngModel]="capacitacionSeleccionada?.slug"
+                (ngModelChange)="seleccionarCapacitacion($event)">
+                <option [ngValue]="undefined" disabled selected>-- Seleccione --</option>
+                <option *ngFor="let c of capacitaciones" [value]="c.slug">
+                    {{ c.capacitacion }} ({{ c.textoCarrera }})
+                </option>
+            </select>
+        </div>
+
+        <div *ngIf="capacitaciones.length === 0 && !cargandoCapacitaciones" class="aviso">
+            No hay capacitaciones registradas.
+        </div>
+    </div>
+
+    <ng-container *ngIf="capacitacionSeleccionada as cap">
+
+        <div class="card">
+            <p><strong>Dirigido a:</strong> {{ cap.textoCarrera }}</p>
+            <p *ngIf="cap.fechaInicio && cap.fechaFin">
+                <strong>Fecha de inicio:</strong> {{ cap.fechaInicio }} &nbsp;|&nbsp;
+                <strong>Fecha de fin:</strong> {{ cap.fechaFin }}
+            </p>
+            <p *ngIf="!cap.fechaInicio || !cap.fechaFin" class="aviso">
+                No se encontraron fechas registradas para esta capacitación.
+            </p>
+        </div>
+
+        <!-- ========================= -->
+        <!-- HOJA DE VIDA -->
+        <!-- ========================= -->
+        <div class="card">
+            <h3>Hoja de vida del capacitador</h3>
+            <input type="file" accept="application/pdf" (change)="seleccionarHojaVida($event)">
+        </div>
+
+        <!-- ========================= -->
+        <!-- CÓDIGO DEL DOCUMENTO -->
+        <!-- ========================= -->
+        <div class="card">
+            <h3>Código del documento</h3>
+
+            <ng-container *ngIf="previewAnioMesCodigo; else sinFechaInicio">
+                <p *ngIf="!registroExistente">
+                    Este informe se generará con el código:
+                    <strong>UGPA-RGI1-NN-PRO-134-{{ previewAnioMesCodigo }}</strong>
+                </p>
+                <small *ngIf="!registroExistente">
+                    El año-mes se calcula automáticamente (un mes antes del inicio de la capacitación).
+                    El número final (NN) se asigna al presionar "Generar informe".
+                </small>
+            </ng-container>
+
+            <ng-template #sinFechaInicio>
+                <p class="aviso">
+                    Esta capacitación no tiene fecha de inicio registrada,
+                    por lo que no se puede calcular el código del documento.
+                </p>
+            </ng-template>
+
+            <div *ngIf="registroExistente" class="informe-ya-generado">
+                <p>
+                    ⚠️ Esta capacitación ya tiene un informe generado el
+                    <strong>{{ registroExistente.fechaCreacion }}</strong>
+                    con código <strong>{{ registroExistente.codigo }}</strong>.
+                </p>
+                <small>Puede volver a descargarlo con el mismo código; no se creará un nuevo registro.</small>
+            </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- CAPTURAS -->
+        <!-- ========================= -->
+        <div class="card">
+            <h3>Capturas del Aula Virtual</h3>
+            <input type="file" accept="image/*" multiple (change)="seleccionarCapturas($event)">
+            <small>Mínimo 3 capturas.</small>
+        </div>
+
+        <!-- ========================= -->
+        <!-- BOTÓN -->
+        <!-- ========================= -->
+        <div class="acciones">
+            <button type="button" (click)="generarInforme()" [disabled]="generando">
+                {{ generando ? (estadoGeneracion || 'Generando...') : (registroExistente ? 'Volver a Descargar' : 'Generar informe y guardar código') }}
+            </button>
+        </div>
+
+    </ng-container>
+
+</div>

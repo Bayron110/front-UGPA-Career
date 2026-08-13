@@ -63,12 +63,12 @@ export interface Cronograma {
 
     actividades: ActividadCronograma[];
 
-    // ← Esto es lo que falta
     estudiantesVinculados?: {
         [cedula: string]: {
             cedula: string;
             nombre: string;
             carrera: string;
+            sede?: string;
             telegramUser: string;
             asistencia: boolean;
             fechaVinculacion: string;
