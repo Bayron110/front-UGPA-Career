@@ -400,6 +400,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 --------------------------------------------------------------------------------
+Package: @firebase/database
+License: "Apache-2.0"
+
+
+--------------------------------------------------------------------------------
 Package: xlsx
 License: "Apache-2.0"
 
@@ -814,11 +819,6 @@ License: "Apache-2.0"
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-
---------------------------------------------------------------------------------
-Package: @firebase/database
-License: "Apache-2.0"
-
 
 --------------------------------------------------------------------------------
 Package: docxtemplater-image-module-free
