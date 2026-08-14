@@ -2,23 +2,23 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: 24px;
-    color: #e2e8f0;
+    color: #1a2942;
     position: relative;
     z-index: 1;
 }
 
 h2 {
-    color: #00e5ff;
+    color: #1a2942;
     font-weight: 700;
     font-size: 26px;
     letter-spacing: 0.02em;
     margin-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+    border-bottom: 1px solid #e4e8f0;
     padding-bottom: 14px;
 }
 
 h3 {
-    color: rgba(0, 229, 255, 0.75);
+    color: #a3822f;
     font-weight: 600;
     margin: 0 0 4px 0;
 }
@@ -28,9 +28,9 @@ h3 {
 /* ========================================== */
 .estado-carga,
 .sin-datos {
-    background: rgba(0, 229, 255, 0.05);
-    border: 1px solid rgba(0, 229, 255, 0.18);
-    color: rgba(0, 229, 255, 0.65);
+    background: rgba(201, 169, 76, 0.06);
+    border: 1px solid rgba(201, 169, 76, 0.25);
+    color: #a3822f;
     padding: 14px 18px;
     border-radius: 10px;
     text-align: center;
@@ -53,46 +53,45 @@ h3 {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(0, 229, 255, 0.45);
+    color: #64738c;
 }
 
 .selector-capacitacion select {
     padding: 11px 14px;
-    border: 1px solid rgba(0, 229, 255, 0.14);
+    border: 1px solid #e4e8f0;
     border-radius: 8px;
-    background-color: rgba(0, 13, 26, 0.85);
-    color: #e2e8f0;
+    background-color: #f4f6fa;
+    color: #1a2942;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .selector-capacitacion select option {
-    background: #000d1a;
-    color: #e2e8f0;
+    background: #ffffff;
+    color: #1a2942;
 }
 
 .selector-capacitacion select:focus {
-    border-color: rgba(0, 229, 255, 0.40);
-    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+    border-color: #c9a94c;
+    box-shadow: 0 0 0 3px rgba(201, 169, 76, 0.10);
 }
 
 /* ========================================== */
 /* RESUMEN DE LA CAPACITACIÓN */
 /* ========================================== */
 .resumen-capacitacion {
-    background: rgba(0, 13, 26, 0.65);
-    border: 1px solid rgba(0, 229, 255, 0.15);
+    background: #ffffff;
+    border: 1px solid #e4e8f0;
     border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 20px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 3px rgba(15, 31, 61, 0.06);
 }
 
 .resumen-capacitacion p {
     margin: 0;
-    color: rgba(226, 232, 240, 0.7);
+    color: #45536b;
 }
 
 /* ========================================== */
@@ -102,18 +101,18 @@ h3 {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 24px;
-    background: rgba(0, 13, 26, 0.55);
+    background: #ffffff;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(0, 229, 255, 0.10);
+    border: 1px solid #e4e8f0;
 }
 
 .tabla-docentes thead {
-    background-color: rgba(0, 229, 255, 0.08);
+    background-color: #f4f6fa;
 }
 
 .tabla-docentes thead th {
-    color: rgba(0, 229, 255, 0.70);
+    color: #64738c;
     padding: 12px 14px;
     text-align: left;
     font-weight: 600;
@@ -123,28 +122,28 @@ h3 {
 }
 
 .tabla-docentes tbody tr {
-    border-bottom: 1px solid rgba(0, 229, 255, 0.06);
+    border-bottom: 1px solid #eef1f5;
     transition: background-color 0.15s;
 }
 
 .tabla-docentes tbody tr:nth-child(even) {
-    background-color: rgba(0, 229, 255, 0.02);
+    background-color: #fafbfd;
 }
 
 .tabla-docentes tbody tr:hover {
-    background-color: rgba(0, 229, 255, 0.05);
+    background-color: rgba(201, 169, 76, 0.05);
 }
 
 .tabla-docentes td {
     padding: 10px 14px;
     font-size: 13px;
-    color: #94a3b8;
+    color: #45536b;
 }
 
 .tabla-docentes td button {
-    background-color: rgba(0, 229, 255, 0.10);
-    color: #00e5ff;
-    border: 1px solid rgba(0, 229, 255, 0.22);
+    background-color: rgba(201, 169, 76, 0.12);
+    color: #a3822f;
+    border: 1px solid rgba(201, 169, 76, 0.30);
     border-radius: 6px;
     padding: 6px 12px;
     font-weight: 600;
@@ -154,7 +153,7 @@ h3 {
 }
 
 .tabla-docentes td button:hover {
-    background-color: rgba(0, 229, 255, 0.18);
+    background-color: rgba(201, 169, 76, 0.22);
 }
 
 /* Badges de estado */
@@ -166,19 +165,19 @@ h3 {
 }
 
 .badge.aprobado {
-    background-color: rgba(0, 229, 255, 0.12);
-    color: #00e5ff;
-    border: 1px solid rgba(0, 229, 255, 0.25);
+    background-color: rgba(22, 163, 74, 0.10);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.25);
 }
 
 .badge.reprobado {
-    background-color: rgba(220, 38, 38, 0.12);
-    color: #fca5a5;
+    background-color: rgba(220, 38, 38, 0.10);
+    color: #dc2626;
     border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
 .certificado-ok {
-    color: #00e5ff;
+    color: #16a34a;
     font-weight: 500;
 }
 
@@ -197,22 +196,22 @@ h3 {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(0, 229, 255, 0.45);
+    color: #64738c;
 }
 
 .carga-certificados input[type="file"] {
     padding: 12px;
-    border: 2px dashed rgba(0, 229, 255, 0.18);
+    border: 2px dashed #d8c48f;
     border-radius: 10px;
-    background-color: rgba(0, 229, 255, 0.03);
-    color: rgba(0, 229, 255, 0.55);
+    background-color: rgba(201, 169, 76, 0.04);
+    color: #a3822f;
     cursor: pointer;
     transition: all 0.25s;
 }
 
 .carga-certificados input[type="file"]:hover {
-    border-color: rgba(0, 229, 255, 0.45);
-    background-color: rgba(0, 229, 255, 0.06);
+    border-color: #c9a94c;
+    background-color: rgba(201, 169, 76, 0.08);
 }
 
 .certificados-sin-asignar {
@@ -225,7 +224,7 @@ h3 {
 
 .certificados-sin-asignar p {
     margin: 0 0 10px 0;
-    color: #fbbf24;
+    color: #b45309;
     font-weight: 500;
 }
 
@@ -240,21 +239,21 @@ h3 {
 .fila-sin-asignar span {
     flex: 1;
     min-width: 160px;
-    color: rgba(226, 232, 240, 0.75);
+    color: #45536b;
 }
 
 .fila-sin-asignar select {
     padding: 8px 10px;
-    border: 1px solid rgba(0, 229, 255, 0.14);
+    border: 1px solid #e4e8f0;
     border-radius: 6px;
-    background-color: rgba(0, 13, 26, 0.85);
-    color: #e2e8f0;
+    background-color: #f4f6fa;
+    color: #1a2942;
 }
 
 .fila-sin-asignar button {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75), rgba(109, 40, 217, 0.85));
-    color: #ede9fe;
-    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff;
+    border: 1px solid rgba(124, 58, 237, 0.35);
     padding: 8px 14px;
     border-radius: 6px;
     font-weight: 600;
@@ -264,7 +263,7 @@ h3 {
 }
 
 .fila-sin-asignar button:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 1), rgba(109, 40, 217, 1));
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     box-shadow: 0 0 14px rgba(124, 58, 237, 0.25);
 }
 
@@ -281,17 +280,18 @@ h3 {
 .stat {
     flex: 1;
     min-width: 130px;
-    background: rgba(0, 13, 26, 0.65);
-    border: 1px solid rgba(0, 229, 255, 0.15);
+    background: #ffffff;
+    border: 1px solid #e4e8f0;
     border-radius: 12px;
     padding: 14px 16px;
     text-align: center;
+    box-shadow: 0 1px 3px rgba(15, 31, 61, 0.06);
 }
 
 .stat-label {
     display: block;
     font-size: 11px;
-    color: rgba(0, 229, 255, 0.45);
+    color: #64738c;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -302,8 +302,7 @@ h3 {
     display: block;
     font-size: 24px;
     font-weight: 700;
-    color: #00e5ff;
-    text-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+    color: #1a2942;
 }
 
 /* ========================================== */
@@ -315,40 +314,40 @@ h3 {
 }
 
 .btn-generar {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75), rgba(109, 40, 217, 0.85));
-    color: #ede9fe;
-    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff;
+    border: 1px solid rgba(124, 58, 237, 0.35);
     padding: 12px 28px;
     border-radius: 999px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 0 18px rgba(124, 58, 237, 0.18);
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
     transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
 
 .btn-generar:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 0 26px rgba(124, 58, 237, 0.32);
+    box-shadow: 0 8px 22px rgba(124, 58, 237, 0.35);
 }
 
 .btn-generar:disabled {
-    background: rgba(0, 229, 255, 0.08);
-    color: rgba(0, 229, 255, 0.30);
-    border-color: rgba(0, 229, 255, 0.14);
+    background: #f4f6fa;
+    color: #94a3b8;
+    border-color: #e4e8f0;
     cursor: not-allowed;
     box-shadow: none;
     opacity: 0.7;
 }
 
 .aviso {
-    color: #fbbf24;
+    color: #b45309;
     font-size: 13px;
     margin-top: 10px;
 }
 
 .estado-generacion {
-    color: rgba(0, 229, 255, 0.55);
+    color: #64738c;
     font-size: 13px;
     margin-top: 10px;
     font-style: italic;
@@ -360,7 +359,7 @@ h3 {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.88);
+    background: rgba(15, 31, 61, 0.55);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: flex;
@@ -370,16 +369,16 @@ h3 {
 }
 
 .modal-contenido {
-    background: #000d1a;
-    border: 1px solid rgba(0, 229, 255, 0.20);
+    background: #ffffff;
+    border: 1px solid #e4e8f0;
     border-radius: 14px;
     padding: 24px 28px;
     width: 320px;
     position: relative;
     overflow: hidden;
     box-shadow:
-        0 0 0 1px rgba(0, 229, 255, 0.06),
-        0 40px 80px rgba(0, 0, 0, 0.70);
+        0 0 0 1px rgba(201, 169, 76, 0.06),
+        0 40px 80px rgba(15, 31, 61, 0.18);
 }
 
 .modal-contenido::before {
@@ -387,28 +386,28 @@ h3 {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.50) 50%, transparent);
+    background: linear-gradient(90deg, transparent, rgba(201, 169, 76, 0.50) 50%, transparent);
 }
 
 .modal-contenido h4 {
     margin: 0 0 6px 0;
-    color: #00e5ff;
+    color: #1a2942;
     font-weight: 700;
 }
 
 .modal-contenido p {
     margin: 0 0 14px 0;
-    color: rgba(226, 232, 240, 0.65);
+    color: #64738c;
     font-weight: 500;
 }
 
 .modal-contenido input[type="number"] {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid rgba(0, 229, 255, 0.14);
+    border: 1px solid #e4e8f0;
     border-radius: 8px;
-    background: rgba(0, 13, 26, 0.85);
-    color: #e2e8f0;
+    background: #f4f6fa;
+    color: #1a2942;
     font-size: 14px;
     outline: none;
     box-sizing: border-box;
@@ -417,8 +416,8 @@ h3 {
 }
 
 .modal-contenido input[type="number"]:focus {
-    border-color: rgba(0, 229, 255, 0.40);
-    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+    border-color: #c9a94c;
+    box-shadow: 0 0 0 3px rgba(201, 169, 76, 0.10);
 }
 
 .modal-acciones {
@@ -438,24 +437,24 @@ h3 {
 }
 
 .modal-acciones button:first-child {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75), rgba(109, 40, 217, 0.85));
-    color: #ede9fe;
-    border-color: rgba(139, 92, 246, 0.35);
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff;
+    border-color: rgba(124, 58, 237, 0.35);
     box-shadow: 0 0 14px rgba(124, 58, 237, 0.15);
 }
 
 .modal-acciones button:first-child:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 1), rgba(109, 40, 217, 1));
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     box-shadow: 0 0 22px rgba(124, 58, 237, 0.30);
 }
 
 .modal-acciones button:last-child {
     background-color: transparent;
-    color: rgba(0, 229, 255, 0.40);
-    border-color: rgba(0, 229, 255, 0.14);
+    color: #64738c;
+    border-color: #e4e8f0;
 }
 
 .modal-acciones button:last-child:hover {
-    background-color: rgba(0, 229, 255, 0.06);
-    color: rgba(0, 229, 255, 0.65);
+    background-color: #f4f6fa;
+    color: #1a2942;
 }

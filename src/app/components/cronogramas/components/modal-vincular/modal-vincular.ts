@@ -464,74 +464,101 @@ get totalConChatIdDuplicado(): number {
      * informativos. Sirve tanto para Estudiante (paso 2) como para una
      * persona ya vinculada (vista Vinculados).
      */
-    async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
-        this.requisitosModal = {
-            ...this.requisitosModalVacio(),
-            visible: true,
-            cargando: true,
-            cedula: e.cedula ?? '',
-            nombres: e.nombres ?? ''
+async abrirRequisitos(e: { cedula?: string; nombres?: string }): Promise<void> {
+    this.requisitosModal = {
+        ...this.requisitosModalVacio(),
+        visible: true,
+        cargando: true,
+        cedula: e.cedula ?? '',
+        nombres: e.nombres ?? ''
+    };
+    this.cdr.detectChanges();
+
+    try {
+        const { collection, query, where, getDocs, orderBy, limit } = await import('firebase/firestore');
+        const { getUtetFirestore } = await import('../../firebase/utet-firestore');
+        const db = getUtetFirestore();
+
+        // Busca por el campo "cedula" (ya no es el ID del documento).
+        // Ignora el prefijo de período: toma el registro más reciente
+        // (por updatedAt) que no esté marcado como eliminado.
+        const buscarPorCedula = async (cedula: string) => {
+            const q = query(
+                collection(db, 'requisitos'),
+                where('cedula', '==', cedula),
+                where('eliminado', '==', false),
+                orderBy('updatedAt', 'desc'),
+                limit(1)
+            );
+            const res = await getDocs(q);
+            return res.empty ? null : res.docs[0];
         };
-        this.cdr.detectChanges();
 
-        try {
-            const { doc, getDoc } = await import('firebase/firestore');
-            const { getUtetFirestore } = await import('../../firebase/utet-firestore');
-            const db = getUtetFirestore();
+        // Intento 1: cédula tal como viene
+        let docSnap = await buscarPorCedula(e.cedula!);
 
-            // Intento 1: cédula tal como viene
-            let snap = await getDoc(doc(db, 'Estudiantes', e.cedula!));
-
-            // Intento 2: si empieza con '0', probar sin el cero inicial
-            if (!snap.exists() && e.cedula!.startsWith('0')) {
-                const cedulaSin0 = e.cedula!.slice(1);
-                snap = await getDoc(doc(db, 'Estudiantes', cedulaSin0));
-            }
-
-            if (!snap.exists()) {
-                this.requisitosModal = {
-                    ...this.requisitosModal,
-                    cargando: false,
-                    error: 'No se encontró el registro de este estudiante en la base de datos.'
-                };
-                this.cdr.detectChanges();
-                return;
-            }
-
-            const data = snap.data() as Record<string, any>;
-            const items: { nombre: string; estado: string }[] = [];
-
-            for (const [key, value] of Object.entries(data)) {
-                if (this.CAMPOS_NO_REQUISITO.has(key)) continue;
-                if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
-                items.push({ nombre: key, estado: value as string });
-            }
-
-            // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
-            items.sort((a, b) => {
-                if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
-                return a.nombre.localeCompare(b.nombre, 'es');
-            });
-
-            this.requisitosModal = {
-                ...this.requisitosModal,
-                cargando: false,
-                items,
-                totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
-                totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
-            };
-
-        } catch (err) {
-            console.error('Error al cargar requisitos:', err);
-            this.requisitosModal = {
-                ...this.requisitosModal,
-                cargando: false,
-                error: 'Error al consultar la base de datos. Intenta de nuevo.'
-            };
+        // Intento 2: si empieza con '0', probar sin el cero inicial
+        if (!docSnap && e.cedula!.startsWith('0')) {
+            const cedulaSin0 = e.cedula!.slice(1);
+            docSnap = await buscarPorCedula(cedulaSin0);
         }
 
-        this.cdr.detectChanges();
+        if (!docSnap) {
+            this.requisitosModal = {
+                ...this.requisitosModal,
+                cargando: false,
+                error: 'No se encontró el registro de este estudiante en la base de datos.'
+            };
+            this.cdr.detectChanges();
+            return;
+        }
+
+        const data = docSnap.data() as Record<string, any>;
+        const valores = (data['valores'] ?? {}) as Record<string, any>;
+
+        // Deduplicar claves que difieren solo por tildes
+        // (ej. "ActualizacionDatos" vs "ActualizaciónDatos"),
+        // prefiriendo la variante con tilde.
+        const sinTildes = (s: string) =>
+            s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        const porClaveNormalizada = new Map<string, { nombre: string; estado: string }>();
+        for (const [key, value] of Object.entries(valores)) {
+            if (value !== 'CUMPLE' && value !== 'NO CUMPLE') continue;
+            const clave = sinTildes(key).toLowerCase();
+            const existente = porClaveNormalizada.get(clave);
+            const tieneTilde = sinTildes(key) !== key;
+            if (!existente || tieneTilde) {
+                porClaveNormalizada.set(clave, { nombre: key, estado: value as string });
+            }
+        }
+        const items = [...porClaveNormalizada.values()];
+
+        // Ordenar: primero NO CUMPLE (pendientes), luego CUMPLE, alfabético dentro de cada grupo
+        items.sort((a, b) => {
+            if (a.estado !== b.estado) return a.estado === 'NO CUMPLE' ? -1 : 1;
+            return a.nombre.localeCompare(b.nombre, 'es');
+        });
+
+        this.requisitosModal = {
+            ...this.requisitosModal,
+            cargando: false,
+            items,
+            totalCumple: items.filter(i => i.estado === 'CUMPLE').length,
+            totalNoCumple: items.filter(i => i.estado === 'NO CUMPLE').length
+        };
+
+    } catch (err) {
+        console.error('Error al cargar requisitos:', err);
+        this.requisitosModal = {
+            ...this.requisitosModal,
+            cargando: false,
+            error: 'Error al consultar la base de datos. Intenta de nuevo.'
+        };
     }
+
+    this.cdr.detectChanges();
+}
 
     /** Cierra el mini-modal de requisitos */
     cerrarRequisitos(): void {

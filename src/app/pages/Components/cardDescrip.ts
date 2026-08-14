@@ -39,10 +39,10 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
-                badge: 'Agenda',
-                title: 'Agenda de Actividades',
-                description: 'Agenda de actividades de los procesos en vigencia.',
-                footer: 'Agendar',
+                badge: '🚧 En cConstrucción',
+                title: '🚧 Esperar proximas novedades',
+                description: '🚧 Modulo en Construcción (No disponible)',
+                footer: '🚧',
                 image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
                 action: 'irAAgendar'
         },

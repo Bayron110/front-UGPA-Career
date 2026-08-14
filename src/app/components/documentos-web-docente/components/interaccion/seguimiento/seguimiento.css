@@ -1,9 +1,10 @@
 :host {
     display: block;
     width: 100%;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-.seguimiento-wrap {
+.plan-individual-wrap {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -13,13 +14,11 @@
 /* ── Card ── */
 
 .card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(37, 99, 235, 0.2);
+    background: #ffffff;
+    border: 1px solid #e4e8f0;
     border-radius: 14px;
     padding: 24px;
-    box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 1px 3px rgba(15, 31, 61, 0.06);
     position: relative;
     overflow: hidden;
 }
@@ -30,28 +29,16 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(37, 99, 235, 0.4) 40%,
-        rgba(6, 182, 212, 0.3) 60%,
-        transparent
-    );
+    height: 3px;
+    background: #0f1f3d;
 }
 
 .card--registro {
-    border-color: rgba(6, 182, 212, 0.18);
+    border-color: #e4e8f0;
 }
 
 .card--registro::before {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(6, 182, 212, 0.35) 40%,
-        rgba(167, 139, 250, 0.25) 60%,
-        transparent
-    );
+    background: linear-gradient(90deg, #0f1f3d, #c9a94c);
 }
 
 /* ── Header ── */
@@ -62,14 +49,14 @@
 
 .card-header h2,
 .card-header h3 {
-    color: #e2e8f0;
+    color: #0f1f3d;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 700;
     margin: 0 0 5px 0;
 }
 
 .card-header p {
-    color: #475569;
+    color: #64738c;
     font-size: 13px;
     margin: 0;
 }
@@ -95,8 +82,8 @@
 }
 
 .campo label {
-    color: #94a3b8;
-    font-weight: 500;
+    color: #64738c;
+    font-weight: 700;
     font-size: 12px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -105,25 +92,25 @@
 .campo input,
 .campo select {
     height: 42px;
-    border: 1px solid rgba(37, 99, 235, 0.25);
+    border: 1px solid #e4e8f0;
     border-radius: 8px;
     padding: 0 12px;
     outline: none;
-    background: rgba(6, 14, 30, 0.6);
-    color: #e2e8f0;
+    background: #f8f9fb;
+    color: #1a2942;
     font-size: 14px;
+    font-family: inherit;
     transition: all 0.2s ease;
 }
 
 .campo input::placeholder {
-    color: #334155;
+    color: #9ba7bd;
 }
 
-.campo input:focus,
-.campo select:focus {
-    border-color: rgba(37, 99, 235, 0.6);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    background: rgba(6, 14, 30, 0.8);
+.campo input:focus {
+    border-color: #c9a94c;
+    box-shadow: 0 0 0 3px rgba(201, 169, 76, 0.15);
+    background: #ffffff;
 }
 
 /* ── Preview del código ── */
@@ -133,17 +120,17 @@
     flex-direction: column;
     gap: 10px;
     padding: 16px 18px;
-    background: rgba(6, 14, 30, 0.5);
-    border: 1px solid rgba(37, 99, 235, 0.2);
+    background: #f8f9fb;
+    border: 1px solid #e4e8f0;
     border-radius: 10px;
 }
 
 .preview-label {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #475569;
+    color: #9ba7bd;
 }
 
 .preview-codigo {
@@ -161,17 +148,20 @@
 }
 
 .codigo-parte {
-    color: #64748b;
+    color: #64738c;
     transition: color 0.2s;
 }
 
 .codigo-parte--resaltada {
-    color: #67e8f9;
-    font-weight: 500;
+    color: #8a6d1f;
+    background: #faf3df;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
 }
 
 .codigo-sep {
-    color: #334155;
+    color: #c3cad9;
     margin: 0 1px;
 }
 
@@ -183,22 +173,28 @@
 }
 
 .btn-principal {
-    border: 1px solid rgba(37, 99, 235, 0.5);
+    border: none;
     cursor: pointer;
     padding: 10px 24px;
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 700;
     font-size: 13px;
-    transition: all 0.2s ease;
-    background: rgba(37, 99, 235, 0.2);
-    color: #93c5fd;
-    letter-spacing: 0.01em;
+    font-family: inherit;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    background: #0f1f3d;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
 }
 
 .btn-principal:hover:not(:disabled) {
-    background: rgba(37, 99, 235, 0.35);
-    border-color: rgba(37, 99, 235, 0.7);
-    box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+    background: #c9a94c;
+    color: #0f1f3d;
+    box-shadow: 0 4px 12px rgba(201, 169, 76, 0.35);
+}
+
+.btn-principal:active:not(:disabled) {
+    transform: scale(0.97);
 }
 
 .btn-principal:disabled {
@@ -211,8 +207,8 @@
 .mensaje {
     min-height: 20px;
     font-size: 13px;
-    font-weight: 500;
-    color: #93c5fd;
+    font-weight: 600;
+    color: #0f1f3d;
     margin: 0;
 }
 
@@ -229,36 +225,36 @@
     flex-direction: column;
     gap: 6px;
     padding: 14px 16px;
-    background: rgba(6, 14, 30, 0.4);
-    border: 1px solid rgba(6, 182, 212, 0.12);
+    background: #f8f9fb;
+    border: 1px solid #e4e8f0;
     border-radius: 10px;
 }
 
 .registro-label {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #475569;
+    color: #9ba7bd;
 }
 
 .registro-valor {
     font-size: 14px;
-    color: #94a3b8;
+    color: #1a2942;
 }
 
 /* ── Estados ── */
 
 .estado {
     text-align: center;
-    color: #334155;
+    color: #9ba7bd;
     padding: 32px 0;
     font-size: 14px;
 }
 
 .lista-vacia {
     text-align: center;
-    color: #334155;
+    color: #9ba7bd;
     padding: 32px 0;
     font-size: 14px;
 }

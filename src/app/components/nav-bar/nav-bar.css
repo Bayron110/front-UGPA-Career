@@ -3,8 +3,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 24px;
-  background: #07111f;
-  border-bottom: 1px solid #162030;
+  background: #0f1f3d;
+  border-bottom: 1px solid #0f1f3d;
   position: fixed;
   top: 0;
   left: 0;
@@ -33,7 +33,7 @@
 .logo {
   font-size: 13px;
   font-weight: 800;
-  color: #e2e8f0;
+  color: #ffffff;
   letter-spacing: 1.6px;
   text-transform: uppercase;
 }
@@ -67,14 +67,14 @@
 }
 
 .back-btn {
-  background: #0d1e33;
-  color: #60a5fa;
-  border: 1px solid #1e3a5f;
+  background: rgba(255, 255, 255, 0.06);
+  color: #c9a94c;
+  border: 1px solid rgba(201, 169, 76, 0.30);
 }
 
 .back-btn:hover {
-  background: #122240;
-  border-color: #2563eb;
+  background: rgba(255, 255, 255, 0.10);
+  border-color: #c9a94c;
 }
 
 .back-btn:hover svg {
@@ -82,12 +82,12 @@
 }
 
 .login-btn {
-  background: #1d4ed8;
-  color: #bfdbfe;
+  background: #c9a94c;
+  color: #1a2942;
 }
 
 .login-btn:hover {
-  background: #2563eb;
+  background: #d9bd66;
 }
 
 .login-btn:hover svg {

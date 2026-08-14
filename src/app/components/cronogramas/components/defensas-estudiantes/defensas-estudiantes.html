@@ -1,4 +1,4 @@
-<!-- SELECTOR DE CRONOGRAMA -->
+<!-- SELECTOR DE PERIODO -->
 <div class="periodo-overlay" *ngIf="!cronogramaSeleccionado">
   <div class="periodo-backdrop"></div>
 
@@ -9,56 +9,41 @@
         <i class="ti ti-calendar-event"></i>
       </div>
 
-      <h2 class="periodo-titulo">Seleccionar Cronograma</h2>
+      <h2 class="periodo-titulo">Seleccionar Periodo</h2>
 
       <p class="periodo-subtitulo">
-        Selecciona el cronograma para gestionar las defensas
+        Selecciona el periodo para gestionar las defensas
       </p>
     </div>
 
     <div class="periodo-search">
       <i class="ti ti-search periodo-search-icon"></i>
 
-      <input
-        type="text"
-        class="periodo-search-input"
-        placeholder="Buscar cronograma..."
-        [(ngModel)]="filtroPeriodo"
-      />
+      <input type="text" class="periodo-search-input" placeholder="Buscar periodo..." [(ngModel)]="filtroPeriodo" />
     </div>
 
     <div class="periodos-lista">
 
-      <button
-        class="periodo-item"
-        *ngFor="let cronograma of periodosFiltrados"
-        (click)="seleccionarPeriodo(cronograma)"
-      >
+      <button class="periodo-item" *ngFor="let cronograma of periodosFiltrados"
+        (click)="seleccionarPeriodo(cronograma)">
 
-        <div class="periodo-item-left">
+        <div class="periodo-badge">
+          {{ cronograma.periodo }}
+        </div>
 
-          <div class="periodo-badge">
-            Cronograma
-          </div>
-
-          <div>
-            <span class="periodo-nombre">
-              {{ cronograma.nombre || cronograma.periodo }}
-            </span>
-          </div>
-
+        <div>
+          <span class="periodo-nombre">
+            {{ cronograma.nombre }}
+          </span>
         </div>
 
         <i class="ti ti-chevron-right periodo-arrow"></i>
 
       </button>
 
-      <div
-        class="periodos-vacio"
-        *ngIf="periodosFiltrados.length === 0"
-      >
+      <div class="periodos-vacio" *ngIf="periodosFiltrados.length === 0">
         <i class="ti ti-calendar-off"></i>
-        <span>No se encontraron cronogramas</span>
+        <span>No se encontraron periodos</span>
       </div>
 
     </div>
@@ -74,10 +59,7 @@
 
     <div class="seccion-header-left">
 
-      <button
-        class="btn-volver"
-        (click)="volverPeriodos()"
-      >
+      <button class="btn-volver" (click)="volverPeriodos()">
         <i class="ti ti-arrow-left"></i>
       </button>
 
@@ -110,19 +92,10 @@
 
       <i class="ti ti-search busqueda-icon"></i>
 
-      <input
-        type="text"
-        class="busqueda-input"
-        placeholder="Buscar por nombre o cédula..."
-        [(ngModel)]="filtroTexto"
-        (input)="aplicarFiltros()"
-      />
+      <input type="text" class="busqueda-input" placeholder="Buscar por nombre o cédula..." [(ngModel)]="filtroTexto"
+        (input)="aplicarFiltros()" />
 
-      <button
-        class="busqueda-clear"
-        *ngIf="filtroTexto"
-        (click)="filtroTexto=''; aplicarFiltros()"
-      >
+      <button class="busqueda-clear" *ngIf="filtroTexto" (click)="filtroTexto=''; aplicarFiltros()">
         <i class="ti ti-x"></i>
       </button>
 
@@ -132,20 +105,13 @@
 
       <i class="ti ti-building-university filtro-icon"></i>
 
-      <select
-        class="filtro-select"
-        [(ngModel)]="filtroCarrera"
-        (change)="aplicarFiltros()"
-      >
+      <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="aplicarFiltros()">
 
         <option value="">
           Todas las carreras
         </option>
 
-        <option
-          *ngFor="let c of carrerasDisponibles"
-          [value]="c"
-        >
+        <option *ngFor="let c of carrerasDisponibles" [value]="c">
           {{ c }}
         </option>
 
@@ -157,11 +123,7 @@
 
       <i class="ti ti-bell filtro-icon"></i>
 
-      <select
-        class="filtro-select"
-        [(ngModel)]="filtroNotificaciones"
-        (change)="aplicarFiltros()"
-      >
+      <select class="filtro-select" [(ngModel)]="filtroNotificaciones" (change)="aplicarFiltros()">
         <option value="">Notificaciones (todos)</option>
         <option value="si">Activas</option>
         <option value="no">No activas</option>
@@ -188,11 +150,7 @@
         <tr>
 
           <th>
-            <input
-              type="checkbox"
-              class="check-all"
-              (change)="toggleTodos($event)"
-            />
+            <input type="checkbox" class="check-all" (change)="toggleTodos($event)" />
           </th>
 
           <th>Estudiante</th>
@@ -209,16 +167,10 @@
 
       <tbody>
 
-        <tr
-          *ngFor="let est of estudiantesFiltrados"
-          class="tabla-fila"
-        >
+        <tr *ngFor="let est of estudiantesFiltrados" class="tabla-fila">
 
           <td>
-            <input
-              type="checkbox"
-              [(ngModel)]="est.seleccionado"
-            />
+            <input type="checkbox" [(ngModel)]="est.seleccionado" />
           </td>
 
           <td>
@@ -256,21 +208,18 @@
           <!-- TELEGRAM -->
           <td>
 
-            <div
-              class="notif-badge"
-              [ngClass]="{
+            <div class="notif-badge" [ngClass]="{
                 'activa': est.estadoNotif === 'activa',
                 'pendiente': est.estadoNotif === 'pendiente',
                 'inactiva': est.estadoNotif === 'sin-telegram'
-              }"
-            >
+              }">
 
               {{
-                est.estadoNotif === 'activa'
-                  ? 'Activa'
-                  : est.estadoNotif === 'pendiente'
-                  ? 'Pendiente'
-                  : 'Sin Telegram'
+              est.estadoNotif === 'activa'
+              ? 'Activa'
+              : est.estadoNotif === 'pendiente'
+              ? 'Pendiente'
+              : 'Sin Telegram'
               }}
 
             </div>
@@ -299,18 +248,15 @@
           <!-- ESTADO -->
           <td>
 
-            <div
-              class="estado-badge"
-              [ngClass]="{
+            <div class="estado-badge" [ngClass]="{
                 'habilitado': est.habilitado,
                 'no-habilitado': !est.habilitado
-              }"
-            >
+              }">
 
               {{
-                est.habilitado
-                  ? 'Habilitado'
-                  : 'Pendiente'
+              est.habilitado
+              ? 'Habilitado'
+              : 'Pendiente'
               }}
 
             </div>
@@ -322,20 +268,12 @@
 
             <div class="acciones">
 
-              <button
-                class="btn-agregar"
-                (click)="agregarDefensa(est)"
-                [disabled]="!est.habilitado"
-              >
+              <button class="btn-agregar" (click)="agregarDefensa(est)">
                 <i class="ti ti-plus"></i>
                 Agregar defensa
               </button>
 
-              <button
-                *ngIf="est.errorRequisitos"
-                class="btn-icon"
-                (click)="reintentarRequisitos(est)"
-              >
+              <button *ngIf="est.errorRequisitos" class="btn-icon" (click)="reintentarRequisitos(est)">
                 <i class="ti ti-refresh"></i>
               </button>
 
@@ -389,3 +327,8 @@
   </div>
 
 </div>
+
+<!-- MODAL: PROGRAMAR DEFENSA -->
+<app-programar-defensa *ngIf="mostrarProgramarDefensa && estudianteParaDefensa" [estudiante]="estudianteParaDefensa"
+  (cerrar)="cerrarProgramarDefensa()">
+</app-programar-defensa>

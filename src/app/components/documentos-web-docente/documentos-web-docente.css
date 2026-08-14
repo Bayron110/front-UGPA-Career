@@ -1,9 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :host {
   display: block;
   min-height: 100vh;
   padding: 40px 12px;
   box-sizing: border-box;
   position: relative;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #f8f9fb;
+  color: #1a2942;
 }
 
 .contenedor-documentos {
@@ -14,14 +19,11 @@
 /* ── Panel principal ── */
 
 .panel-principal {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: #ffffff;
+  border: 1px solid #e4e8f0;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow:
-    0 0 0 1px rgba(6, 182, 212, 0.05),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 3px rgba(15, 31, 61, 0.06);
 }
 
 /* ── Tabs ── */
@@ -31,9 +33,8 @@
   gap: 6px;
   flex-wrap: wrap;
   padding: 16px 20px;
-  background: rgba(6, 14, 30, 0.6);
-  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
-  backdrop-filter: blur(8px);
+  background: #0f1f3d;
+  border-bottom: 1px solid #0f1f3d;
 }
 
 .tab-btn {
@@ -44,28 +45,27 @@
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.55);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.2px;
+  font-family: inherit;
 }
 
 .tab-btn:hover {
-  background: rgba(37, 99, 235, 0.1);
-  color: #93c5fd;
-  border-color: rgba(37, 99, 235, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .tab-btn.activa {
-  background: rgba(37, 99, 235, 0.15);
-  color: #93c5fd;
-  border-color: rgba(37, 99, 235, 0.4);
-  box-shadow:
-    0 0 12px rgba(37, 99, 235, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  background: rgba(201, 169, 76, 0.15);
+  color: #ffffff;
+  border-color: #c9a94c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Puntito indicador */
@@ -81,8 +81,8 @@
 }
 
 .tab-btn.activa .tab-dot {
-  background: #06b6d4;
-  box-shadow: 0 0 6px rgba(6, 182, 212, 0.8);
+  background: #c9a94c;
+  box-shadow: 0 0 6px rgba(201, 169, 76, 0.7);
 }
 
 /* ── Contenido ── */
@@ -90,7 +90,7 @@
 .panel-contenido {
   padding: 32px;
   min-height: 520px;
-  background: rgba(6, 14, 30, 0.4);
+  background: #ffffff;
   position: relative;
 }
 
@@ -104,8 +104,8 @@
   height: 1px;
   background: linear-gradient(90deg,
       transparent,
-      rgba(37, 99, 235, 0.3) 30%,
-      rgba(6, 182, 212, 0.3) 70%,
+      rgba(15, 31, 61, 0.15) 30%,
+      rgba(201, 169, 76, 0.35) 70%,
       transparent);
 }
 
@@ -123,14 +123,14 @@
 
 .vista-vacia h3 {
   font-size: 18px;
-  font-weight: 500;
-  color: #e2e8f0;
+  font-weight: 700;
+  color: #0f1f3d;
   margin: 0;
 }
 
 .vista-vacia p {
   font-size: 14px;
-  color: #475569;
+  color: #64738c;
   margin: 0;
   max-width: 280px;
   line-height: 1.6;

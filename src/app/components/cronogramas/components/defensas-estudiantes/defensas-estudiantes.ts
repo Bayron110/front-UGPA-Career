@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // ── AJUSTA ESTE IMPORT según la ruta real de tu servicio de cronogramas ──
-// Debe exponer un método que devuelva la lista de cronogramas, p.ej.
-// obtenerCronogramas(): Promise<Cronograma[]>
 import { CronogramaService, Cronograma } from '../../firebase/cronogramas';
+import { ProgramarDefensa } from './components/programar-defensa/programar-defensa';
+
+// ── AJUSTA ESTE IMPORT según la ruta real del componente ──
 
 // ── Requisito individual consultado en Firestore (proyecto utet) ──
 export interface RequisitoTitulacion {
@@ -38,13 +39,13 @@ export interface EstudianteDefensa {
 @Component({
   selector: 'app-defensas-estudiantes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ProgramarDefensa],
   templateUrl: './defensas-estudiantes.html',
   styleUrl: './defensas-estudiantes.css'
 })
 export class DefensasEstudiantes implements OnInit {
 
-  // ── Selección de cronograma (lo que antes llamábamos "periodo") ──────
+  // ── Selección de periodo (antes "cronograma") ──────
   cronogramas: Cronograma[] = [];
   cronogramaSeleccionado: Cronograma | null = null;
   filtroPeriodo = '';
@@ -60,6 +61,16 @@ export class DefensasEstudiantes implements OnInit {
   filtroCarrera        = '';
   filtroNotificaciones = '';
   paginaActual         = 1;
+
+  // ── Modal de programar defensa ─────────────────────────────
+  mostrarProgramarDefensa = false;
+  estudianteParaDefensa: EstudianteDefensa | null = null;
+
+  /**
+   * Valores del campo `periodo` que nunca deben aparecer en el selector
+   * (comparación sin distinguir mayúsculas/minúsculas).
+   */
+  private readonly CRONOGRAMAS_EXCLUIDOS = ['ugpa', 'utet'];
 
   /**
    * Los 8 requisitos de titulación que se consultan en Firestore (utet),
@@ -98,7 +109,6 @@ export class DefensasEstudiantes implements OnInit {
     this.cargandoCronogramas = true;
     this.cdr.detectChanges();
     try {
-      // TODO: confirmar el nombre real de este método en tu CronogramaService.
       this.cronogramas = await this.cronogramaService.obtenerCronogramas();
     } catch (e) {
       console.error('Error cargando cronogramas:', e);
@@ -109,13 +119,26 @@ export class DefensasEstudiantes implements OnInit {
     }
   }
 
+  /**
+   * Lista de periodos que se muestran en el selector:
+   * - Se ocultan los que ya finalizaron (estado === 'FINALIZADO')
+   * - Se ocultan los cronogramas cuyo campo `periodo` sea UGPA o UTET
+   * - Se aplica el texto de búsqueda del input
+   */
   get periodosFiltrados(): Cronograma[] {
     const q = this.filtroPeriodo.toLowerCase().trim();
-    if (!q) return this.cronogramas;
-    return this.cronogramas.filter((c: any) =>
-      (c.nombre ?? '').toLowerCase().includes(q) ||
-      (c.periodo ?? '').toLowerCase().includes(q)
-    );
+
+    return this.cronogramas
+      .filter((c: any) => c.estado !== 'FINALIZADO')
+      .filter((c: any) => {
+        const periodo = (c.periodo ?? '').toLowerCase();
+        return !this.CRONOGRAMAS_EXCLUIDOS.some(ex => periodo.includes(ex));
+      })
+      .filter((c: any) =>
+        !q ||
+        (c.nombre ?? '').toLowerCase().includes(q) ||
+        (c.periodo ?? '').toLowerCase().includes(q)
+      );
   }
 
   async seleccionarPeriodo(cronograma: Cronograma): Promise<void> {
@@ -294,9 +317,15 @@ export class DefensasEstudiantes implements OnInit {
     this.estudiantesFiltrados.forEach(e => e.seleccionado = checked);
   }
 
-  // ── Agregar defensa (sin funcionalidad aún, solo presente en la UI) ───
-  agregarDefensa(est: EstudianteDefensa): void {
-    console.log('Agregar defensa para:', est.nombres, '— habilitado:', est.habilitado);
-    // Intencionalmente sin lógica todavía, como pediste.
+  // ── Agregar defensa: abre el modal ProgramarDefensa ───────────────────
+agregarDefensa(est: EstudianteDefensa): void {
+  alert('CLICK DETECTADO'); // 👈 temporal
+  this.estudianteParaDefensa = est;
+  this.mostrarProgramarDefensa = true;
+}
+
+  cerrarProgramarDefensa(): void {
+    this.mostrarProgramarDefensa = false;
+    this.estudianteParaDefensa = null;
   }
 }

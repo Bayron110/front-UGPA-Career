@@ -1,13 +1,13 @@
 .activar-wrap {
   padding: 32px;
   min-height: 100%;
-  color: #e2e8f0;
+  color: #16233d;
 }
 
 /* ── Header ─────────────────────────────────────── */
 .activar-header {
-  background: linear-gradient(135deg, #0f1e38 0%, #112d5a 100%);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, #0a3d91 0%, #072a66 100%);
+  border: 1px solid rgba(10, 61, 145, 0.15);
   border-radius: 20px;
   padding: 28px 32px;
   margin-bottom: 28px;
@@ -18,7 +18,7 @@
   font-size: 11px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #60a5fa;
+  color: #e3c667;
   font-weight: 600;
   margin-bottom: 8px;
 }
@@ -27,24 +27,24 @@
   margin: 0 0 6px;
   font-size: 28px;
   font-weight: 700;
-  color: #f0f6ff;
+  color: #ffffff;
 }
 
 .activar-header p {
   margin: 0;
-  color: #94a3b8;
+  color: #c3d3ea;
   font-size: 14px;
   line-height: 1.5;
 }
 
 /* ── Loading ─────────────────────────────────────── */
 .estado-cargando {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: #ffffff;
+  border: 1px solid #e2e7f0;
   border-radius: 18px;
   padding: 28px;
   text-align: center;
-  color: #94a3b8;
+  color: #5b6b85;
   font-weight: 600;
   font-size: 14px;
 }
@@ -58,21 +58,22 @@
 
 /* ── Card ────────────────────────────────────────── */
 .form-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: #ffffff;
+  border: 1px solid #e2e7f0;
   border-radius: 20px;
   padding: 22px;
   transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(10, 61, 145, 0.06);
 }
 
 .form-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(148, 163, 184, 0.22);
+  border-color: #c9a227;
 }
 
 .form-card.activo {
-  background: rgba(56, 189, 248, 0.05);
-  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(10, 61, 145, 0.04);
+  border-color: #0a3d91;
 }
 
 /* ── Card info ───────────────────────────────────── */
@@ -86,7 +87,7 @@
   width: 46px;
   height: 46px;
   border-radius: 14px;
-  background: rgba(96, 165, 250, 0.12);
+  background: rgba(10, 61, 145, 0.10);
   display: grid;
   place-items: center;
   font-size: 20px;
@@ -97,12 +98,12 @@
   margin: 0 0 5px;
   font-size: 16px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #16233d;
 }
 
 .form-card p {
   margin: 0;
-  color: #64748b;
+  color: #5b6b85;
   font-size: 13px;
   line-height: 1.5;
 }
@@ -111,7 +112,7 @@
 .card-footer {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  border-top: 1px solid #eef2f8;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,15 +130,15 @@
 }
 
 .estado.on {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  background: rgba(16, 185, 129, 0.12);
+  color: #0f9d70;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .estado.off {
-  background: rgba(220, 38, 38, 0.12);
-  color: #f87171;
-  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: rgba(220, 38, 38, 0.10);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 /* ── Botones ─────────────────────────────────────── */
@@ -149,11 +150,13 @@ button {
   font-weight: 700;
   cursor: pointer;
   color: #ffffff;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  background: #0a3d91;
+  transition: background 0.2s ease, transform 0.15s ease, opacity 0.15s ease;
 }
 
 button:hover {
+  background: #c9a227;
+  color: #072a66;
   transform: scale(1.03);
 }
 
@@ -164,7 +167,12 @@ button:disabled {
 }
 
 button.btn-off {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: #b91c1c;
+}
+
+button.btn-off:hover {
+  background: #dc2626;
+  color: #ffffff;
 }
 
 /* ── Toast ───────────────────────────────────────── */
@@ -172,9 +180,9 @@ button.btn-off {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  color: #f0f6ff;
+  background: #0a3d91;
+  border: 1px solid rgba(10, 61, 145, 0.2);
+  color: #ffffff;
   padding: 14px 20px;
   border-radius: 14px;
   font-size: 14px;

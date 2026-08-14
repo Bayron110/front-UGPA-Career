@@ -6,7 +6,7 @@
     max-width: 1100px;
     margin: 30px auto;
     padding: 30px;
-    color: #e2e8f0;
+    color: #1a2942;
     position: relative;
     z-index: 1;
 }
@@ -19,12 +19,12 @@ h2 {
     margin-bottom: 10px;
     font-size: 26px;
     font-weight: 700;
-    color: #00e5ff;
+    color: #1a2942;
     letter-spacing: 0.02em;
 }
 
 .descripcion {
-    color: rgba(0, 229, 255, 0.35);
+    color: #64738c;
     margin-bottom: 30px;
     font-size: 13px;
 }
@@ -34,15 +34,14 @@ h2 {
 ========================================== */
 
 .card {
-    background: rgba(0, 13, 26, 0.65);
+    background: #ffffff;
     border-radius: 16px;
     padding: 28px;
     margin-bottom: 25px;
-    border: 1px solid rgba(0, 229, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid #e4e8f0;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15, 31, 61, 0.06);
 }
 
 .card::before {
@@ -52,7 +51,7 @@ h2 {
     height: 1px;
     background: linear-gradient(90deg,
         transparent,
-        rgba(0, 229, 255, 0.35) 50%,
+        rgba(201, 169, 76, 0.35) 50%,
         transparent);
 }
 
@@ -62,7 +61,7 @@ h2 {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(0, 229, 255, 0.65);
+    color: #a3822f;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -72,7 +71,7 @@ h2 {
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, rgba(0, 229, 255, 0.15), transparent);
+    background: linear-gradient(90deg, rgba(15, 31, 61, 0.12), transparent);
 }
 
 /* ==========================================
@@ -101,7 +100,7 @@ label {
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: rgba(0, 229, 255, 0.45);
+    color: #64738c;
 }
 
 /* ==========================================
@@ -113,29 +112,29 @@ select {
     width: 100%;
     padding: 12px 15px;
     border-radius: 8px;
-    border: 1px solid rgba(0, 229, 255, 0.14);
+    border: 1px solid #e4e8f0;
     font-size: 14px;
     transition: border-color 0.2s, box-shadow 0.2s;
-    background: rgba(0, 13, 26, 0.85);
-    color: #e2e8f0;
+    background: #f4f6fa;
+    color: #1a2942;
     box-sizing: border-box;
     outline: none;
 }
 
 input[type="text"]::placeholder {
-    color: rgba(0, 229, 255, 0.18);
+    color: rgba(26, 41, 66, 0.30);
 }
 
 select option {
-    background: #000d1a;
-    color: #e2e8f0;
+    background: #ffffff;
+    color: #1a2942;
 }
 
 select:focus,
 input[type="text"]:focus {
     outline: none;
-    border-color: rgba(0, 229, 255, 0.40);
-    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08);
+    border-color: #c9a94c;
+    box-shadow: 0 0 0 3px rgba(201, 169, 76, 0.10);
 }
 
 /* ==========================================
@@ -155,18 +154,18 @@ input[type="text"]:focus {
     cursor: pointer;
     font-weight: 600;
     font-size: 13px;
-    color: rgba(226, 232, 240, 0.75);
+    color: #45536b;
     transition: color 0.2s;
 }
 
 .opcion:hover {
-    color: #00e5ff;
+    color: #a3822f;
 }
 
 input[type="radio"] {
     width: 18px;
     height: 18px;
-    accent-color: #00e5ff;
+    accent-color: #c9a94c;
 }
 
 /* ==========================================
@@ -176,24 +175,24 @@ input[type="radio"] {
 input[type="file"] {
     width: 100%;
     padding: 12px;
-    border: 2px dashed rgba(0, 229, 255, 0.18);
+    border: 2px dashed #d8c48f;
     border-radius: 12px;
-    background: rgba(0, 229, 255, 0.03);
-    color: rgba(0, 229, 255, 0.55);
+    background: rgba(201, 169, 76, 0.04);
+    color: #a3822f;
     cursor: pointer;
     transition: all 0.25s;
     box-sizing: border-box;
 }
 
 input[type="file"]:hover {
-    border-color: rgba(0, 229, 255, 0.45);
-    background: rgba(0, 229, 255, 0.06);
+    border-color: #c9a94c;
+    background: rgba(201, 169, 76, 0.08);
 }
 
 input[type="file"]::file-selector-button {
-    background: rgba(0, 229, 255, 0.10);
-    color: #00e5ff;
-    border: 1px solid rgba(0, 229, 255, 0.25);
+    background: rgba(201, 169, 76, 0.12);
+    color: #a3822f;
+    border: 1px solid rgba(201, 169, 76, 0.35);
     border-radius: 6px;
     padding: 8px 14px;
     margin-right: 12px;
@@ -204,13 +203,13 @@ input[type="file"]::file-selector-button {
 }
 
 input[type="file"]::file-selector-button:hover {
-    background: rgba(0, 229, 255, 0.18);
+    background: rgba(201, 169, 76, 0.22);
 }
 
 small {
     display: block;
     margin-top: 10px;
-    color: rgba(0, 229, 255, 0.30);
+    color: #94a3b8;
     font-size: 12px;
 }
 
@@ -225,22 +224,22 @@ small {
 }
 
 button {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.75), rgba(109, 40, 217, 0.85));
-    color: #ede9fe;
-    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff;
+    border: 1px solid rgba(124, 58, 237, 0.35);
     padding: 13px 32px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.25s;
-    box-shadow: 0 0 18px rgba(124, 58, 237, 0.18);
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
 }
 
 button:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 1), rgba(109, 40, 217, 1));
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     transform: translateY(-2px);
-    box-shadow: 0 0 28px rgba(124, 58, 237, 0.35);
+    box-shadow: 0 8px 22px rgba(124, 58, 237, 0.35);
 }
 
 button:active {

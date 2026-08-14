@@ -1,0 +1,201 @@
+<div class="pd-overlay">
+  <div class="pd-backdrop" (click)="cerrarModal()"></div>
+
+  <div class="pd-modal">
+
+    <button class="pd-cerrar" (click)="cerrarModal()" type="button">
+      <i class="ti ti-x"></i>
+    </button>
+
+    <div class="pd-header">
+      <div class="pd-header-icono">
+        <i class="ti ti-calendar-plus"></i>
+      </div>
+      <div>
+        <h2 class="pd-titulo">Programar Defensa</h2>
+        <p class="pd-subtitulo" *ngIf="estudiante">
+          {{ estudiante.nombres }} — {{ estudiante.cedula }}
+        </p>
+      </div>
+    </div>
+
+    <form class="pd-form" (ngSubmit)="guardarDefensa()" #form="ngForm">
+
+      <!-- ── DATOS DEL ESTUDIANTE (solo lectura) ── -->
+      <div class="pd-seccion-titulo">Datos del estudiante</div>
+
+      <div class="pd-fila-3">
+        <div class="pd-campo">
+          <label>Cédula</label>
+          <input type="text" class="pd-input pd-readonly" [value]="datosDefensa.cedula" readonly />
+        </div>
+
+        <div class="pd-campo pd-campo-ancho">
+          <label>Nombre</label>
+          <input type="text" class="pd-input pd-readonly" [value]="datosDefensa.nombre" readonly />
+        </div>
+
+        <div class="pd-campo">
+          <label>Carrera</label>
+          <input type="text" class="pd-input pd-readonly" [value]="datosDefensa.carrera" readonly />
+        </div>
+      </div>
+
+      <!-- ── DATOS DE LA DEFENSA ── -->
+      <div class="pd-seccion-titulo">Datos de la defensa</div>
+
+      <div class="pd-fila-2">
+        <div class="pd-campo">
+          <label for="fecha">Fecha *</label>
+          <input
+            type="date"
+            id="fecha"
+            name="fecha"
+            class="pd-input"
+            [(ngModel)]="datosDefensa.fecha"
+            required
+          />
+        </div>
+
+        <div class="pd-campo">
+          <label for="aula">Aula *</label>
+          <input
+            type="text"
+            id="aula"
+            name="aula"
+            class="pd-input"
+            placeholder="Ej. Aula 302"
+            [(ngModel)]="datosDefensa.aula"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="pd-fila-2">
+        <div class="pd-campo">
+          <label for="horaInicio">Hora inicio *</label>
+          <input
+            type="time"
+            id="horaInicio"
+            name="horaInicio"
+            class="pd-input"
+            [(ngModel)]="datosDefensa.horaInicio"
+            required
+          />
+        </div>
+
+        <div class="pd-campo">
+          <label for="horaFin">Hora fin *</label>
+          <input
+            type="time"
+            id="horaFin"
+            name="horaFin"
+            class="pd-input"
+            [(ngModel)]="datosDefensa.horaFin"
+            required
+          />
+        </div>
+      </div>
+
+      <div *ngIf="!horaFinValida()" class="pd-hint-error">
+        <i class="ti ti-alert-circle"></i>
+        La hora de fin debe ser posterior a la hora de inicio.
+      </div>
+
+      <div class="pd-campo">
+        <label for="sede">Sede *</label>
+        <input
+          type="text"
+          id="sede"
+          name="sede"
+          class="pd-input"
+          placeholder="Ej. Matriz, Extensión..."
+          [(ngModel)]="datosDefensa.sede"
+          required
+        />
+      </div>
+
+      <!-- ── TRIBUNAL ── -->
+      <div class="pd-seccion-titulo">Tribunal</div>
+
+      <div class="pd-campo">
+        <label for="tribunal1">Tribunal 1 *</label>
+        <input
+          type="text"
+          id="tribunal1"
+          name="tribunal1"
+          class="pd-input"
+          placeholder="Nombre completo"
+          [(ngModel)]="datosDefensa.tribunal1"
+          required
+        />
+      </div>
+
+      <div class="pd-campo">
+        <label for="tribunal2">Tribunal 2 *</label>
+        <input
+          type="text"
+          id="tribunal2"
+          name="tribunal2"
+          class="pd-input"
+          placeholder="Nombre completo"
+          [(ngModel)]="datosDefensa.tribunal2"
+          required
+        />
+      </div>
+
+      <div class="pd-campo">
+        <label for="tribunal3">Tribunal 3 *</label>
+        <input
+          type="text"
+          id="tribunal3"
+          name="tribunal3"
+          class="pd-input"
+          placeholder="Nombre completo"
+          [(ngModel)]="datosDefensa.tribunal3"
+          required
+        />
+      </div>
+
+      <!-- ── NOTA (opcional, se llena después) ── -->
+      <div class="pd-seccion-titulo">
+        Nota de defensa
+        <span class="pd-badge-opcional">Opcional — se puede ingresar después</span>
+      </div>
+
+      <div class="pd-campo">
+        <label for="nota">Nota</label>
+        <input
+          type="number"
+          id="nota"
+          name="notaDefensa"
+          class="pd-input"
+          placeholder="Aún no calificado"
+          min="0"
+          max="10"
+          step="0.01"
+          [(ngModel)]="datosDefensa.notaDefensa"
+        />
+      </div>
+
+      <!-- Error -->
+      <div class="pd-error" *ngIf="errorGuardado">
+        <i class="ti ti-alert-circle"></i>
+        <span>{{ errorGuardado }}</span>
+      </div>
+
+    </form>
+
+    <div class="pd-footer">
+      <button type="button" class="pd-btn pd-btn-secundario" (click)="cerrarModal()" [disabled]="guardando">
+        Cancelar
+      </button>
+
+      <button type="button" class="pd-btn pd-btn-primario" (click)="guardarDefensa()" [disabled]="guardando">
+        <i class="ti ti-loader-2 pd-spin" *ngIf="guardando"></i>
+        <span>{{ guardando ? 'Guardando...' : 'Guardar Defensa' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

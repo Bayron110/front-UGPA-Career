@@ -2,30 +2,43 @@
    VARIABLES
    ════════════════════════════════════════════════ */
 :host {
-  --cyan:        #00e5ff;
-  --cyan-dim:    rgba(0, 229, 255, 0.12);
-  --cyan-glow:   rgba(0, 229, 255, 0.08);
-  --bg:          #060f20;
-  --surface:     rgba(5, 18, 50, 0.82);
-  --surface-2:   rgba(8, 24, 60, 0.65);
-  --border:      rgba(0, 229, 255, 0.14);
-  --border-h:    rgba(0, 229, 255, 0.40);
-  --text:        #e0f7ff;
-  --text-dim:    rgba(180, 220, 255, 0.55);
-  --text-muted:  rgba(180, 220, 255, 0.32);
-  --verde:       #4ade80;
-  --verde-bg:    rgba(74, 222, 128, 0.10);
-  --rojo:        #f87171;
-  --rojo-bg:     rgba(248, 113, 113, 0.10);
-  --amarillo:    #fbbf24;
-  --amarillo-bg: rgba(251, 191, 36, 0.10);
+  --cyan:        #c9a94c;
+  --cyan-dim:    rgba(201, 169, 76, 0.12);
+  --cyan-glow:   rgba(201, 169, 76, 0.08);
+  --bg:          #f8f9fb;
+  --surface:     #ffffff;
+  --surface-2:   #f4f6fa;
+  --border:      #e4e8f0;
+  --border-h:    rgba(201, 169, 76, 0.45);
+  --text:        #1a2942;
+  --text-dim:    #64738c;
+  --text-muted:  rgba(26, 41, 66, 0.35);
+  --verde:       #16a34a;
+  --verde-bg:    rgba(22, 163, 74, 0.10);
+  --rojo:        #dc2626;
+  --rojo-bg:     rgba(220, 38, 38, 0.10);
+  --amarillo:    #d97706;
+  --amarillo-bg: rgba(217, 119, 6, 0.10);
   --radio:       12px;
-  display: block;
-  min-height: 100vh;
+
+  /* NUEVO: altura que ocupa este componente dentro de tu layout.
+     Si tienes un header/topbar fuera de este componente (como el
+     "GESTIÓN DE CARRERAS" de la captura), ajusta aquí su alto real
+     para que el cálculo de scroll interno cuadre exacto. */
+  --header-externo: 0px;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;      /* clave para que el flex hijo (.tabla-container) pueda scrollear bien */
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  box-sizing: border-box;
 }
+
+:host * { box-sizing: border-box; }
 
 /* ════════════════════════════════════════════════
    OVERLAY SELECTOR DE PERIODO
@@ -43,7 +56,7 @@
 .periodo-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 5, 20, 0.90);
+  background: rgba(15, 31, 61, 0.45);
   backdrop-filter: blur(6px);
 }
 
@@ -52,14 +65,14 @@
   z-index: 1;
   width: 100%;
   max-width: 500px;
-  background: rgba(6, 18, 48, 0.95);
+  background: #ffffff;
   border: 1px solid var(--border-h);
   border-radius: 20px;
   padding: 36px 32px 28px;
   box-shadow:
-    0 0 0 1px rgba(0,229,255,0.06),
-    0 24px 80px rgba(0,0,0,0.70),
-    inset 0 1px 0 rgba(0,229,255,0.12);
+    0 0 0 1px rgba(201,169,76,0.08),
+    0 24px 80px rgba(15,31,61,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.6);
   animation: modalIn .45s cubic-bezier(.22,1,.36,1) both;
 }
 
@@ -83,7 +96,7 @@
   font-size: 26px;
   color: var(--cyan);
   margin: 0 auto 16px;
-  box-shadow: 0 0 24px rgba(0,229,255,0.12);
+  box-shadow: 0 0 24px rgba(201,169,76,0.20);
 }
 
 .periodo-titulo {
@@ -118,7 +131,7 @@
 
 .periodo-search-input {
   width: 100%;
-  background: rgba(0,229,255,0.04);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 9px;
   padding: 10px 14px 10px 38px;
@@ -150,7 +163,7 @@
 .periodos-lista::-webkit-scrollbar { width: 4px; }
 .periodos-lista::-webkit-scrollbar-track { background: transparent; }
 .periodos-lista::-webkit-scrollbar-thumb {
-  background: rgba(0,229,255,0.20);
+  background: rgba(201,169,76,0.30);
   border-radius: 4px;
 }
 
@@ -172,7 +185,7 @@
 
 .periodo-item:hover {
   border-color: var(--border-h);
-  background: rgba(0,229,255,0.07);
+  background: rgba(201,169,76,0.08);
   transform: translateX(2px);
 }
 
@@ -219,9 +232,9 @@
   white-space: nowrap;
 }
 
-.periodo-badge.activo,  .seccion-badge.activo  { background: var(--verde-bg);    color: var(--verde);   border: 1px solid rgba(74,222,128,.25); }
-.periodo-badge.proximo, .seccion-badge.proximo  { background: var(--amarillo-bg); color: var(--amarillo);border: 1px solid rgba(251,191,36,.25); }
-.periodo-badge.cerrado, .seccion-badge.cerrado  { background: rgba(100,116,139,.10); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); }
+.periodo-badge.activo,  .seccion-badge.activo  { background: var(--verde-bg);    color: var(--verde);   border: 1px solid rgba(22,163,74,.25); }
+.periodo-badge.proximo, .seccion-badge.proximo  { background: var(--amarillo-bg); color: var(--amarillo);border: 1px solid rgba(217,119,6,.25); }
+.periodo-badge.cerrado, .seccion-badge.cerrado  { background: rgba(100,116,139,.10); color: #64748b; border: 1px solid rgba(100,116,139,.25); }
 
 .periodos-vacio {
   display: flex;
@@ -247,12 +260,21 @@
 
 /* ════════════════════════════════════════════════
    VISTA PRINCIPAL
+   ════════════════════════════════════════════════
+   Ocupa TODO el ancho y alto disponibles.
+   Cabecera y filtros no crecen (flex-shrink:0);
+   la tabla toma el espacio restante y scrollea
+   internamente (flex:1 + min-height:0 + overflow).
    ════════════════════════════════════════════════ */
 .main-view {
-  padding: 28px 32px;
-  max-width: 1400px;
-  margin: 0 auto;
-  animation: fadeIn .35s ease both;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;   /* antes: 24px 28px */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes fadeIn {
@@ -265,9 +287,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   gap: 16px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .seccion-header-left {
@@ -303,6 +326,7 @@
   font-weight: 700;
   letter-spacing: -.3px;
   margin-bottom: 4px;
+  color: var(--text);
 }
 
 .seccion-breadcrumb {
@@ -323,7 +347,7 @@
   background: var(--cyan-dim);
   border: 1px solid var(--border-h);
   border-radius: var(--radio);
-  color: var(--cyan);
+  color: #8a6d1f;
   font-size: 14px;
   font-weight: 600;
   font-family: inherit;
@@ -332,9 +356,9 @@
 }
 
 .btn-primary:hover {
-  background: rgba(0,229,255,0.22);
-  box-shadow: 0 0 20px rgba(0,229,255,0.15);
-  color: #fff;
+  background: rgba(201,169,76,0.25);
+  box-shadow: 0 0 20px rgba(201,169,76,0.15);
+  color: var(--text);
 }
 
 /* ── Barra de filtros ── */
@@ -342,8 +366,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .busqueda-grupo {
@@ -428,7 +453,7 @@
 }
 
 .filtro-select:focus { border-color: var(--border-h); }
-.filtro-select option { background: #0a1a3a; }
+.filtro-select option { background: #ffffff; color: var(--text); }
 
 .filtros-stats {
   font-size: 13px;
@@ -437,18 +462,22 @@
   padding: 0 4px;
 }
 
-/* ── Tabla ── */
+/* ── Tabla ──
+   flex:1 + min-height:0 es lo que permite que ESTE
+   contenedor (y no la página completa) sea el que
+   scrollea verticalmente. */
 .tabla-container {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
 
+  flex: 1;
+  min-height: 0;
+
   overflow-x: auto;
   overflow-y: auto;
 
-  max-height: 70vh;
-
-  box-shadow: 0 4px 24px rgba(0,0,0,0.30);
+  box-shadow: 0 4px 24px rgba(15,31,61,0.08);
 }
 
 .tabla-container::-webkit-scrollbar {
@@ -457,16 +486,16 @@
 }
 
 .tabla-container::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.03);
+  background: rgba(15,31,61,0.03);
 }
 
 .tabla-container::-webkit-scrollbar-thumb {
-  background: rgba(0,229,255,0.25);
+  background: rgba(201,169,76,0.35);
   border-radius: 10px;
 }
 
 .tabla-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,229,255,0.45);
+  background: rgba(201,169,76,0.55);
 }
 .tabla {
   width: 100%;
@@ -475,7 +504,7 @@
 }
 
 .tabla thead {
-  background: rgba(0,229,255,0.04);
+  background: var(--surface-2);
   border-bottom: 1px solid var(--border);
 }
 
@@ -488,16 +517,22 @@
   letter-spacing: .08em;
   color: var(--text-dim);
   white-space: nowrap;
+
+  /* encabezado siempre visible mientras se scrollea */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-2);
 }
 
 .tabla td {
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0,229,255,0.06);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
 .tabla-fila { transition: background .15s; }
-.tabla-fila:hover { background: rgba(0,229,255,0.04); }
+.tabla-fila:hover { background: rgba(201,169,76,0.05); }
 .tabla-fila:last-child td { border-bottom: none; }
 
 /* checkbox */
@@ -526,7 +561,7 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  color: var(--cyan);
+  color: #8a6d1f;
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: .02em;
@@ -550,9 +585,9 @@
 .carrera-tag {
   display: inline-block;
   font-size: 12px;
-  background: rgba(30, 136, 229, 0.12);
-  color: #60a5fa;
-  border: 1px solid rgba(96, 165, 250, 0.22);
+  background: rgba(30, 136, 229, 0.10);
+  color: #1e6fd0;
+  border: 1px solid rgba(30, 136, 229, 0.25);
   border-radius: 6px;
   padding: 3px 9px;
   white-space: nowrap;
@@ -563,7 +598,7 @@
 
 /* Cédula */
 .cedula-val {
-  font-family: 'DM Mono', monospace;
+  font-family: 'SFMono-Regular', Consolas, monospace;
   font-size: 13px;
   color: var(--text-dim);
   letter-spacing: .05em;
@@ -583,13 +618,55 @@
 .notif-badge.activa {
   background: var(--verde-bg);
   color: var(--verde);
-  border: 1px solid rgba(74,222,128,.20);
+  border: 1px solid rgba(22,163,74,.20);
+}
+
+.notif-badge.pendiente {
+  background: var(--amarillo-bg);
+  color: var(--amarillo);
+  border: 1px solid rgba(217,119,6,.20);
 }
 
 .notif-badge.inactiva {
   background: rgba(100,116,139,.10);
-  color: #94a3b8;
+  color: #64748b;
   border: 1px solid rgba(100,116,139,.20);
+}
+
+/* Requisitos */
+.req-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+/* Estado (habilitado / pendiente) */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.estado-badge.habilitado {
+  background: var(--verde-bg);
+  color: var(--verde);
+  border: 1px solid rgba(22,163,74,.20);
+}
+
+.estado-badge.no-habilitado {
+  background: var(--amarillo-bg);
+  color: var(--amarillo);
+  border: 1px solid rgba(217,119,6,.20);
 }
 
 /* Defensa */
@@ -603,9 +680,9 @@
   border-radius: 20px;
 }
 
-.defensa-badge.pendiente  { background: var(--amarillo-bg); color: var(--amarillo); border: 1px solid rgba(251,191,36,.20); }
-.defensa-badge.aprobada   { background: var(--verde-bg);    color: var(--verde);    border: 1px solid rgba(74,222,128,.20); }
-.defensa-badge.reprobada  { background: var(--rojo-bg);     color: var(--rojo);     border: 1px solid rgba(248,113,113,.20); }
+.defensa-badge.pendiente  { background: var(--amarillo-bg); color: var(--amarillo); border: 1px solid rgba(217,119,6,.20); }
+.defensa-badge.aprobada   { background: var(--verde-bg);    color: var(--verde);    border: 1px solid rgba(22,163,74,.20); }
+.defensa-badge.reprobada  { background: var(--rojo-bg);     color: var(--rojo);     border: 1px solid rgba(220,38,38,.20); }
 
 .sin-defensa { color: var(--text-muted); font-size: 16px; }
 
@@ -624,7 +701,7 @@
   background: var(--cyan-dim);
   border: 1px solid var(--border-h);
   border-radius: 8px;
-  color: var(--cyan);
+  color: #8a6d1f;
   font-size: 12px;
   font-weight: 600;
   font-family: inherit;
@@ -634,9 +711,9 @@
 }
 
 .btn-agregar:hover {
-  background: rgba(0,229,255,0.22);
-  color: #fff;
-  box-shadow: 0 0 14px rgba(0,229,255,0.15);
+  background: rgba(201,169,76,0.25);
+  color: var(--text);
+  box-shadow: 0 0 14px rgba(201,169,76,0.15);
 }
 
 .btn-icon {
@@ -679,9 +756,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 4px 4px;
+  padding: 14px 4px 0;
   font-size: 13px;
   color: var(--text-dim);
+  flex-shrink: 0;
 }
 
 .paginacion-controles { display: flex; align-items: center; gap: 6px; }
@@ -710,7 +788,7 @@
   font-size: 13px;
   font-weight: 600;
   background: var(--cyan-dim);
-  color: var(--cyan);
+  color: #8a6d1f;
   border: 1px solid var(--border-h);
 }
 
@@ -718,7 +796,8 @@
    RESPONSIVE
    ════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .main-view { padding: 16px; }
+  :host { height: auto; min-height: 100vh; }
+  .main-view { padding: 16px; height: auto; }
 
   .seccion-header { flex-direction: column; align-items: flex-start; }
   .btn-primary { width: 100%; justify-content: center; }
@@ -729,6 +808,8 @@
 
   .tabla th:nth-child(4),
   .tabla td:nth-child(4) { display: none; } /* ocultar email en móvil */
+
+  .tabla-container { max-height: 60vh; }
 
   .paginacion { flex-direction: column; gap: 12px; }
 }
