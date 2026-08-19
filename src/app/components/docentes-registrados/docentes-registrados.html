@@ -1,0 +1,416 @@
+<div class="contenedor-documentos">
+  <div class="panel-principal">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab-btn"
+        [class.activa]="tabActiva() === 'registrados'"
+        (click)="cambiarTab('registrados')"
+        type="button"
+      >
+        <span class="tab-dot"></span>
+        Docentes Registrados
+      </button>
+
+      <button
+        class="tab-btn"
+        [class.activa]="tabActiva() === 'cargar'"
+        (click)="cambiarTab('cargar')"
+        type="button"
+      >
+        <span class="tab-dot"></span>
+        Cargar Excel
+      </button>
+    </div>
+
+    <!-- Contenido -->
+    <div class="panel-contenido">
+
+      @if (tabActiva() === 'registrados') {
+
+        @if (cargandoRegistrados()) {
+          <div class="vista-vacia">
+            <h3>Cargando docentes...</h3>
+            <p>Esperando datos de Firebase.</p>
+          </div>
+        } @else {
+
+          <!-- Filtro por carrera + Agregar docente -->
+          <div class="filtro-barra">
+            <div class="filtro-barra-izquierda">
+              <label for="filtroCarrera" class="filtro-label">Filtrar por carrera</label>
+              <select
+                id="filtroCarrera"
+                class="filtro-selector"
+                [ngModel]="carreraSeleccionada()"
+                (ngModelChange)="cambiarFiltroCarrera($event)"
+              >
+                <option value="todas">Todas las carreras</option>
+                @for (carrera of carrerasDisponibles(); track carrera) {
+                  <option [value]="carrera">{{ carrera }}</option>
+                }
+              </select>
+            </div>
+
+            <button type="button" class="btn btn-primario" (click)="abrirModalAgregar()">
+              + Agregar Docente
+            </button>
+          </div>
+
+          @if (docentesRegistrados().length === 0) {
+            <div class="vista-vacia">
+              <h3>Sin docentes registrados</h3>
+              <p>Subí un Excel desde la pestaña "Cargar Excel" o agregá un docente manualmente.</p>
+            </div>
+          } @else {
+
+            <!-- Barra de cambios pendientes -->
+            @if (hayCambiosPendientes()) {
+              <div class="barra-pendientes">
+                <span class="barra-pendientes-texto">
+                  {{ cantidadCambiosPendientes() }} cambio(s) sin guardar
+                </span>
+                <div class="barra-pendientes-acciones">
+                  <button
+                    class="btn btn-secundario"
+                    (click)="descartarCambios()"
+                    [disabled]="guardandoCambios()"
+                    type="button"
+                  >
+                    Descartar
+                  </button>
+                  <button
+                    class="btn btn-primario"
+                    (click)="guardarCambios()"
+                    [disabled]="guardandoCambios()"
+                    type="button"
+                  >
+                    {{ guardandoCambios() ? 'Guardando...' : 'Guardar cambios' }}
+                  </button>
+                </div>
+              </div>
+            }
+
+            @if (mensaje()) {
+              <div class="mensaje" [class.ok]="mensaje()!.tipo === 'ok'" [class.error]="mensaje()!.tipo === 'error'">
+                {{ mensaje()!.texto }}
+              </div>
+            }
+
+            <div class="lista-carreras">
+              @for (grupo of docentesPorCarrera(); track grupo.carrera) {
+                <div class="grupo-carrera">
+                  <div class="grupo-header">
+                    <h3 class="grupo-titulo">{{ grupo.carrera }}</h3>
+                    <span class="grupo-contador">{{ grupo.docentes.length }} docente(s)</span>
+                  </div>
+
+                  <div class="tabla-wrapper">
+                    <table class="tabla-docentes">
+                      <thead>
+                        <tr>
+                          <th>Cédula</th>
+                          <th>Nombres Completos</th>
+                          <th>Rol</th>
+                          <th>Carreras</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (docente of grupo.docentes; track docente.cedula) {
+                          <tr [class.fila-pendiente]="tieneCambioPendiente(docente)">
+                            <td>{{ docente.cedula }}</td>
+                            <td>{{ docente.nombresCompletos }}</td>
+                            <td>
+                              <div class="rol-selector-wrapper">
+                                <select
+                                  class="rol-selector"
+                                  [class.es-coordinador]="rolMostrado(docente) === 'coordinador'"
+                                  [ngModel]="rolMostrado(docente)"
+                                  (ngModelChange)="cambiarRolLocal(docente, $event)"
+                                  [disabled]="guardandoCambios()"
+                                >
+                                  <option value="docente">Docente</option>
+                                  <option value="coordinador">Coordinador</option>
+                                </select>
+                                @if (tieneCambioPendiente(docente)) {
+                                  <span class="punto-pendiente" title="Cambio sin guardar"></span>
+                                }
+                              </div>
+                            </td>
+                            <td>
+                              <div class="carreras-cargo-wrapper">
+                                <button
+                                  type="button"
+                                  class="carreras-cargo-btn"
+                                  [disabled]="guardandoCambios()"
+                                  (click)="abrirCerrarMenuCarreras(docente.cedula, $event)"
+                                >
+                                  {{ carrerasMostradas(docente).length }} carrera(s)
+                                  <span class="carreras-cargo-flecha">▾</span>
+                                </button>
+
+                                @if (carrerasMostradas(docente).length > 0) {
+                                  <div class="carreras-chips">
+                                    @for (c of carrerasMostradas(docente); track c) {
+                                      <span class="chip">{{ c }}</span>
+                                    }
+                                  </div>
+                                } @else {
+                                  <span class="sin-cargo">Sin carreras asignadas</span>
+                                }
+                              </div>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Modal: Carreras del docente/coordinador -->
+            @if (menuCarrerasAbierto() && docenteSeleccionado()) {
+              <div class="modal-backdrop" (click)="cerrarMenuCarreras()"></div>
+              <div class="modal-carreras" (click)="$event.stopPropagation()">
+                <div class="modal-carreras-header">
+                  <div>
+                    <p class="modal-carreras-titulo">Carreras asignadas</p>
+                    <p class="modal-carreras-subtitulo">{{ docenteSeleccionado()!.nombresCompletos }}</p>
+                  </div>
+                  <button type="button" class="modal-carreras-cerrar" (click)="cerrarMenuCarreras()">✕</button>
+                </div>
+
+                <div class="modal-carreras-lista">
+                  @if (rolMostrado(docenteSeleccionado()!) === 'coordinador') {
+                    <p class="modal-carreras-nota">
+                      No se muestran carreras que ya estén a cargo de otro coordinador.
+                    </p>
+                  }
+                  @for (carrera of carrerasParaChecklist(docenteSeleccionado()!); track carrera) {
+                    <label class="carreras-menu-item">
+                      <input
+                        type="checkbox"
+                        [checked]="estaCarreraAsignada(docenteSeleccionado()!, carrera)"
+                        (change)="toggleCarreraACargo(docenteSeleccionado()!, carrera, $event)"
+                      />
+                      {{ carrera }}
+                    </label>
+                  }
+                </div>
+
+                <div class="modal-carreras-footer">
+                  <button type="button" class="btn btn-primario" (click)="cerrarMenuCarreras()">Listo</button>
+                </div>
+              </div>
+            }
+
+            <!-- Modal: Agregar Docente -->
+            @if (mostrarModalAgregar()) {
+              <div class="modal-backdrop" (click)="cerrarModalAgregar()"></div>
+              <div class="modal-carreras modal-agregar" (click)="$event.stopPropagation()">
+                <div class="modal-carreras-header">
+                  <div>
+                    <p class="modal-carreras-titulo">Agregar Docente</p>
+                    <p class="modal-carreras-subtitulo">Se guarda directo en la base de datos</p>
+                  </div>
+                  <button type="button" class="modal-carreras-cerrar" (click)="cerrarModalAgregar()">✕</button>
+                </div>
+
+                <div class="modal-carreras-lista modal-agregar-body">
+
+                  <div class="campo-form">
+                    <label class="campo-label" for="nuevaCedula">Cédula</label>
+                    <input
+                      id="nuevaCedula"
+                      type="text"
+                      class="campo-input"
+                      [ngModel]="nuevoDocente().cedula"
+                      (ngModelChange)="actualizarCampoNuevoDocente('cedula', $event)"
+                      [disabled]="guardandoNuevoDocente()"
+                    />
+                  </div>
+
+                  <div class="campo-form">
+                    <label class="campo-label" for="nuevoNombre">Nombres Completos</label>
+                    <input
+                      id="nuevoNombre"
+                      type="text"
+                      class="campo-input"
+                      [ngModel]="nuevoDocente().nombresCompletos"
+                      (ngModelChange)="actualizarCampoNuevoDocente('nombresCompletos', $event)"
+                      [disabled]="guardandoNuevoDocente()"
+                    />
+                  </div>
+
+                  <div class="campo-form">
+                    <label class="campo-label" for="nuevoRol">Rol</label>
+                    <select
+                      id="nuevoRol"
+                      class="rol-selector"
+                      [class.es-coordinador]="nuevoDocente().rol === 'coordinador'"
+                      [ngModel]="nuevoDocente().rol"
+                      (ngModelChange)="cambiarRolNuevoDocente($event)"
+                      [disabled]="guardandoNuevoDocente()"
+                    >
+                      <option value="docente">Docente</option>
+                      <option value="coordinador">Coordinador</option>
+                    </select>
+                  </div>
+
+                  <div class="campo-form">
+                    <label class="campo-label">Carreras</label>
+
+                    @if (nuevoDocente().rol === 'coordinador') {
+                      <p class="modal-carreras-nota">
+                        No se muestran carreras que ya estén a cargo de otro coordinador.
+                      </p>
+                    }
+
+                    @if (carrerasDisponiblesParaNuevoDocente().length > 0) {
+                      <div class="carreras-existentes-lista">
+                        @for (carrera of carrerasDisponiblesParaNuevoDocente(); track carrera) {
+                          <label class="carreras-menu-item">
+                            <input
+                              type="checkbox"
+                              [checked]="nuevoDocente().carreras.includes(carrera)"
+                              (change)="toggleCarreraExistenteNuevoDocente(carrera)"
+                              [disabled]="guardandoNuevoDocente()"
+                            />
+                            {{ carrera }}
+                          </label>
+                        }
+                      </div>
+                    }
+
+                    <div class="carrera-nueva-input">
+                      <input
+                        type="text"
+                        class="campo-input"
+                        placeholder="Escribí una carrera nueva..."
+                        [ngModel]="nuevoDocente().carreraNueva"
+                        (ngModelChange)="actualizarCampoNuevoDocente('carreraNueva', $event)"
+                        (keydown.enter)="agregarCarreraNuevaAlFormulario()"
+                        [disabled]="guardandoNuevoDocente()"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-secundario"
+                        (click)="agregarCarreraNuevaAlFormulario()"
+                        [disabled]="guardandoNuevoDocente()"
+                      >
+                        Agregar
+                      </button>
+                    </div>
+
+                    @if (nuevoDocente().carreras.length > 0) {
+                      <div class="carreras-chips carreras-chips-formulario">
+                        @for (carrera of nuevoDocente().carreras; track carrera) {
+                          <span class="chip chip-removible">
+                            {{ carrera }}
+                            <button
+                              type="button"
+                              class="chip-quitar"
+                              (click)="quitarCarreraDelFormulario(carrera)"
+                              [disabled]="guardandoNuevoDocente()"
+                            >✕</button>
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                </div>
+
+                <div class="modal-carreras-footer">
+                  <button type="button" class="btn btn-secundario" (click)="cerrarModalAgregar()" [disabled]="guardandoNuevoDocente()">
+                    Cancelar
+                  </button>
+                  <button type="button" class="btn btn-primario" (click)="guardarNuevoDocente()" [disabled]="guardandoNuevoDocente()">
+                    {{ guardandoNuevoDocente() ? 'Guardando...' : 'Guardar Docente' }}
+                  </button>
+                </div>
+              </div>
+            }
+
+          }
+        }
+
+      } @else {
+
+        <!-- Tab: Cargar Excel -->
+        <div class="dropzone">
+          <label for="excelInput" class="dropzone-label">
+            <div class="dropzone-icono">📄</div>
+            <p class="dropzone-titulo">
+              @if (nombreArchivo()) {
+                {{ nombreArchivo() }}
+              } @else {
+                Seleccioná un archivo Excel
+              }
+            </p>
+            <p class="dropzone-subtitulo">Formato: cédula · nombres completos · carrera</p>
+          </label>
+          <input
+            id="excelInput"
+            type="file"
+            accept=".xlsx, .xls"
+            (change)="onFileSelected($event)"
+            class="input-oculto"
+          />
+        </div>
+
+        @if (mensaje()) {
+          <div class="mensaje" [class.ok]="mensaje()!.tipo === 'ok'" [class.error]="mensaje()!.tipo === 'error'">
+            {{ mensaje()!.texto }}
+          </div>
+        }
+
+        @if (docentes().length > 0) {
+          <div class="preview">
+            <div class="preview-header">
+              <p class="preview-contador">{{ docentes().length }} docente(s) detectados</p>
+              <div class="acciones">
+                <button class="btn btn-secundario" (click)="limpiar()" [disabled]="cargando()" type="button">
+                  Cancelar
+                </button>
+                <button class="btn btn-primario" (click)="guardarEnFirebase()" [disabled]="cargando()" type="button">
+                  {{ cargando() ? 'Guardando...' : 'Guardar en Firebase' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="tabla-wrapper">
+              <table class="tabla-docentes">
+                <thead>
+                  <tr>
+                    <th>Cédula</th>
+                    <th>Nombres Completos</th>
+                    <th>Carrera</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (docente of docentes(); track docente.cedula) {
+                    <tr>
+                      <td>{{ docente.cedula }}</td>
+                      <td>{{ docente.nombresCompletos }}</td>
+                      <td>{{ docente.carreras.join(', ') }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        } @else {
+          <div class="vista-vacia">
+            <h3>Sin datos cargados</h3>
+            <p>Subí un archivo Excel para ver la vista previa antes de guardar.</p>
+          </div>
+        }
+
+      }
+
+    </div>
+  </div>
+</div>

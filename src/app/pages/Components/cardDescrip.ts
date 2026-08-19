@@ -39,12 +39,21 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
-                badge: '🚧 En cConstrucción',
-                title: '🚧 Esperar proximas novedades',
-                description: '🚧 Modulo en Construcción (No disponible)',
-                footer: '🚧',
+                badge: 'En vigencia',
+                title: 'Docentes registrados',
+                description: 'Modulo para docentes registrados por el coordinador',
+                footer: 'Docentes registrados',
                 image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
-                action: 'irAAgendar'
+                action: 'irADocentes'
+        },
+
+                {
+                badge: 'Administración de Titulos',
+                title: 'Titulación',
+                description: 'Modulo para la gestión eficiente de los titulos',
+                footer: 'Titulos',
+                image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
+                action: 'irATitulos'
         },
 
 ];

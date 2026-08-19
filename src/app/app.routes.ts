@@ -4,6 +4,7 @@ import { DocumentosWebDocente } from './components/documentos-web-docente/docume
 import { Home } from './pages/home/home';
 import { Cronogramas } from './components/cronogramas/cronogramas';
 import { Documentos } from './components/documentos/documentos';
+import { DocentesRegistrados } from './components/docentes-registrados/docentes-registrados';
 
 export const routes: Routes = [
     { path: "Home", component: Home },
@@ -11,6 +12,7 @@ export const routes: Routes = [
     { path: "Documentos-Web", component: DocumentosWebDocente },
     {path:"Cronogramas", component: Cronogramas},
     {path:"Informes-UGPA", component: Documentos},
+    {path: "Docente-Registro", component: DocentesRegistrados},
     { path: '', redirectTo: 'Home', pathMatch: 'full' },
 
 ];

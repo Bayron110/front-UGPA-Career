@@ -63,7 +63,10 @@ export class Home implements OnInit {
       irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
       irAAgendar: () => this.router.navigate(['/Agenda']),
       irACronogramas: () => this.router.navigate(['/Cronogramas']),
-      irAInformesUGPA: () => this.router.navigate(['/Informes-UGPA'])
+      irAInformesUGPA: () => this.router.navigate(['/Informes-UGPA']),
+      irADocentes: () => this.router.navigate(['Docente-Registro']),
+      irATitulos: ()=> window.open('https://titulos-administrador.pages.dev/'),
+      irAFacturación: ()=> window.open("")
     };
     routes[action]?.();
   }
