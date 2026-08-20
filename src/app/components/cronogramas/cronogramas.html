@@ -35,17 +35,17 @@
     <main class="contenido">
 
         <div *ngIf="menuSeleccionado === 'publicar'">
-            <app-publicar-cronogramas></app-publicar-cronogramas>
+            <app-publicar-cronogramas [puedeEditar]="puedeEditar"></app-publicar-cronogramas>
         </div>
 
         <div *ngIf="menuSeleccionado === 'historial'">
-            <app-historial-cronogramas (abrirModalEvento)="onAbrirModal($event)"
+            <app-historial-cronogramas [puedeEditar]="puedeEditar" (abrirModalEvento)="onAbrirModal($event)"
                 (vincularEvento)="abrirModalVincular($event)">
             </app-historial-cronogramas>
         </div>
 
         <div *ngIf="menuSeleccionado === 'defensas'">
-            <app-defensas-estudiantes></app-defensas-estudiantes>
+            <app-defensas-estudiantes [puedeEditar]="puedeEditar"></app-defensas-estudiantes>
         </div>
 
     </main>
@@ -72,11 +72,11 @@
                 <div class="modal-grid-2">
                     <div class="campo">
                         <label>Nombre del cronograma</label>
-                        <input type="text" [(ngModel)]="editNombre" placeholder="Nombre">
+                        <input type="text" [(ngModel)]="editNombre" placeholder="Nombre" [disabled]="!puedeEditar">
                     </div>
                     <div class="campo">
                         <label>Periodo</label>
-                        <input type="text" [(ngModel)]="editPeriodo" placeholder="Periodo">
+                        <input type="text" [(ngModel)]="editPeriodo" placeholder="Periodo" [disabled]="!puedeEditar">
                     </div>
                 </div>
             </div>
@@ -87,27 +87,27 @@
                     <div class="campo">
                         <label>Color fondo</label>
                         <div class="color-wrapper">
-                            <input type="color" [(ngModel)]="editColorFondo">
+                            <input type="color" [(ngModel)]="editColorFondo" [disabled]="!puedeEditar">
                             <span class="color-hex">{{ editColorFondo }}</span>
                         </div>
                     </div>
                     <div class="campo">
                         <label>Color texto</label>
                         <div class="color-wrapper">
-                            <input type="color" [(ngModel)]="editColorTexto">
+                            <input type="color" [(ngModel)]="editColorTexto" [disabled]="!puedeEditar">
                             <span class="color-hex">{{ editColorTexto }}</span>
                         </div>
                     </div>
                     <div class="campo">
                         <label>Color borde</label>
                         <div class="color-wrapper">
-                            <input type="color" [(ngModel)]="editColorBorde">
+                            <input type="color" [(ngModel)]="editColorBorde" [disabled]="!puedeEditar">
                             <span class="color-hex">{{ editColorBorde }}</span>
                         </div>
                     </div>
                     <div class="campo">
                         <label>Fuente</label>
-                        <select [(ngModel)]="editFuente">
+                        <select [(ngModel)]="editFuente" [disabled]="!puedeEditar">
                             <option>Arial</option>
                             <option>Calibri</option>
                             <option>Verdana</option>
@@ -128,7 +128,7 @@
 
             <div class="modal-seccion">
                 <h4><i class="ti ti-list-check"></i> Actividades ({{ editActividades.length }})</h4>
-                <div class="modal-grid-actividad">
+                <div class="modal-grid-actividad" *ngIf="puedeEditar">
                     <div class="campo">
                         <label>Actividad</label>
                         <input type="text" [(ngModel)]="editNuevaActividad" placeholder="Nombre de la actividad">
@@ -156,7 +156,7 @@
                                 <th>Actividad</th>
                                 <th>Inicio</th>
                                 <th>Fin</th>
-                                <th></th>
+                                <th *ngIf="puedeEditar"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -165,7 +165,7 @@
                                 <td>{{ a.actividad }}</td>
                                 <td class="td-fecha">{{ formatearFecha(a.fechaInicio) }}</td>
                                 <td class="td-fecha">{{ formatearFecha(a.fechaFin) }}</td>
-                                <td class="td-accion">
+                                <td class="td-accion" *ngIf="puedeEditar">
                                     <button class="btn-danger-sm" (click)="eliminarActividadModal(i)">
                                         <i class="ti ti-trash"></i>
                                     </button>
@@ -181,7 +181,7 @@
         <div class="modal-footer">
 
             <!-- Botón vincular abre el modal de vinculación con el cronograma actual -->
-            <button class="btn-vincular-modal" (click)="abrirModalVincular(cronogramaEditando!)">
+            <button class="btn-vincular-modal" *ngIf="puedeEditar" (click)="abrirModalVincular(cronogramaEditando!)">
                 <i class="ti ti-users"></i>
                 Vincular estudiantes
             </button>
@@ -190,7 +190,7 @@
                 <button class="btn-cancelar" (click)="cerrarModal()">
                     Cancelar
                 </button>
-                <button class="btn-guardar" [disabled]="guardando" (click)="guardarCambios()">
+                <button class="btn-guardar" *ngIf="puedeEditar" [disabled]="guardando" (click)="guardarCambios()">
                     <i class="ti ti-device-floppy"></i>
                     {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
                 </button>
@@ -203,5 +203,6 @@
 
 <!-- ── MODAL VINCULAR ESTUDIANTES ── -->
 <app-modal-vincular [visible]="modalVincularVisible" [cronograma]="cronogramaParaVincular"
+    [puedeEditar]="puedeEditar"
     (cerrarEvento)="onModalVincularCerrado()" (vinculadoEvento)="onEstudiantesVinculados($event)">
 </app-modal-vincular>

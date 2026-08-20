@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as XLSX from 'xlsx';
 import { ref, update, onValue, off, DataSnapshot } from 'firebase/database';
 import { dbDocente } from '../../firebase/firebase-docente';
+import { tienePermiso } from '../../guards/permisos-guard';
 
 type Rol = 'docente' | 'coordinador';
 
@@ -35,10 +36,15 @@ interface NuevoDocenteForm {
   styleUrl: './docentes-registrados.css'
 })
 export class DocentesRegistrados implements OnInit, OnDestroy {
+
+  // ── Permiso del módulo (clave 'irADocentes' según MODULOS_SISTEMA) ──
+  puedeEditar = tienePermiso('irADocentes', 'edicion');
+
   // ── Tabs ──
   tabActiva = signal<'cargar' | 'registrados'>('registrados');
 
   cambiarTab(tab: 'cargar' | 'registrados'): void {
+    if (tab === 'cargar' && !this.puedeEditar) return;
     this.tabActiva.set(tab);
   }
 
@@ -49,6 +55,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   nombreArchivo = signal<string>('');
 
   onFileSelected(event: Event): void {
+    if (!this.puedeEditar) return;
+
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
@@ -87,6 +95,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   async guardarEnFirebase(): Promise<void> {
+    if (!this.puedeEditar) return;
+
     if (this.docentes().length === 0) {
       this.mensaje.set({ tipo: 'error', texto: 'No hay datos para guardar.' });
       return;
@@ -120,6 +130,7 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   limpiar(): void {
+    if (!this.puedeEditar) return;
     this.docentes.set([]);
     this.nombreArchivo.set('');
     this.mensaje.set(null);
@@ -245,6 +256,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   cambiarRolLocal(docente: Docente, nuevoRol: Rol): void {
+    if (!this.puedeEditar) return;
+
     const pendientes = new Map(this.cambiosPendientes());
     const cambioExistente = pendientes.get(docente.cedula);
     const carrerasBase = cambioExistente?.carreras ?? docente.carreras ?? [];
@@ -258,6 +271,7 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   toggleCarreraACargo(docente: Docente, carrera: string, event: Event): void {
+    if (!this.puedeEditar) return;
     event.stopPropagation();
 
     const pendientes = new Map(this.cambiosPendientes());
@@ -274,6 +288,7 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   abrirCerrarMenuCarreras(cedula: string, event: Event): void {
+    if (!this.puedeEditar) return;
     event.stopPropagation();
     this.menuCarrerasAbierto.set(this.menuCarrerasAbierto() === cedula ? null : cedula);
   }
@@ -283,6 +298,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   }
 
   async guardarCambios(): Promise<void> {
+    if (!this.puedeEditar) return;
+
     const pendientes = this.cambiosPendientes();
     if (pendientes.size === 0) return;
 
@@ -330,6 +347,7 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   });
 
   abrirModalAgregar(): void {
+    if (!this.puedeEditar) return;
     this.nuevoDocente.set({ cedula: '', nombresCompletos: '', rol: 'docente', carreras: [], carreraNueva: '' });
     this.mensaje.set(null);
     this.mostrarModalAgregar.set(true);
@@ -384,6 +402,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   });
 
   async guardarNuevoDocente(): Promise<void> {
+    if (!this.puedeEditar) return;
+
     const form = this.nuevoDocente();
     const cedula = form.cedula.trim();
     const nombres = form.nombresCompletos.trim();

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectorRef, ChangeDetectionStrategy, Input} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -17,6 +17,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PublicarCronogramas {
+
+  @Input() puedeEditar = false;
 
   cargando = false;
   excelTexto = '';
@@ -37,6 +39,7 @@ export class PublicarCronogramas {
   ) { }
 
   procesarExcel(): void {
+    if (!this.puedeEditar) return;
     if (!this.excelTexto.trim()) return;
 
     const filas = this.excelTexto.trim().split('\n');
@@ -67,6 +70,7 @@ export class PublicarCronogramas {
   }
 
   agregarActividad(): void {
+    if (!this.puedeEditar) return;
     if (!this.nuevaActividad || !this.nuevaFechaInicio || !this.nuevaFechaFin) return;
 
     this.actividades = [...this.actividades, {
@@ -82,11 +86,13 @@ export class PublicarCronogramas {
   }
 
   eliminarActividad(index: number): void {
+    if (!this.puedeEditar) return;
     this.actividades = this.actividades.filter((_, i) => i !== index);
     this.cdr.markForCheck();
   }
 
   async publicar(): Promise<void> {
+    if (!this.puedeEditar) return;
 
     if (!this.nombreCronograma.trim()) {
       alert('Ingrese el nombre del cronograma');

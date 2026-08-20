@@ -27,6 +27,8 @@ export interface DatosDefensa {
 })
 export class ProgramarDefensa {
 
+
+  @Input() puedeEditar = false;
   @Input() estudiante: EstudianteDefensa | null = null;
 
   @Output() cerrar = new EventEmitter<void>();

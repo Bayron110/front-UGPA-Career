@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -44,6 +44,7 @@ export interface EstudianteDefensa {
   styleUrl: './defensas-estudiantes.css'
 })
 export class DefensasEstudiantes implements OnInit {
+  @Input() puedeEditar = false;
 
   // ── Selección de periodo (antes "cronograma") ──────
   cronogramas: Cronograma[] = [];
@@ -318,11 +319,11 @@ export class DefensasEstudiantes implements OnInit {
   }
 
   // ── Agregar defensa: abre el modal ProgramarDefensa ───────────────────
-agregarDefensa(est: EstudianteDefensa): void {
-  alert('CLICK DETECTADO'); // 👈 temporal
-  this.estudianteParaDefensa = est;
-  this.mostrarProgramarDefensa = true;
-}
+  agregarDefensa(est: EstudianteDefensa): void {
+    if (!this.puedeEditar) return;
+    this.estudianteParaDefensa = est;
+    this.mostrarProgramarDefensa = true;
+  }
 
   cerrarProgramarDefensa(): void {
     this.mostrarProgramarDefensa = false;

@@ -1,6 +1,7 @@
 import {
   Component, OnInit, OnDestroy, Output, EventEmitter,
-  ChangeDetectorRef, ChangeDetectionStrategy
+  ChangeDetectorRef, ChangeDetectionStrategy,
+  Input
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +20,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HistorialCronogramas implements OnInit, OnDestroy {
+
+  @Input() puedeEditar = false;
 
   @Output() abrirModalEvento = new EventEmitter<Cronograma>();
   @Output() vincularEvento   = new EventEmitter<Cronograma>();

@@ -12,6 +12,7 @@ import {
   Cronograma
 } from './firebase/cronogramas';
 import { DefensasEstudiantes } from './components/defensas-estudiantes/defensas-estudiantes';
+import { tienePermiso } from '../../guards/permisos-guard';
 
 @Component({
   selector: 'app-cronogramas',
@@ -21,6 +22,10 @@ import { DefensasEstudiantes } from './components/defensas-estudiantes/defensas-
   styleUrl: './cronogramas.css'
 })
 export class Cronogramas implements AfterViewInit, OnDestroy {
+
+  // ── Permiso del módulo (clave 'irACronogramas' según MODULOS_SISTEMA) ──
+  // Se calcula una sola vez acá y se pasa a los subcomponentes como @Input()
+  puedeEditar = tienePermiso('irACronogramas', 'edicion');
 
   // ── Navegación ──
   menuSeleccionado = 'publicar';
@@ -57,6 +62,8 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
 
   // ── Modal editar ─────────────────────────────────────────
   onAbrirModal(c: Cronograma): void {
+    if (!this.puedeEditar) return;
+
     this.cronogramaEditando = c;
     this.editNombre         = c.nombre;
     this.editPeriodo        = c.periodo;
@@ -77,6 +84,8 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
   }
 
   agregarActividadModal(): void {
+    if (!this.puedeEditar) return;
+
     if (
       !this.editNuevaActividad ||
       !this.editNuevaFechaInicio ||
@@ -102,10 +111,12 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
   }
 
   eliminarActividadModal(index: number): void {
+    if (!this.puedeEditar) return;
     this.editActividades = this.editActividades.filter((_, i) => i !== index);
   }
 
   async guardarCambios(): Promise<void> {
+    if (!this.puedeEditar) return;
     if (!this.cronogramaEditando?.id) return;
     this.guardando = true;
     try {
@@ -140,10 +151,10 @@ export class Cronogramas implements AfterViewInit, OnDestroy {
   }
 
   // ── Modal vincular ───────────────────────────────────────
-  abrirModalVincular(c: Cronograma): void {
+abrirModalVincular(c: Cronograma): void {
     this.cronogramaParaVincular = c;
     this.modalVincularVisible   = true;
-  }
+}
 
   onModalVincularCerrado(): void {
     this.modalVincularVisible   = false;

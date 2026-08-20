@@ -1,5 +1,7 @@
+
+
 <div class="overlay" *ngIf="visible" (click)="cerrarSiFuera($event)">
-    <div class="modal">
+    <div class="modal" [class.expandido]="modalExpandido">
 
         <!-- ══ HEADER ══ -->
         <div class="modal-header">
@@ -10,9 +12,25 @@
                     {{ cronograma.nombre }} — {{ cronograma.periodo }}
                 </p>
             </div>
-            <button class="btn-cerrar" (click)="cerrar()">
-                <i class="ti ti-x"></i>
-            </button>
+            <div class="modal-header-acciones">
+                <button class="btn-expandir" (click)="toggleExpandido()"
+                    [title]="modalExpandido ? 'Contraer modal' : 'Expandir modal'">
+                    <svg *ngIf="!modalExpandido" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+                    </svg>
+                    <svg *ngIf="modalExpandido" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 4v4H4M16 4v4h4M8 20v-4H4M16 20v-4h4" />
+                    </svg>
+                </button>
+                <button class="btn-cerrar" (click)="cerrar()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- ══ PASO 1: ELEGIR GRUPO ══ -->
@@ -260,8 +278,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Sede</label>
-                                <input type="text" placeholder="Ej. Quito"
-                                    [(ngModel)]="manualDatos.sede">
+                                <input type="text" placeholder="Ej. Quito" [(ngModel)]="manualDatos.sede">
                             </div>
                         </div>
                         <div class="form-row">
@@ -434,7 +451,8 @@
                 <div class="modal-toolbar-fila">
                     <div class="buscador">
                         <i class="ti ti-search"></i>
-                        <input type="text" placeholder="Buscar por cédula o nombre..." [(ngModel)]="busquedaVinculados">
+                        <input type="text" placeholder="Buscar por cédula o nombre..." [(ngModel)]="busquedaVinculados"
+                            (ngModelChange)="onBusquedaVinculadosChange()">
                     </div>
                     <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
                         (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
@@ -472,7 +490,8 @@
                     <span class="stat sin-chatid" title="Estudiantes sin sede todavía">
                         <i class="ti ti-map-pin-off"></i> {{ totalSinSede }} sin sede
                     </span>
-                    <span class="stat sin-chatid" *ngIf="totalConChatIdDuplicado > 0" title="Personas con un Chat ID repetido">
+                    <span class="stat sin-chatid" *ngIf="totalConChatIdDuplicado > 0"
+                        title="Personas con un Chat ID repetido">
                         <i class="ti ti-alert-triangle"></i> {{ totalConChatIdDuplicado }} Chat ID duplicado
                     </span>
                 </div>
@@ -523,7 +542,8 @@
                         <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'DUPLICADOS'"
                             (click)="setFiltroNotifVinculados('DUPLICADOS')">
                             <i class="ti ti-alert-triangle"></i> Chat ID duplicado
-                            <span class="filtro-mini-count" *ngIf="totalConChatIdDuplicado > 0">{{ totalConChatIdDuplicado }}</span>
+                            <span class="filtro-mini-count" *ngIf="totalConChatIdDuplicado > 0">{{
+                                totalConChatIdDuplicado }}</span>
                         </button>
                     </div>
                 </div>
@@ -569,7 +589,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let p of vinculadosFiltrados">
+                        <tr *ngFor="let p of vinculadosPaginados; trackBy: trackByCedula">
                             <td>
                                 <span class="badge-tipo" [class.docente]="p.tipo === 'docente'">
                                     <i class="ti" [class.ti-user-graduate]="p.tipo === 'estudiante'"
@@ -596,7 +616,8 @@
                                 <span class="badge-notif activa" *ngIf="p.telegramChatId"
                                     [class.duplicado]="chatIdsDuplicados.has(p.telegramChatId + '')"
                                     [title]="chatIdsDuplicados.has(p.telegramChatId + '') ? 'Chat ID duplicado con otra persona' : 'Chat ID de Telegram'">
-                                    <i class="ti" [class.ti-brand-telegram]="!chatIdsDuplicados.has(p.telegramChatId + '')"
+                                    <i class="ti"
+                                        [class.ti-brand-telegram]="!chatIdsDuplicados.has(p.telegramChatId + '')"
                                         [class.ti-alert-triangle]="chatIdsDuplicados.has(p.telegramChatId + '')"></i>
                                     {{ p.telegramChatId }}
                                 </span>
@@ -626,6 +647,21 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- ══ PAGINACIÓN (100 en 100) ══ -->
+                <div class="paginacion-vinculados" *ngIf="totalPaginasVinculados > 1">
+                    <button class="btn-paginacion" (click)="paginaAnteriorVinculados()"
+                        [disabled]="paginaActualVinculados === 1">
+                        <i class="ti ti-chevron-left"></i> Anterior
+                    </button>
+                    <span class="paginacion-info">
+                        {{ rangoVinculadosTexto }} · Página {{ paginaActualVinculados }} de {{ totalPaginasVinculados }}
+                    </span>
+                    <button class="btn-paginacion" (click)="paginaSiguienteVinculados()"
+                        [disabled]="paginaActualVinculados === totalPaginasVinculados">
+                        Siguiente <i class="ti ti-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -636,8 +672,8 @@
                 <button class="btn-volver" (click)="volverDesdeEstadisticas()">
                     <i class="ti ti-arrow-left"></i>
                     {{ origenEstadisticas === 'estudiantes' ? (grupoSeleccionado?.nombres || 'Estudiantes')
-                       : origenEstadisticas === 'vinculados' ? 'Vinculados'
-                       : 'Grupos' }}
+                    : origenEstadisticas === 'vinculados' ? 'Vinculados'
+                    : 'Grupos' }}
                 </button>
                 <span class="nav-sep">/</span>
                 <span class="nav-grupo-nombre">Estadísticas</span>
@@ -658,11 +694,13 @@
                     </div>
                     <div class="stat-kpi kpi-verde">
                         <span class="stat-kpi-num">{{ statsGenerales.activas }}</span>
-                        <span class="stat-kpi-label">Con notificaciones activas ({{ statsGenerales.pctActivas }}%)</span>
+                        <span class="stat-kpi-label">Con notificaciones activas ({{ statsGenerales.pctActivas
+                            }}%)</span>
                     </div>
                     <div class="stat-kpi kpi-rojo">
                         <span class="stat-kpi-num">{{ statsGenerales.sinActivar }}</span>
-                        <span class="stat-kpi-label">Sin activar notificaciones ({{ statsGenerales.pctSinActivar }}%)</span>
+                        <span class="stat-kpi-label">Sin activar notificaciones ({{ statsGenerales.pctSinActivar
+                            }}%)</span>
                     </div>
                     <div class="stat-kpi kpi-gris">
                         <span class="stat-kpi-num">{{ statsGenerales.sinTelegram }}</span>
@@ -670,7 +708,8 @@
                     </div>
                     <div class="stat-kpi kpi-azul">
                         <span class="stat-kpi-num">{{ statsGenerales.pctAsistencia }}%</span>
-                        <span class="stat-kpi-label">Asistencia ({{ statsGenerales.presentes }}/{{ statsGenerales.total }})</span>
+                        <span class="stat-kpi-label">Asistencia ({{ statsGenerales.presentes }}/{{ statsGenerales.total
+                            }})</span>
                     </div>
                 </div>
 

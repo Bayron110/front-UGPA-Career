@@ -1,21 +1,51 @@
+import { ElementRef } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
 export type EstadoNotif = 'activa' | 'pendiente' | 'sin-telegram';
 
-export function estadoNotifVinculado(p: any): EstadoNotif {
-    if (p.notificacionesActivas && p.telegramChatId) return 'activa';
-    if (p.telegramUser || p.telegramChatId) return 'pendiente';
-    return 'sin-telegram';
+export interface StatsGenerales {
+    total: number;
+    activas: number;
+    pendientes: number;
+    sinTelegram: number;
+    sinActivar: number;
+    presentes: number;
+    ausentes: number;
+    pctActivas: number;
+    pctSinActivar: number;
+    pctAsistencia: number;
 }
 
-export function statsGenerales(personasVinculadas: any[]) {
-    const lista = personasVinculadas.filter(p => p.tipo === 'estudiante');
+export interface StatsPorGrupo {
+    etiqueta: string;
+    total: number;
+    activas: number;
+    pendientes: number;
+    sinTelegram: number;
+    sinActivar: number;
+    presentes: number;
+    ausentes: number;
+}
+
+export interface CanvasRefs {
+    notifDonut?: ElementRef<HTMLCanvasElement>;
+    sedeStack?: ElementRef<HTMLCanvasElement>;
+    sedeSinActivar?: ElementRef<HTMLCanvasElement>;
+    carreraStack?: ElementRef<HTMLCanvasElement>;
+    carreraSinActivar?: ElementRef<HTMLCanvasElement>;
+}
+
+/** KPIs generales a partir de la lista de estudiantes vinculados */
+export function calcularStatsGenerales(
+    lista: any[],
+    estadoFn: (p: any) => EstadoNotif
+): StatsGenerales {
     const total = lista.length;
-    const activas = lista.filter(p => estadoNotifVinculado(p) === 'activa').length;
-    const pendientes = lista.filter(p => estadoNotifVinculado(p) === 'pendiente').length;
-    const sinTelegram = lista.filter(p => estadoNotifVinculado(p) === 'sin-telegram').length;
+    const activas = lista.filter(p => estadoFn(p) === 'activa').length;
+    const pendientes = lista.filter(p => estadoFn(p) === 'pendiente').length;
+    const sinTelegram = lista.filter(p => estadoFn(p) === 'sin-telegram').length;
     const sinActivar = pendientes + sinTelegram;
     const presentes = lista.filter(p => p.asistencia).length;
 
@@ -28,11 +58,16 @@ export function statsGenerales(personasVinculadas: any[]) {
     };
 }
 
+/**
+ * Agrupa a los estudiantes vinculados por "sede" o "carrera" y cuenta,
+ * dentro de cada grupo: notificaciones activas, pendientes, sin Telegram,
+ * y asistencia. Ordenado de mayor a menor cantidad de estudiantes.
+ */
 export function agruparEstudiantesPor(
-    personasVinculadas: any[],
-    campo: 'sede' | 'carrera'
-) {
-    const lista = personasVinculadas.filter(p => p.tipo === 'estudiante');
+    lista: any[],
+    campo: 'sede' | 'carrera',
+    estadoFn: (p: any) => EstadoNotif
+): StatsPorGrupo[] {
     const etiquetaVacia = campo === 'sede' ? 'Sin sede' : 'Sin carrera';
 
     const mapa = new Map<string, {
@@ -48,7 +83,7 @@ export function agruparEstudiantesPor(
         }
 
         const entry = mapa.get(clave)!;
-        const estado = estadoNotifVinculado(p);
+        const estado = estadoFn(p);
         if (estado === 'activa') entry.activas++;
         else if (estado === 'pendiente') entry.pendientes++;
         else entry.sinTelegram++;
@@ -71,184 +106,164 @@ export function agruparEstudiantesPor(
         .sort((a, b) => b.total - a.total);
 }
 
-export function statsPorSede(personasVinculadas: any[]) {
-    return agruparEstudiantesPor(personasVinculadas, 'sede').map(s => ({ sede: s.etiqueta, ...s }));
-}
-
-export function statsPorCarrera(personasVinculadas: any[]) {
-    return agruparEstudiantesPor(personasVinculadas, 'carrera').map(c => ({ carrera: c.etiqueta, ...c }));
-}
-
-// ── Gráficas ─────────────────────────────────────────────────────────────
-
-export interface CanvasesGraficas {
-    notifDonut?: HTMLCanvasElement;
-    sedeStack?: HTMLCanvasElement;
-    sedeSinActivar?: HTMLCanvasElement;
-    carreraStack?: HTMLCanvasElement;
-    carreraSinActivar?: HTMLCanvasElement;
-}
-
-export interface ChartsCreados {
-    notifDonut?: Chart;
-    sedeStack?: Chart;
-    sedeSinActivar?: Chart;
-    carreraStack?: Chart;
-    carreraSinActivar?: Chart;
-}
-
-export function destruirGraficas(charts: ChartsCreados): void {
-    charts.notifDonut?.destroy();
-    charts.sedeStack?.destroy();
-    charts.sedeSinActivar?.destroy();
-    charts.carreraStack?.destroy();
-    charts.carreraSinActivar?.destroy();
-}
-
-function crearBarraApilada(
-    canvasEl: HTMLCanvasElement,
-    etiquetas: string[],
-    activas: number[], pendientes: number[], sinTelegram: number[],
-    colorActiva: string, colorPendiente: string, colorSinTelegram: string,
-    colorTexto: string, colorGrilla: string
-): Chart {
-    return new Chart(canvasEl, {
-        type: 'bar',
-        data: {
-            labels: etiquetas,
-            datasets: [
-                { label: 'Activas',      data: activas,     backgroundColor: colorActiva },
-                { label: 'Pendientes',   data: pendientes,  backgroundColor: colorPendiente },
-                { label: 'Sin Telegram', data: sinTelegram, backgroundColor: colorSinTelegram }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { stacked: true, ticks: { color: colorTexto }, grid: { color: colorGrilla } },
-                y: { stacked: true, beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } }
-            },
-            plugins: { legend: { position: 'bottom', labels: { color: colorTexto } } }
-        }
-    });
-}
-
-function crearBarraRanking(
-    canvasEl: HTMLCanvasElement,
-    etiquetas: string[], valores: number[],
-    color: string, colorTexto: string, colorGrilla: string
-): Chart {
-    return new Chart(canvasEl, {
-        type: 'bar',
-        data: {
-            labels: etiquetas,
-            datasets: [{
-                label: 'Sin activar notificaciones',
-                data: valores,
-                backgroundColor: color
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } },
-                y: { ticks: { color: colorTexto }, grid: { display: false } }
-            },
-            plugins: { legend: { display: false } }
-        }
-    });
-}
-
 /**
- * Crea (o recrea) todas las gráficas del dashboard. Devuelve las nuevas
- * instancias para que las guardes en tu componente y luego las destruyas
- * con destruirGraficas() cuando corresponda.
+ * Maneja la creación/destrucción de las 5 gráficas de Chart.js.
+ * El componente solo le pasa los ElementRef de los <canvas> y los datos
+ * ya calculados (statsGenerales / statsPorSede / statsPorCarrera).
  */
-export function renderizarGraficas(
-    personasVinculadas: any[],
-    canvases: CanvasesGraficas,
-    chartsPrevios: ChartsCreados
-): ChartsCreados {
-    destruirGraficas(chartsPrevios);
+export class EstadisticasHelper {
 
-    // Limpia charts "huérfanos" que Chart.js pueda tener registrados
-    // en esos mismos <canvas> (ej. si Angular reutilizó el nodo del DOM).
-    Object.values(canvases).forEach(el => {
-        if (el) Chart.getChart(el)?.destroy();
-    });
+    private chartNotifDonut?: Chart;
+    private chartSedeStack?: Chart;
+    private chartSedeSinActivar?: Chart;
+    private chartCarreraStack?: Chart;
+    private chartCarreraSinActivar?: Chart;
 
-    const nuevos: ChartsCreados = {};
+    private limpiarChartDeCanvas(ref?: ElementRef<HTMLCanvasElement>): void {
+        if (!ref) return;
+        Chart.getChart(ref.nativeElement)?.destroy();
+    }
 
-    const stats = statsGenerales(personasVinculadas);
-    if (stats.total === 0) return nuevos;
+    renderizarGraficas(
+        refs: CanvasRefs,
+        statsGenerales: StatsGenerales,
+        porSede: StatsPorGrupo[],
+        porCarrera: StatsPorGrupo[]
+    ): void {
+        this.destruirGraficas();
+        [refs.notifDonut, refs.sedeStack, refs.sedeSinActivar, refs.carreraStack, refs.carreraSinActivar]
+            .forEach(ref => this.limpiarChartDeCanvas(ref));
 
-    const porSede = statsPorSede(personasVinculadas);
-    const porCarrera = statsPorCarrera(personasVinculadas);
+        if (statsGenerales.total === 0) return;
 
-    const colorActiva      = '#22c55e';
-    const colorPendiente   = '#f59e0b';
-    const colorSinTelegram = '#6b7280';
-    const colorSinActivar  = '#ef4444';
-    const colorTexto       = '#cbd5e1';
-    const colorGrilla      = 'rgba(255,255,255,0.06)';
+        const colorActiva      = '#22c55e';
+        const colorPendiente   = '#f59e0b';
+        const colorSinTelegram = '#6b7280';
+        const colorSinActivar  = '#ef4444';
+        const colorTexto       = '#cbd5e1';
+        const colorGrilla      = 'rgba(255,255,255,0.06)';
 
-    if (canvases.notifDonut) {
-        nuevos.notifDonut = new Chart(canvases.notifDonut, {
-            type: 'doughnut',
+        if (refs.notifDonut) {
+            this.chartNotifDonut = new Chart(refs.notifDonut.nativeElement, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Activas', 'Pendientes', 'Sin Telegram'],
+                    datasets: [{
+                        data: [statsGenerales.activas, statsGenerales.pendientes, statsGenerales.sinTelegram],
+                        backgroundColor: [colorActiva, colorPendiente, colorSinTelegram],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: colorTexto } } }
+                }
+            });
+        }
+
+        if (refs.sedeStack) {
+            this.chartSedeStack = this.crearBarraApilada(
+                refs.sedeStack.nativeElement,
+                porSede.map(s => s.etiqueta),
+                porSede.map(s => s.activas), porSede.map(s => s.pendientes), porSede.map(s => s.sinTelegram),
+                colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
+            );
+        }
+
+        if (refs.sedeSinActivar) {
+            const ordenado = [...porSede].sort((a, b) => b.sinActivar - a.sinActivar);
+            this.chartSedeSinActivar = this.crearBarraRanking(
+                refs.sedeSinActivar.nativeElement,
+                ordenado.map(s => s.etiqueta), ordenado.map(s => s.sinActivar),
+                colorSinActivar, colorTexto, colorGrilla
+            );
+        }
+
+        if (refs.carreraStack) {
+            this.chartCarreraStack = this.crearBarraApilada(
+                refs.carreraStack.nativeElement,
+                porCarrera.map(c => c.etiqueta),
+                porCarrera.map(c => c.activas), porCarrera.map(c => c.pendientes), porCarrera.map(c => c.sinTelegram),
+                colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
+            );
+        }
+
+        if (refs.carreraSinActivar) {
+            const ordenado = [...porCarrera].sort((a, b) => b.sinActivar - a.sinActivar);
+            this.chartCarreraSinActivar = this.crearBarraRanking(
+                refs.carreraSinActivar.nativeElement,
+                ordenado.map(c => c.etiqueta), ordenado.map(c => c.sinActivar),
+                colorSinActivar, colorTexto, colorGrilla
+            );
+        }
+    }
+
+    /** Barra apilada reutilizable (Activas / Pendientes / Sin Telegram) por categoría */
+    private crearBarraApilada(
+        canvasEl: HTMLCanvasElement,
+        etiquetas: string[],
+        activas: number[], pendientes: number[], sinTelegram: number[],
+        colorActiva: string, colorPendiente: string, colorSinTelegram: string,
+        colorTexto: string, colorGrilla: string
+    ): Chart {
+        return new Chart(canvasEl, {
+            type: 'bar',
             data: {
-                labels: ['Activas', 'Pendientes', 'Sin Telegram'],
-                datasets: [{
-                    data: [stats.activas, stats.pendientes, stats.sinTelegram],
-                    backgroundColor: [colorActiva, colorPendiente, colorSinTelegram],
-                    borderWidth: 0
-                }]
+                labels: etiquetas,
+                datasets: [
+                    { label: 'Activas',      data: activas,     backgroundColor: colorActiva },
+                    { label: 'Pendientes',   data: pendientes,  backgroundColor: colorPendiente },
+                    { label: 'Sin Telegram', data: sinTelegram, backgroundColor: colorSinTelegram }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, ticks: { color: colorTexto }, grid: { color: colorGrilla } },
+                    y: { stacked: true, beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } }
+                },
                 plugins: { legend: { position: 'bottom', labels: { color: colorTexto } } }
             }
         });
     }
 
-    if (canvases.sedeStack) {
-        nuevos.sedeStack = crearBarraApilada(
-            canvases.sedeStack,
-            porSede.map(s => s.sede),
-            porSede.map(s => s.activas), porSede.map(s => s.pendientes), porSede.map(s => s.sinTelegram),
-            colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
-        );
+    /** Barra horizontal de ranking reutilizable (ej. "sin activar" de mayor a menor) */
+    private crearBarraRanking(
+        canvasEl: HTMLCanvasElement,
+        etiquetas: string[], valores: number[],
+        color: string, colorTexto: string, colorGrilla: string
+    ): Chart {
+        return new Chart(canvasEl, {
+            type: 'bar',
+            data: {
+                labels: etiquetas,
+                datasets: [{ label: 'Sin activar notificaciones', data: valores, backgroundColor: color }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, ticks: { color: colorTexto, precision: 0 }, grid: { color: colorGrilla } },
+                    y: { ticks: { color: colorTexto }, grid: { display: false } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
     }
 
-    if (canvases.sedeSinActivar) {
-        const ordenado = [...porSede].sort((a, b) => b.sinActivar - a.sinActivar);
-        nuevos.sedeSinActivar = crearBarraRanking(
-            canvases.sedeSinActivar,
-            ordenado.map(s => s.sede), ordenado.map(s => s.sinActivar),
-            colorSinActivar, colorTexto, colorGrilla
-        );
+    destruirGraficas(): void {
+        this.chartNotifDonut?.destroy();
+        this.chartSedeStack?.destroy();
+        this.chartSedeSinActivar?.destroy();
+        this.chartCarreraStack?.destroy();
+        this.chartCarreraSinActivar?.destroy();
+        this.chartNotifDonut = undefined;
+        this.chartSedeStack = undefined;
+        this.chartSedeSinActivar = undefined;
+        this.chartCarreraStack = undefined;
+        this.chartCarreraSinActivar = undefined;
     }
-
-    if (canvases.carreraStack) {
-        nuevos.carreraStack = crearBarraApilada(
-            canvases.carreraStack,
-            porCarrera.map(c => c.carrera),
-            porCarrera.map(c => c.activas), porCarrera.map(c => c.pendientes), porCarrera.map(c => c.sinTelegram),
-            colorActiva, colorPendiente, colorSinTelegram, colorTexto, colorGrilla
-        );
-    }
-
-    if (canvases.carreraSinActivar) {
-        const ordenado = [...porCarrera].sort((a, b) => b.sinActivar - a.sinActivar);
-        nuevos.carreraSinActivar = crearBarraRanking(
-            canvases.carreraSinActivar,
-            ordenado.map(c => c.carrera), ordenado.map(c => c.sinActivar),
-            colorSinActivar, colorTexto, colorGrilla
-        );
-    }
-
-    return nuevos;
 }

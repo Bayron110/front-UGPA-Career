@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HOME_CARDS } from '../Components/cardDescrip';
 import { HomeCard } from '../../Interface/home/HomeCards';
+import { obtenerUsuarioSesion } from '../../guards/login-proteccion-guard'; // 👈 ajusta la ruta si hace falta
 
 type VentanaActiva = 'ingreso-carreras' | 'patrocinio' | 'plan-individual' | 'seguimiento' | 'historial' | 'Dashboard' | 'Activar';
 
@@ -17,16 +18,30 @@ export class Home implements OnInit {
   paginationEnabled = false;
   currentPage = 1;
   itemsPerPage = 4;
-  allCards: HomeCard[] = HOME_CARDS;
+  allCards: HomeCard[] = [];
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+    this.allCards = this.filtrarCardsPorPermisos(HOME_CARDS);
+
     const savedPagination = localStorage.getItem('paginationEnabled');
     const savedPage = localStorage.getItem('currentPage');
     this.paginationEnabled = savedPagination === 'true';
     this.currentPage = savedPage ? parseInt(savedPage) : 1;
     if (this.currentPage > this.totalPages) this.currentPage = 1;
+  }
+
+  /** Deja solo las tarjetas cuyo módulo tenga permiso de lectura o edición (admin ve todo) */
+  private filtrarCardsPorPermisos(cards: HomeCard[]): HomeCard[] {
+    const usuario = obtenerUsuarioSesion();
+    if (!usuario) return [];
+    if (usuario.rol === 'admin') return cards;
+
+    return cards.filter(card => {
+      const nivel = usuario.permisos?.[card.action] ?? 'sin_acceso';
+      return nivel === 'lectura' || nivel === 'edicion';
+    });
   }
 
   get visibleCards() {
@@ -65,8 +80,8 @@ export class Home implements OnInit {
       irACronogramas: () => this.router.navigate(['/Cronogramas']),
       irAInformesUGPA: () => this.router.navigate(['/Informes-UGPA']),
       irADocentes: () => this.router.navigate(['Docente-Registro']),
-      irATitulos: ()=> window.open('https://titulos-administrador.pages.dev/'),
-      irAFacturación: ()=> window.open("")
+      irATitulos: () => window.open('https://titulos-administrador.pages.dev/'),
+      irAFacturación: () => window.open("")
     };
     routes[action]?.();
   }

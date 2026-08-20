@@ -1,0 +1,64 @@
+<div class="overlay" *ngIf="visible">
+    <div class="modal">
+
+        <div class="modal-header">
+            <div>
+                <p class="label-pequeño">Panel de administrador</p>
+                <h2>Solicitudes de acceso pendientes</h2>
+            </div>
+            <button class="btn-cerrar" (click)="cerrar()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <div class="estado-carga" *ngIf="cargando">
+                <div class="spinner"></div>
+                <p>Cargando solicitudes...</p>
+            </div>
+
+            <div class="estado-vacio" *ngIf="!cargando && solicitudes.length === 0">
+                <p>No hay solicitudes pendientes por el momento.</p>
+            </div>
+
+            <div class="solicitud-item" *ngFor="let sol of solicitudes">
+                <div class="solicitud-header">
+                    <span class="solicitud-correo">{{ sol.usuario.correo }}</span>
+                    <span class="solicitud-fecha">Solicitado: {{ sol.usuario.fechaRegistro | date:'d MMM y, HH:mm'
+                        }}</span>
+                </div>
+
+                <div class="permisos-grid">
+                    <div class="permiso-modulo" *ngFor="let mod of modulos">
+                        <label>{{ mod.nombre }}</label>
+                        <select [ngModel]="sol.permisosElegidos[mod.clave]"
+                            (ngModelChange)="setPermiso(sol, mod.clave, $event)">
+                            <option value="sin_acceso">Sin acceso</option>
+                            <option value="lectura">Solo lectura</option>
+                            <option value="edicion">Lectura y edición</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="solicitud-acciones">
+                    <button class="btn-rechazar" [disabled]="sol.procesando" (click)="rechazar(sol)">
+                        Rechazar
+                    </button>
+                    <button class="btn-aprobar" [disabled]="sol.procesando" (click)="aprobar(sol)">
+                        {{ sol.procesando ? 'Procesando...' : 'Aprobar acceso' }}
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancelar" (click)="cerrar()">Cerrar</button>
+        </div>
+
+    </div>
+</div>

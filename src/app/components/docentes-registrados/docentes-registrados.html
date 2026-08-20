@@ -1,4 +1,5 @@
 <div class="contenedor-documentos">
+  <br>
   <div class="panel-principal">
 
     <!-- Tabs -->
@@ -13,15 +14,17 @@
         Docentes Registrados
       </button>
 
-      <button
-        class="tab-btn"
-        [class.activa]="tabActiva() === 'cargar'"
-        (click)="cambiarTab('cargar')"
-        type="button"
-      >
-        <span class="tab-dot"></span>
-        Cargar Excel
-      </button>
+      @if (puedeEditar) {
+        <button
+          class="tab-btn"
+          [class.activa]="tabActiva() === 'cargar'"
+          (click)="cambiarTab('cargar')"
+          type="button"
+        >
+          <span class="tab-dot"></span>
+          Cargar Excel
+        </button>
+      }
     </div>
 
     <!-- Contenido -->
@@ -53,9 +56,11 @@
               </select>
             </div>
 
-            <button type="button" class="btn btn-primario" (click)="abrirModalAgregar()">
-              + Agregar Docente
-            </button>
+            @if (puedeEditar) {
+              <button type="button" class="btn btn-primario" (click)="abrirModalAgregar()">
+                + Agregar Docente
+              </button>
+            }
           </div>
 
           @if (docentesRegistrados().length === 0) {
@@ -66,7 +71,7 @@
           } @else {
 
             <!-- Barra de cambios pendientes -->
-            @if (hayCambiosPendientes()) {
+            @if (puedeEditar && hayCambiosPendientes()) {
               <div class="barra-pendientes">
                 <span class="barra-pendientes-texto">
                   {{ cantidadCambiosPendientes() }} cambio(s) sin guardar
@@ -122,34 +127,52 @@
                             <td>{{ docente.cedula }}</td>
                             <td>{{ docente.nombresCompletos }}</td>
                             <td>
-                              <div class="rol-selector-wrapper">
-                                <select
-                                  class="rol-selector"
-                                  [class.es-coordinador]="rolMostrado(docente) === 'coordinador'"
-                                  [ngModel]="rolMostrado(docente)"
-                                  (ngModelChange)="cambiarRolLocal(docente, $event)"
-                                  [disabled]="guardandoCambios()"
-                                >
-                                  <option value="docente">Docente</option>
-                                  <option value="coordinador">Coordinador</option>
-                                </select>
-                                @if (tieneCambioPendiente(docente)) {
-                                  <span class="punto-pendiente" title="Cambio sin guardar"></span>
-                                }
-                              </div>
+                              @if (puedeEditar) {
+                                <div class="rol-selector-wrapper">
+                                  <select
+                                    class="rol-selector"
+                                    [class.es-coordinador]="rolMostrado(docente) === 'coordinador'"
+                                    [ngModel]="rolMostrado(docente)"
+                                    (ngModelChange)="cambiarRolLocal(docente, $event)"
+                                    [disabled]="guardandoCambios()"
+                                  >
+                                    <option value="docente">Docente</option>
+                                    <option value="coordinador">Coordinador</option>
+                                  </select>
+                                  @if (tieneCambioPendiente(docente)) {
+                                    <span class="punto-pendiente" title="Cambio sin guardar"></span>
+                                  }
+                                </div>
+                              } @else {
+                                <span class="rol-solo-lectura" [class.es-coordinador]="rolMostrado(docente) === 'coordinador'">
+                                  {{ rolMostrado(docente) === 'coordinador' ? 'Coordinador' : 'Docente' }}
+                                </span>
+                              }
                             </td>
                             <td>
-                              <div class="carreras-cargo-wrapper">
-                                <button
-                                  type="button"
-                                  class="carreras-cargo-btn"
-                                  [disabled]="guardandoCambios()"
-                                  (click)="abrirCerrarMenuCarreras(docente.cedula, $event)"
-                                >
-                                  {{ carrerasMostradas(docente).length }} carrera(s)
-                                  <span class="carreras-cargo-flecha">▾</span>
-                                </button>
+                              @if (puedeEditar) {
+                                <div class="carreras-cargo-wrapper">
+                                  <button
+                                    type="button"
+                                    class="carreras-cargo-btn"
+                                    [disabled]="guardandoCambios()"
+                                    (click)="abrirCerrarMenuCarreras(docente.cedula, $event)"
+                                  >
+                                    {{ carrerasMostradas(docente).length }} carrera(s)
+                                    <span class="carreras-cargo-flecha">▾</span>
+                                  </button>
 
+                                  @if (carrerasMostradas(docente).length > 0) {
+                                    <div class="carreras-chips">
+                                      @for (c of carrerasMostradas(docente); track c) {
+                                        <span class="chip">{{ c }}</span>
+                                      }
+                                    </div>
+                                  } @else {
+                                    <span class="sin-cargo">Sin carreras asignadas</span>
+                                  }
+                                </div>
+                              } @else {
                                 @if (carrerasMostradas(docente).length > 0) {
                                   <div class="carreras-chips">
                                     @for (c of carrerasMostradas(docente); track c) {
@@ -159,7 +182,7 @@
                                 } @else {
                                   <span class="sin-cargo">Sin carreras asignadas</span>
                                 }
-                              </div>
+                              }
                             </td>
                           </tr>
                         }
@@ -171,7 +194,7 @@
             </div>
 
             <!-- Modal: Carreras del docente/coordinador -->
-            @if (menuCarrerasAbierto() && docenteSeleccionado()) {
+            @if (puedeEditar && menuCarrerasAbierto() && docenteSeleccionado()) {
               <div class="modal-backdrop" (click)="cerrarMenuCarreras()"></div>
               <div class="modal-carreras" (click)="$event.stopPropagation()">
                 <div class="modal-carreras-header">
@@ -207,7 +230,7 @@
             }
 
             <!-- Modal: Agregar Docente -->
-            @if (mostrarModalAgregar()) {
+            @if (puedeEditar && mostrarModalAgregar()) {
               <div class="modal-backdrop" (click)="cerrarModalAgregar()"></div>
               <div class="modal-carreras modal-agregar" (click)="$event.stopPropagation()">
                 <div class="modal-carreras-header">
@@ -337,7 +360,7 @@
           }
         }
 
-      } @else {
+      } @else if (puedeEditar) {
 
         <!-- Tab: Cargar Excel -->
         <div class="dropzone">

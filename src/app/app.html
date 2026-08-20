@@ -1,3 +1,4 @@
-<app-nav-bar></app-nav-bar>
+<app-nav-bar *ngIf="mostrarNavbar"></app-nav-bar>
 <router-outlet></router-outlet>
+<app-modal-solicitudes [visible]="modalSolicitudesVisible" (cerrarEvento)="cerrarModalSolicitudes()"></app-modal-solicitudes>
 <app-footer></app-footer>

@@ -3,7 +3,7 @@ import { HomeCard } from "../../Interface/home/HomeCards";
 export const HOME_CARDS: HomeCard[] = [
 
         {
-                badge: 'Control de Asistencia',
+                badge: 'UTET',
                 title: 'Panel de Administrador',
                 description: 'Control de inducciones al proceso de titulación.',
                 footer: 'Inducciones',
@@ -12,7 +12,7 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
-                badge: 'Documentos Docentes',
+                badge: 'UGPA',
                 title: 'Documentos Web Docentes',
                 description: 'Control de los Documentos de la Capacitación Docente.',
                 footer: 'Documentos Web',
@@ -21,7 +21,7 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
-                badge: 'Cronogramas',
+                badge: 'UTET',
                 title: 'Cronogramas',
                 description: 'Gestión de cronogramas de actividades.',
                 footer: 'Cronogramas',
@@ -30,7 +30,7 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
                 {
-                badge: 'Informes UGPA',
+                badge: 'UGPA',
                 title: 'informes del Proceso de Capacitación Docente',
                 description: 'Generar informes del proceso de capacitación docente.',
                 footer: 'Informes UGPA',
@@ -39,7 +39,7 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
-                badge: 'En vigencia',
+                badge: 'UGPA',
                 title: 'Docentes registrados',
                 description: 'Modulo para docentes registrados por el coordinador',
                 footer: 'Docentes registrados',
@@ -48,11 +48,11 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
                 {
-                badge: 'Administración de Titulos',
-                title: 'Titulación',
-                description: 'Modulo para la gestión eficiente de los titulos',
+                badge: 'UTET',
+                title: 'Administración de Titulos',
+                description: 'Modulo para la gestión eficiente de los titulos de los PVC o trabajo de titulación ',
                 footer: 'Titulos',
-                image: 'https://i.postimg.cc/sg2XH9ts/pexels-karola-g-5387241.jpg',
+                image: 'https://i.postimg.cc/XNHxpvPh/Gemini-Generated-Image-ybn8q6ybn8q6ybn8.jpg',
                 action: 'irATitulos'
         },
 
