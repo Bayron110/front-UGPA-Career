@@ -101,6 +101,7 @@ export class ModalVincular implements OnChanges, OnDestroy {
     // ── Paso vinculados ─────────────────────────────────────────────────────
     origenVinculados: 'grupos' | 'estudiantes' = 'grupos';
     busquedaVinculados = '';
+    seleccionadosVinculados = new Set<string>(); // cédulas, persiste entre páginas y filtros
     filtroTipoVinculado: 'TODOS' | 'ESTUDIANTES' | 'DOCENTES' = 'TODOS';
     filtroNotifVinculados: 'TODOS' | 'ACTIVAS' | 'PENDIENTES' | 'SIN_TELEGRAM' | 'DUPLICADOS' = 'TODOS';
     filtroCarreraVinculadosSeleccionada = '';
@@ -412,6 +413,7 @@ export class ModalVincular implements OnChanges, OnDestroy {
         this.ordenarPorCarrera = false;
         this.requisitosModal = requisitosModalVacio();
         this.transferirModal = transferirModalVacio();
+        this.seleccionadosVinculados.clear();
 
     }
 
@@ -475,18 +477,37 @@ export class ModalVincular implements OnChanges, OnDestroy {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // Transferir estudiante a otro cronograma (delegado a transferir.ts)
+    // Transferir estudiante(s) a otro cronograma (delegado a transferir.ts)
     // ══════════════════════════════════════════════════════════════════════
 
+    /** Abre el mini-modal de transferencia para UN estudiante (botón por fila) */
     async abrirTransferir(persona: any): Promise<void> {
         if (!this.puedeEditar) return;
         if (persona.tipo !== 'estudiante') return;
+        await this.abrirTransferirConPersonas([persona]);
+    }
 
+    /** Abre el mini-modal de transferencia para TODOS los seleccionados (botón global) */
+    async abrirTransferirLote(): Promise<void> {
+        if (!this.puedeEditar) return;
+        const personas = this.personasSeleccionadasParaTransferir;
+        if (personas.length === 0) return;
+        await this.abrirTransferirConPersonas(personas);
+    }
+
+    /** Estudiantes seleccionados en la vista Vinculados, listos para transferir */
+    get personasSeleccionadasParaTransferir(): any[] {
+        return this.personasVinculadas.filter(
+            p => p.tipo === 'estudiante' && this.seleccionadosVinculados.has(p.cedula)
+        );
+    }
+
+    private async abrirTransferirConPersonas(personas: any[]): Promise<void> {
         this.transferirModal = {
             ...transferirModalVacio(),
             visible: true,
             cargando: true,
-            persona
+            personas
         };
         this.cdr.detectChanges();
 
@@ -509,9 +530,9 @@ export class ModalVincular implements OnChanges, OnDestroy {
 
     async confirmarTransferir(): Promise<void> {
         if (!this.puedeEditar) return;
-        const { persona, cronogramaDestinoId, cronogramas, eliminarDeOrigen } = this.transferirModal;
+        const { personas, cronogramaDestinoId, cronogramas, eliminarDeOrigen } = this.transferirModal;
 
-        if (!persona || !cronogramaDestinoId || !this.cronograma?.id) return;
+        if (!personas?.length || !cronogramaDestinoId || !this.cronograma?.id) return;
 
         const destino = cronogramas.find(c => c.id === cronogramaDestinoId);
         if (!destino?.id) {
@@ -519,19 +540,29 @@ export class ModalVincular implements OnChanges, OnDestroy {
             return;
         }
 
+        const accion = eliminarDeOrigen ? 'mover' : 'copiar';
+        const confirmado = confirm(
+            `¿Seguro que deseas ${accion} ${personas.length} estudiante${personas.length !== 1 ? 's' : ''} ` +
+            `hacia "${destino.nombre}"?`
+        );
+        if (!confirmado) return;
+
         this.transferirModal.guardando = true;
         this.cdr.detectChanges();
 
         try {
-            await this.transferirHelper.transferir(persona, this.cronograma, destino, eliminarDeOrigen);
+            const { exito, fallidos } = await this.transferirHelper.transferirLote(
+                personas, this.cronograma, destino, eliminarDeOrigen
+            );
             this.cerrarTransferir();
+            this.seleccionadosVinculados.clear();
             alert(
-                eliminarDeOrigen
-                    ? `Estudiante movido a "${destino.nombre}" correctamente.`
-                    : `Estudiante copiado a "${destino.nombre}" correctamente.`
+                fallidos === 0
+                    ? `${exito} estudiante${exito !== 1 ? 's' : ''} ${eliminarDeOrigen ? 'movido(s)' : 'copiado(s)'} a "${destino.nombre}" correctamente.`
+                    : `Completado con errores.\n✔ Transferidos: ${exito}\n✘ Fallidos: ${fallidos}`
             );
         } catch (error) {
-            console.error('Error al transferir estudiante:', error);
+            console.error('Error al transferir estudiantes:', error);
             this.transferirModal.error = 'Ocurrió un error al transferir. Intenta de nuevo.';
         } finally {
             this.transferirModal.guardando = false;
@@ -588,6 +619,47 @@ export class ModalVincular implements OnChanges, OnDestroy {
             this.filtroNotifVinculados !== 'TODOS' ||
             this.filtroCarreraVinculadosSeleccionada !== '' ||
             this.busquedaVinculados.trim() !== '';
+    }
+
+    // ── Selección de vinculados (para transferencia masiva) ───────────────
+    // La selección se guarda por cédula y persiste entre páginas y filtros,
+    // así se puede filtrar por carrera, marcar todos, cambiar de filtro/página
+    // y seguir acumulando antes de transferir todo junto.
+
+    toggleSeleccionVinculado(p: any): void {
+        if (p.tipo !== 'estudiante' || !p.cedula) return;
+        this.seleccionadosVinculados.has(p.cedula)
+            ? this.seleccionadosVinculados.delete(p.cedula)
+            : this.seleccionadosVinculados.add(p.cedula);
+    }
+
+    /** Checkbox del header: marca/desmarca todos los estudiantes de la página actual */
+    toggleTodosVinculadosPagina(event: Event): void {
+        const checked = (event.target as HTMLInputElement).checked;
+        const disponibles = this.vinculadosPaginados.filter(p => p.tipo === 'estudiante' && p.cedula);
+        disponibles.forEach(p => {
+            checked ? this.seleccionadosVinculados.add(p.cedula) : this.seleccionadosVinculados.delete(p.cedula);
+        });
+    }
+
+    todosVinculadosPaginaSeleccionados(): boolean {
+        const disponibles = this.vinculadosPaginados.filter(p => p.tipo === 'estudiante' && p.cedula);
+        return disponibles.length > 0 && disponibles.every(p => this.seleccionadosVinculados.has(p.cedula));
+    }
+
+    /** Marca/desmarca TODOS los estudiantes que coinciden con los filtros actuales (todas las páginas) */
+    toggleTodosVinculadosFiltrados(event: Event): void {
+        const checked = (event.target as HTMLInputElement).checked;
+        const disponibles = this.vinculadosFiltrados.filter(p => p.tipo === 'estudiante' && p.cedula);
+        disponibles.forEach(p => {
+            checked ? this.seleccionadosVinculados.add(p.cedula) : this.seleccionadosVinculados.delete(p.cedula);
+        });
+        this.cdr.detectChanges();
+    }
+
+    limpiarSeleccionVinculados(): void {
+        this.seleccionadosVinculados.clear();
+        this.cdr.detectChanges();
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -656,6 +728,7 @@ export class ModalVincular implements OnChanges, OnDestroy {
                 );
                 (this.cronograma as any).estudiantesVinculados = actuales;
             }
+            this.seleccionadosVinculados.delete(persona.cedula);
             this.cdr.detectChanges();
         } catch (error) {
             console.error('Error al desvincular:', error);
@@ -1192,4 +1265,3 @@ export class ModalVincular implements OnChanges, OnDestroy {
         this.cdr.detectChanges();
     }
 }
-

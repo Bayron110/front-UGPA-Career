@@ -30,8 +30,8 @@
     border: 1px solid #e4e8f0;
     border-radius: 18px;
     width: 100%;
-    max-width: 860px;
-    height: calc(92vh - 70px);  /* 👈 antes: 92vh */
+    max-width: 100%;
+    height: calc(100vh - 70px);  /* 👈 antes: 92vh */
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(15, 31, 61, 0.20);

@@ -1,4 +1,3 @@
-// Ajusta esta ruta si la profundidad de carpetas de tu proyecto es distinta
 import { Cronograma, CronogramaService } from '../../../firebase/cronogramas';
 
 export interface TransferirModal {
@@ -6,7 +5,7 @@ export interface TransferirModal {
     cargando: boolean;
     guardando: boolean;
     error: string;
-    persona: any | null;
+    personas: any[];              // 👈 antes: persona: any | null
     cronogramas: Cronograma[];
     cronogramaDestinoId: string;
     eliminarDeOrigen: boolean;
@@ -15,7 +14,7 @@ export interface TransferirModal {
 export function transferirModalVacio(): TransferirModal {
     return {
         visible: false, cargando: false, guardando: false, error: '',
-        persona: null, cronogramas: [], cronogramaDestinoId: '',
+        personas: [], cronogramas: [], cronogramaDestinoId: '',
         eliminarDeOrigen: true
     };
 }
@@ -31,46 +30,54 @@ export class TransferirHelper {
     }
 
     /**
-     * Copia (y opcionalmente mueve) a la persona hacia el cronograma destino.
-     * Cuando eliminarDeOrigen es true, muta directamente
-     * cronogramaOrigen.estudiantesVinculados, igual que hacía el componente
-     * original, para que la vista se actualice sin recargar.
+     * Transfiere UNA o VARIAS personas al cronograma destino en solo 2
+     * escrituras a Firebase (una al destino, una al origen), sin importar
+     * cuántas sean. Esto evita golpear límites de escritura con lotes grandes.
      */
-    async transferir(
-        persona: any,
+    async transferirLote(
+        personas: any[],
         cronogramaOrigen: any,
         destino: Cronograma,
         eliminarDeOrigen: boolean
-    ): Promise<void> {
+    ): Promise<{ exito: number; fallidos: number }> {
         if (!destino?.id || !cronogramaOrigen?.id) {
             throw new Error('Cronograma destino no válido.');
         }
+        if (!personas || personas.length === 0) {
+            return { exito: 0, fallidos: 0 };
+        }
 
-        const cedula = persona.cedula;
-        // Quitamos el campo "tipo" que agrega el getter personasVinculadas,
-        // no debe guardarse como parte del registro del estudiante.
-        const { tipo, ...datosEstudiante } = persona;
-
-        // 1) Escribir en el cronograma destino
+        const fechaVinculacion = new Date().toISOString();
         const mapaDestino = { ...((destino as any).estudiantesVinculados ?? {}) };
-        mapaDestino[cedula] = {
-            ...datosEstudiante,
-            fechaVinculacion: new Date().toISOString()
-        };
+        const cedulasOk: string[] = [];
+        let fallidos = 0;
+
+        for (const persona of personas) {
+            if (!persona?.cedula) { fallidos++; continue; }
+            // Quitamos "tipo", que agrega el getter personasVinculadas y no
+            // debe guardarse como parte del registro del estudiante.
+            const { tipo, ...datosEstudiante } = persona;
+            mapaDestino[persona.cedula] = { ...datosEstudiante, fechaVinculacion };
+            cedulasOk.push(persona.cedula);
+        }
+
+        // 1) Una sola escritura al destino con todos los estudiantes fusionados
         await this.cronogramaService.actualizarCronograma(
             destino.id,
             { estudiantesVinculados: mapaDestino } as any
         );
 
-        // 2) Si corresponde, eliminar del cronograma actual (mover en vez de copiar)
+        // 2) Si corresponde, una sola escritura al origen quitándolos a todos
         if (eliminarDeOrigen) {
             const mapaOrigen = { ...(cronogramaOrigen.estudiantesVinculados ?? {}) };
-            delete mapaOrigen[cedula];
+            cedulasOk.forEach(c => delete mapaOrigen[c]);
             await this.cronogramaService.actualizarCronograma(
                 cronogramaOrigen.id,
                 { estudiantesVinculados: mapaOrigen } as any
             );
             cronogramaOrigen.estudiantesVinculados = mapaOrigen;
         }
+
+        return { exito: cedulasOk.length, fallidos };
     }
 }

@@ -686,3 +686,39 @@
     max-height: 75vh;
   }
 }
+/* ── Toggle "Solo coordinadores" ── */
+
+.toggle-coordinadores {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64738c;
+  cursor: pointer;
+  margin-left: 4px;
+  user-select: none;
+}
+
+.toggle-coordinadores input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #c9a94c;
+  width: 14px;
+  height: 14px;
+}
+
+.toggle-coordinadores:has(input:checked) {
+  color: #8a6d1f;
+}
+
+/* ── Ajuste responsive del toggle dentro de filtro-barra-izquierda ── */
+
+@media (max-width: 768px) {
+  .filtro-barra-izquierda {
+    flex-wrap: wrap;
+  }
+
+  .toggle-coordinadores {
+    margin-left: 0;
+  }
+}

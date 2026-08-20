@@ -143,6 +143,13 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   // Filtro por carrera
   carreraSeleccionada = signal<string>('todas');
 
+  // Filtro: solo coordinadores
+  soloCoordinadores = signal(false);
+
+  toggleSoloCoordinadores(): void {
+    this.soloCoordinadores.set(!this.soloCoordinadores());
+  }
+
   private refDocentes = ref(dbDocente, 'docentes-registrados');
   private listenerCallback = (snapshot: DataSnapshot) => {
     const valor = snapshot.val() as Record<string, any> | null;
@@ -177,10 +184,14 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
   // Docentes agrupados por carrera (si un docente tiene varias, aparece en cada grupo)
   docentesPorCarrera = computed(() => {
     const filtro = this.carreraSeleccionada();
+    const soloCoord = this.soloCoordinadores();
     const base = this.docentesRegistrados();
 
     const grupos: Record<string, Docente[]> = {};
     for (const d of base) {
+      // Si el toggle de "solo coordinadores" está activo, saltamos a quien no lo es
+      if (soloCoord && this.rolMostrado(d) !== 'coordinador') continue;
+
       const carrerasDelDocente = this.carrerasMostradas(d).length > 0 ? this.carrerasMostradas(d) : ['Sin carrera'];
       for (const carrera of carrerasDelDocente) {
         if (filtro !== 'todas' && carrera !== filtro) continue;
