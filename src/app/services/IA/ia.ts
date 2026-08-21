@@ -24,36 +24,35 @@ export interface CamposGenerados {
 export class IaService {
 
   // ⚠️ Mover a variables de entorno / backend antes de producción.
-  private readonly apiKey = 'csk-frk8k2wwvkd6xy2vtj2ctntkfjepxdnrdkj2yxy5t46eejmc';
-  private readonly endpoint = 'https://api.cerebras.ai/v1/chat/completions';
-  private readonly modelo = 'gpt-oss-120b';
+  private readonly apiKey = 'AQ.Ab8RN6LXc-sqlFMi3mDskXiSFCfUjkJbzC2Nz4WmTbLKg7UngQ';
+  private readonly modelo = 'gemini-3.6-flash';
+  private readonly endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelo}:generateContent`;
 
   private readonly esquemaJson = {
-    type: 'object',
+    type: 'OBJECT',
     properties: {
-      Descripcion: { type: 'string' },
-      Objectivos: { type: 'string' },
-      dirigido: { type: 'string' },
-      Contenido1: { type: 'string' },
-      Contenido2: { type: 'string' },
-      Contenido3: { type: 'string' },
-      Contenido4: { type: 'string' },
-      Unidad1: { type: 'string' },
-      Unidad2: { type: 'string' },
-      Unidad3: { type: 'string' },
-      Unidad4: { type: 'string' },
-      LAprendizaje1: { type: 'string' },
-      LAprendizaje2: { type: 'string' },
-      LAprendizaje3: { type: 'string' },
-      LAprendizaje4: { type: 'string' }
+      Descripcion: { type: 'STRING' },
+      Objectivos: { type: 'STRING' },
+      dirigido: { type: 'STRING' },
+      Contenido1: { type: 'STRING' },
+      Contenido2: { type: 'STRING' },
+      Contenido3: { type: 'STRING' },
+      Contenido4: { type: 'STRING' },
+      Unidad1: { type: 'STRING' },
+      Unidad2: { type: 'STRING' },
+      Unidad3: { type: 'STRING' },
+      Unidad4: { type: 'STRING' },
+      LAprendizaje1: { type: 'STRING' },
+      LAprendizaje2: { type: 'STRING' },
+      LAprendizaje3: { type: 'STRING' },
+      LAprendizaje4: { type: 'STRING' }
     },
     required: [
       'Descripcion', 'Objectivos', 'dirigido',
       'Contenido1', 'Contenido2', 'Contenido3', 'Contenido4',
       'Unidad1', 'Unidad2', 'Unidad3', 'Unidad4',
       'LAprendizaje1', 'LAprendizaje2', 'LAprendizaje3', 'LAprendizaje4'
-    ],
-    additionalProperties: false
+    ]
   };
 
   async generarContenidoInforme(
@@ -81,36 +80,27 @@ Reglas:
 `.trim();
 
     const body = {
-      model: this.modelo,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: promptUsuario }
+      contents: [
+        { role: 'user', parts: [{ text: `${systemPrompt}\n\n${promptUsuario}` }] }
       ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'contenido_informe',
-          strict: true,
-          schema: this.esquemaJson
-        }
-      },
-      temperature: 0.5,
-      max_completion_tokens: 3000
+      generationConfig: {
+        temperature: 0.5,
+        maxOutputTokens: 3000,
+        responseMimeType: 'application/json',
+        responseSchema: this.esquemaJson
+      }
     };
 
     for (let intento = 1; intento <= intentos; intento++) {
-      const response = await fetch(this.endpoint, {
+      const response = await fetch(`${this.endpoint}?key=${this.apiKey}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
 
-      if (response.status === 429 && intento < intentos) {
+      if ((response.status === 429 || response.status === 503) && intento < intentos) {
         const espera = 1500 * intento; // 1.5s, 3s, 4.5s...
-        console.warn(`Cerebras saturado (429), reintentando en ${espera}ms... (intento ${intento}/${intentos})`);
+        console.warn(`Gemini saturado (${response.status}), reintentando en ${espera}ms... (intento ${intento}/${intentos})`);
         await new Promise(resolve => setTimeout(resolve, espera));
         continue;
       }
@@ -121,7 +111,7 @@ Reglas:
       }
 
       const data = await response.json();
-      const contenidoTexto = data.choices?.[0]?.message?.content;
+      const contenidoTexto = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!contenidoTexto) {
         throw new Error('La IA no devolvió contenido.');

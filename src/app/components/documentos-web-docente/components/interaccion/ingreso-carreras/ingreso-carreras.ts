@@ -15,6 +15,7 @@ interface CapacitacionData {
   fechaInicio: string;
   fechaFin: string;
   estado: string;
+  habilitada: boolean;
   teoriaTemas: TemaData[];
   practicaTemas: TemaData[];
 }
@@ -67,6 +68,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   capNuevaFechaFin = '';
   capNuevaTipo = 'Aprobación';
   capNuevaTeoriaTemas: TemaData[] = temasVacios(3);
+  capNuevaHabilitada = true;
   capNuevaPracticaTemas: TemaData[] = temasVacios(3);
   guardandoCapNueva = false;
 
@@ -80,6 +82,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   editCapFechaFin = '';
   editCapTipo = 'Aprobación';
   editCapTeoriaTemas: TemaData[] = temasVacios(3);
+  editCapHabilitada = true;
   editCapPracticaTemas: TemaData[] = temasVacios(3);
   guardandoEditCap = false;
 
@@ -104,7 +107,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   private refCarreras = ref(dbDocente, 'carreras');
   private refCapsGenericas = ref(dbDocente, 'capacitacionesGenericas');
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.escucharCarreras();
@@ -124,7 +127,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     onValue(this.refCarreras, (snap) => {
       const guardandoIds = new Set(this.carreras.filter(c => c.guardando).map(c => c.id));
       const eliminandoIds = new Set(this.carreras.filter(c => c.eliminando).map(c => c.id));
-      const limpiandoIds  = new Set(this.carreras.filter(c => c.limpiando).map(c => c.id));
+      const limpiandoIds = new Set(this.carreras.filter(c => c.limpiando).map(c => c.id));
 
       if (!snap.exists()) {
         this.carreras = [];
@@ -148,6 +151,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
                 fechaInicio: v.fechaInicio || '',
                 fechaFin: v.fechaFin || '',
                 estado: this.calcularEstado(v.fechaInicio || '', v.fechaFin || ''),
+                habilitada: v.habilitada !== undefined ? !!v.habilitada : true,   // 👈 AQUÍ
                 teoriaTemas: Array.isArray(v.teoriaTemas)
                   ? v.teoriaTemas.map((t: any) => ({ titulo: t?.titulo || '' }))
                   : temasVacios(3),
@@ -203,6 +207,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
           fechaInicio: v.fechaInicio || '',
           fechaFin: v.fechaFin || '',
           estado: this.calcularEstado(v.fechaInicio || '', v.fechaFin || ''),
+          habilitada: v.habilitada !== undefined ? !!v.habilitada : true,   // 👈 AQUÍ
           teoriaTemas: Array.isArray(v.teoriaTemas)
             ? v.teoriaTemas.map((t: any) => ({ titulo: t?.titulo || '' }))
             : temasVacios(3),
@@ -262,7 +267,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   formularioCapNuevaValido(): boolean {
     const teoriOk = this.capNuevaTeoriaTemas.every(
       t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
-    const pracOk  = this.capNuevaPracticaTemas.every(
+    const pracOk = this.capNuevaPracticaTemas.every(
       t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
     return !!(
       this.capNuevaNombre.trim() &&
@@ -275,7 +280,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   formularioEditCapValido(): boolean {
     const teoriOk = this.editCapTeoriaTemas.every(
       t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
-    const pracOk  = this.editCapPracticaTemas.every(
+    const pracOk = this.editCapPracticaTemas.every(
       t => t.titulo.trim() && this.contarPalabras(t.titulo) <= 10);
     return !!(
       this.editCapNombre.trim() &&
@@ -306,9 +311,9 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     if (!fechaInicio || !fechaFin) return 'Pendiente';
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     const inicio = new Date(`${fechaInicio}T00:00:00`);
-    const fin    = new Date(`${fechaFin}T00:00:00`);
+    const fin = new Date(`${fechaFin}T00:00:00`);
     if (hoy < inicio) return 'Pendiente';
-    if (hoy <= fin)   return 'Iniciada';
+    if (hoy <= fin) return 'Iniciada';
     return 'Terminada';
   }
 
@@ -334,6 +339,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.capNuevaTipo = 'Aprobación';
     this.capNuevaTeoriaTemas = temasVacios(3);
     this.capNuevaPracticaTemas = temasVacios(3);
+    this.capNuevaHabilitada = true;
     this.capModoGenerica = false;
   }
 
@@ -346,6 +352,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.editCapTipo = 'Aprobación';
     this.editCapTeoriaTemas = temasVacios(3);
     this.editCapPracticaTemas = temasVacios(3);
+    this.editCapHabilitada = true;
     this.editCapModoGenerica = false;
   }
 
@@ -419,7 +426,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   async guardarCapNueva(): Promise<void> {
     if (!this.capModoGenerica && !this.carreraSeleccionada) return;
 
-    this.capNuevaTeoriaTemas   = this.normalizarTemas(this.capNuevaTeoriaTemas);
+    this.capNuevaTeoriaTemas = this.normalizarTemas(this.capNuevaTeoriaTemas);
     this.capNuevaPracticaTemas = this.normalizarTemas(this.capNuevaPracticaTemas);
 
     if (!this.formularioCapNuevaValido()) {
@@ -442,6 +449,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         fechaInicio: this.capNuevaFechaInicio,
         fechaFin: this.capNuevaFechaFin,
         estado: this.calcularEstado(this.capNuevaFechaInicio, this.capNuevaFechaFin),
+        habilitada: this.capNuevaHabilitada,   // 👈 AQUÍ
         teoriaTemas: this.capNuevaTeoriaTemas.map(t => ({
           titulo: this.limitarTituloA10Palabras(t.titulo)
         })),
@@ -477,45 +485,48 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
   // ── Modal: editar capacitación (específica) ────────────────────────
 
   abrirModalEditarCapacitacion(item: CarreraItem, capKey: string, capData: CapacitacionData): void {
-    this.carreraSeleccionada  = item;
-    this.editCapModoGenerica  = false;
-    this.editCapKey           = capKey;
-    this.editCapNombre        = capData.capacitacion;
-    this.editCapHoras         = capData.horas;
-    this.editCapFechaInicio   = capData.fechaInicio;
-    this.editCapFechaFin      = capData.fechaFin;
-    this.editCapTipo          = capData.tipo;
-    this.editCapTeoriaTemas   = capData.teoriaTemas.length
+    this.carreraSeleccionada = item;
+    this.editCapModoGenerica = false;
+    this.editCapKey = capKey;
+    this.editCapNombre = capData.capacitacion;
+    this.editCapHoras = capData.horas;
+    this.editCapFechaInicio = capData.fechaInicio;
+    this.editCapFechaFin = capData.fechaFin;
+    this.editCapTipo = capData.tipo;
+    this.editCapTeoriaTemas = capData.teoriaTemas.length
       ? capData.teoriaTemas.map(t => ({ titulo: t.titulo }))
       : temasVacios(3);
     this.editCapPracticaTemas = capData.practicaTemas.length
       ? capData.practicaTemas.map(t => ({ titulo: t.titulo }))
       : temasVacios(3);
-    this.mensajeModal         = '';
+    this.mensajeModal = '';
     this.modalEditarCapVisible = true;
     this.cdr.detectChanges();
+    this.editCapHabilitada = capData.habilitada;
   }
 
   // ── Modal: editar capacitación (genérica) ──────────────────────────
 
   abrirModalEditarCapacitacionGenerica(capKey: string, capData: CapacitacionData): void {
-    this.carreraSeleccionada  = null;
-    this.editCapModoGenerica  = true;
-    this.editCapKey           = capKey;
-    this.editCapNombre        = capData.capacitacion;
-    this.editCapHoras         = capData.horas;
-    this.editCapFechaInicio   = capData.fechaInicio;
-    this.editCapFechaFin      = capData.fechaFin;
-    this.editCapTipo          = capData.tipo;
-    this.editCapTeoriaTemas   = capData.teoriaTemas.length
+    this.carreraSeleccionada = null;
+    this.editCapModoGenerica = true;
+    this.editCapKey = capKey;
+    this.editCapNombre = capData.capacitacion;
+    this.editCapHoras = capData.horas;
+    this.editCapFechaInicio = capData.fechaInicio;
+    this.editCapFechaFin = capData.fechaFin;
+    this.editCapTipo = capData.tipo;
+    this.editCapTeoriaTemas = capData.teoriaTemas.length
       ? capData.teoriaTemas.map(t => ({ titulo: t.titulo }))
       : temasVacios(3);
     this.editCapPracticaTemas = capData.practicaTemas.length
       ? capData.practicaTemas.map(t => ({ titulo: t.titulo }))
       : temasVacios(3);
-    this.mensajeModal         = '';
+    this.mensajeModal = '';
     this.modalEditarCapVisible = true;
+    this.editCapHabilitada = capData.habilitada;
     this.cdr.detectChanges();
+
   }
 
   cerrarModalEditarCap(event: MouseEvent): void {
@@ -537,7 +548,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     if (!this.editCapModoGenerica && (!this.carreraSeleccionada || !this.editCapKey)) return;
     if (this.editCapModoGenerica && !this.editCapKey) return;
 
-    this.editCapTeoriaTemas   = this.normalizarTemas(this.editCapTeoriaTemas);
+    this.editCapTeoriaTemas = this.normalizarTemas(this.editCapTeoriaTemas);
     this.editCapPracticaTemas = this.normalizarTemas(this.editCapPracticaTemas);
 
     if (!this.formularioEditCapValido()) {
@@ -560,6 +571,7 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
         fechaInicio: this.editCapFechaInicio,
         fechaFin: this.editCapFechaFin,
         estado: this.calcularEstado(this.editCapFechaInicio, this.editCapFechaFin),
+        habilitada: this.editCapHabilitada,   // 👈 AQUÍ
         teoriaTemas: this.editCapTeoriaTemas.map(t => ({
           titulo: this.limitarTituloA10Palabras(t.titulo)
         })),
@@ -640,9 +652,9 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     if (!this.carreraSeleccionada || !this.editNombre.trim()) return;
 
     const nombreNorm = this.editNombre.trim();
-    const duplicado  = this.carreras.some(
+    const duplicado = this.carreras.some(
       c => c.id !== this.carreraSeleccionada!.id &&
-           c.nombre.toLowerCase() === nombreNorm.toLowerCase()
+        c.nombre.toLowerCase() === nombreNorm.toLowerCase()
     );
 
     if (duplicado) {
@@ -728,5 +740,18 @@ export class IngresoCarrerasComponent implements OnInit, OnDestroy {
     this.mensajeModal = texto;
     this.cdr.detectChanges();
     setTimeout(() => { this.mensajeModal = ''; this.cdr.detectChanges(); }, 3500);
+  }
+
+  async toggleHabilitada(key: string, actual: boolean, esGenerica: boolean, carreraId?: string): Promise<void> {
+    const path = esGenerica
+      ? `capacitacionesGenericas/${key}/habilitada`
+      : `carreras/${carreraId}/capacitaciones/${key}/habilitada`;
+
+    try {
+      await set(ref(dbDocente, path), !actual);
+    } catch (e) {
+      console.error(e);
+      this.mostrarMensaje('❌ Error al cambiar el estado de la capacitación');
+    }
   }
 }

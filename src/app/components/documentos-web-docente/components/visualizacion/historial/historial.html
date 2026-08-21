@@ -54,6 +54,16 @@
           class="search-input" />
       </div>
 
+      <!-- NUEVO: Filtro por capacitación -->
+      <!-- DESPUÉS -->
+      <div class="capacitacion-wrap" *ngIf="listaCapacitaciones.length > 0">
+        <select class="select-capacitacion" [ngModel]="filtroCapacitacion"
+          (ngModelChange)="cambiarFiltroCapacitacion($event)">
+          <option value="">Todas las capacitaciones</option>
+          <option *ngFor="let cap of listaCapacitaciones" [value]="cap">{{ cap }}</option>
+        </select>
+      </div>
+
       <div class="filtros">
         <button type="button" class="chip" [class.activo]="filtroTipo === 'todos'" (click)="cambiarFiltro('todos')">
           <span class="chip-dot dot-todos"></span>
@@ -125,7 +135,7 @@
               <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">{{ item.tipoLabel }}</span>
             </td>
             <td>{{ item.docente || '—' }}</td>
-            <td>{{ item.cedula  || '—' }}</td>
+            <td>{{ item.cedula || '—' }}</td>
             <td>{{ item.fechaGuardado || '—' }}</td>
             <td>
               <button type="button" class="btn-observacion"
@@ -158,18 +168,16 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of registrosFiltrados; let i = index"
-            [class.fila-entregada]="item.entregado"
-            [class.fila-pendiente]="!item.entregado"
-            [style.animation-delay]="(i * 0.04) + 's'">
+          <tr *ngFor="let item of registrosFiltrados; let i = index" [class.fila-entregada]="item.entregado"
+            [class.fila-pendiente]="!item.entregado" [style.animation-delay]="(i * 0.04) + 's'">
 
             <td>
               <span class="tag" [ngClass]="obtenerClaseTipo(item.tipo)">{{ item.tipoLabel }}</span>
             </td>
-            <td><span class="cedula-text">{{ item.cedula  || '—' }}</span></td>
+            <td><span class="cedula-text">{{ item.cedula || '—' }}</span></td>
             <td><span class="nombre-text">{{ item.docente || '—' }}</span></td>
             <td><span class="carrera-text">{{ item.carrera || '—' }}</span></td>
-            <td><span class="codigo-text">{{ item.codigo  || '—' }}</span></td>
+            <td><span class="codigo-text">{{ item.codigo || '—' }}</span></td>
 
             <td>
               <div class="entrega-cell">
@@ -279,8 +287,7 @@
       <!-- Pasos -->
       <div class="gen-steps">
         <div *ngFor="let step of GEN_STEPS; let i = index" class="gen-step-row"
-          [class.done]="stepStates[step.id] === 'done'"
-          [class.active]="stepStates[step.id] === 'active'">
+          [class.done]="stepStates[step.id] === 'done'" [class.active]="stepStates[step.id] === 'active'">
 
           <div class="gen-step-icon">
             <ng-container *ngIf="stepStates[step.id] === 'idle'">{{ i + 1 }}</ng-container>

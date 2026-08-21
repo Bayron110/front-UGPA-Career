@@ -19,6 +19,7 @@ interface HistorialRegistro {
   docente: string;
   carrera: string;
   codigo: string;
+  capacitacion: string;
   fechaGuardado: string;
   timestamp: number;
   datosDocumento: any | null;
@@ -55,6 +56,7 @@ export class Historial implements OnInit, OnDestroy {
   observacionSeleccionada = '';
   filtroTexto = '';
   filtroTipo: 'todos' | TipoDocumento = 'todos';
+  filtroCapacitacion = '';
   registros: HistorialRegistro[] = [];
 
   // Animación generación
@@ -91,11 +93,15 @@ export class Historial implements OnInit, OnDestroy {
   private refPlan = ref(dbDocente, 'planesGenerados');
   private refSeguimiento = ref(dbDocente, 'seguimientoGenerados');
   private refDocentesSinFormacion = ref(dbDocente, 'docentesSinFormacion');
+  private refCapacitacionesGenericas = ref(dbDocente, 'capacitacionesGenericas');
+  private refCarreras = ref(dbDocente, 'carreras');
+
 
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnInit(): void {
     this.cargarHistorial();
+    this.cargarCapacitacionesDisponibles();
     this.escucharCambios();
     this.resetStepStates();
   }
@@ -470,6 +476,7 @@ export class Historial implements OnInit, OnDestroy {
               docente: nombreDocente,
               carrera,
               codigo,
+              capacitacion: data.capacitacion || data.NombreCA || '',
               fechaGuardado: data.fechaGuardado || data.fecha || '',
               timestamp: Number(data.timestamp || 0),
               datosDocumento: {
@@ -507,6 +514,8 @@ export class Historial implements OnInit, OnDestroy {
               docente: nombreDocente,
               carrera: carreraDoc,
               codigo,
+              // CORREGIDO: Plan no tiene 'capacitacion'/'NombreCA', usa formación específica/genérica
+              capacitacion: data.nombreFormacionEspecifica || data.nombreFormacionGenerica || '',
               fechaGuardado: data.fechaGuardado || data.fecha || '',
               timestamp: Number(data.timestamp || 0),
               datosDocumento: {
@@ -568,6 +577,7 @@ export class Historial implements OnInit, OnDestroy {
             docente: nombreDocente,
             carrera,
             codigo,
+            capacitacion: '', // no aplica: el filtro solo cubre patrocinio y plan
             fechaGuardado: data.fechaGuardado || data.fecha || datosDoc.fechaActual || '',
             timestamp: Number(data.timestamp || 0),
             datosDocumento: {
@@ -608,6 +618,7 @@ export class Historial implements OnInit, OnDestroy {
             docente: nombre,
             carrera,
             codigo: 'SIN FORMACIÓN',
+            capacitacion: '', // no aplica: el filtro solo cubre patrocinio y plan
             fechaGuardado: data.fecha || '',
             timestamp: data.registradoEn ? new Date(data.registradoEn).getTime() : 0,
             datosDocumento: {
@@ -651,18 +662,81 @@ export class Historial implements OnInit, OnDestroy {
         this.filtroTipo === 'todos'
           ? r.tipo !== 'sinFormación'
           : r.tipo === this.filtroTipo;
+
       const cumpleTexto =
         !texto ||
         String(r.cedula || '').toLowerCase().includes(texto) ||
         String(r.docente || '').toLowerCase().includes(texto) ||
         String(r.carrera || '').toLowerCase().includes(texto) ||
         String(r.codigo || '').toLowerCase().includes(texto);
-      return cumpleTipo && cumpleTexto;
+
+      const cumpleCapacitacion =
+        !this.filtroCapacitacion ||
+        ((r.tipo === 'patrocinio' || r.tipo === 'plan') && r.capacitacion === this.filtroCapacitacion);
+
+      return cumpleTipo && cumpleTexto && cumpleCapacitacion;
     });
+  }
+// nueva propiedad en vez del getter
+listaCapacitaciones: string[] = [];
+
+// se llama en ngOnInit junto a cargarHistorial()
+private async cargarCapacitacionesDisponibles(): Promise<void> {
+  const set = new Set<string>();
+
+  try {
+    const [snapGenericas, snapCarreras] = await Promise.all([
+      get(this.refCapacitacionesGenericas),
+      get(this.refCarreras),
+    ]);
+
+    // capacitacionesGenericas (nodo plano)
+    if (snapGenericas.exists()) {
+      snapGenericas.forEach((snapCap) => {
+        const nombre = String(snapCap.val()?.capacitacion || '').trim();
+        if (nombre) set.add(nombre);
+      });
+    }
+
+    // carreras/{id}/capacitaciones (nodo anidado)
+    if (snapCarreras.exists()) {
+      snapCarreras.forEach((snapCarrera) => {
+        const caps = snapCarrera.val()?.capacitaciones;
+        if (caps) {
+          Object.values(caps as Record<string, any>).forEach((cap: any) => {
+            const nombre = String(cap?.capacitacion || '').trim();
+            if (nombre) set.add(nombre);
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error cargando capacitaciones disponibles:', error);
+  }
+
+  this.listaCapacitaciones = Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+  this.cdr.detectChanges();
+}
+  get capacitacionesDisponibles(): string[] {
+    const set = new Set<string>();
+    this.registros.forEach((r) => {
+      if ((r.tipo === 'patrocinio' || r.tipo === 'plan') && r.capacitacion) {
+        set.add(r.capacitacion);
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+  }
+
+  cambiarFiltroCapacitacion(valor: string): void {
+    this.filtroCapacitacion = valor;
   }
 
   cambiarFiltro(tipo: 'todos' | TipoDocumento): void {
     this.filtroTipo = tipo;
+    // Si cambia a un tipo que no maneja capacitación, limpiamos el filtro para evitar tablas vacías confusas
+    if (tipo === 'seguimiento' || tipo === 'sinFormación') {
+      this.filtroCapacitacion = '';
+    }
   }
 
   contarPorTipo(tipo: TipoDocumento): number {

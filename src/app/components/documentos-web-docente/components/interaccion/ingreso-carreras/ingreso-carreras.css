@@ -1185,3 +1185,15 @@
 .card--colapsable[open] .card-chip-hint {
     transform: rotate(180deg);
 }
+.badge-habilitada {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #1f8a3a22;
+  color: #1f8a3a;
+  font-weight: 600;
+}
+.badge-habilitada.deshabilitada {
+  background: #a1a1aa22;
+  color: #a1a1aa;
+}
