@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -20,53 +20,67 @@ export class Login {
   cargando = false;
   error = '';
   mensajeExito = '';
-  mensajePendiente = '';   // 👈 esta línea es la que falta
+  mensajePendiente = '';
 
   constructor(
     private loginService: LoginService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef   // 👈 inyectado
   ) {}
 
-  // ... resto del código igual
+  async ingresar(): Promise<void> {
+    this.error = '';
+    this.mensajeExito = '';
+    this.mensajePendiente = '';
 
-async ingresar(): Promise<void> {
-  this.error = '';
-  this.mensajeExito = '';
-  this.mensajePendiente = ''; // 👈 nuevo
+    const correoLimpio = this.correo.trim();
 
-  const correoLimpio = this.correo.trim();
-
-  if (!correoLimpio || !this.contrasena) { this.error = 'Ingresa tu correo y contraseña.'; return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoLimpio)) { this.error = 'Ingresa un correo válido.'; return; }
-  if (this.contrasena.length < 6) { this.error = 'La contraseña debe tener al menos 6 caracteres.'; return; }
-
-  this.cargando = true;
-  try {
-    const resultado = await this.loginService.iniciarSesionORegistrar(correoLimpio, this.contrasena);
-
-    if (resultado.pendiente) {
-      this.mensajePendiente = resultado.mensaje; // 👈 mensaje especial, no es error
+    if (!correoLimpio || !this.contrasena) {
+      this.error = 'Ingresa tu correo y contraseña.';
+      this.cdr.detectChanges();
       return;
     }
-    if (!resultado.exito) {
-      this.error = resultado.mensaje;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoLimpio)) {
+      this.error = 'Ingresa un correo válido.';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (this.contrasena.length < 6) {
+      this.error = 'La contraseña debe tener al menos 6 caracteres.';
+      this.cdr.detectChanges();
       return;
     }
 
-    sessionStorage.setItem('usuarioActual', JSON.stringify({
-      correo: resultado.usuario?.correo,
-      rol: resultado.usuario?.rol,
-      permisos: resultado.usuario?.permisos
-    }));
+    this.cargando = true;
+    this.cdr.detectChanges(); // 👈 para que el spinner/loading se pinte YA
 
-    this.mensajeExito = resultado.mensaje;
-    setTimeout(() => this.router.navigate(['/Home']), 600);
+    try {
+      const resultado = await this.loginService.iniciarSesionORegistrar(correoLimpio, this.contrasena);
 
-  } catch (e) {
-    console.error('Error en login:', e);
-    this.error = 'Ocurrió un error al conectar con la base de datos.';
-  } finally {
-    this.cargando = false;
+      if (resultado.pendiente) {
+        this.mensajePendiente = resultado.mensaje;
+        return;
+      }
+      if (!resultado.exito) {
+        this.error = resultado.mensaje;
+        return;
+      }
+
+      sessionStorage.setItem('usuarioActual', JSON.stringify({
+        correo: resultado.usuario?.correo,
+        rol: resultado.usuario?.rol,
+        permisos: resultado.usuario?.permisos
+      }));
+
+      this.mensajeExito = resultado.mensaje;
+      setTimeout(() => this.router.navigate(['/Home']), 600);
+
+    } catch (e) {
+      console.error('Error en login:', e);
+      this.error = 'Ocurrió un error al conectar con la base de datos.';
+    } finally {
+      this.cargando = false;
+      this.cdr.detectChanges(); // 👈 clave: refresca la vista al terminar
+    }
   }
-}
 }

@@ -76,12 +76,14 @@ export class Home implements OnInit {
     const routes: Record<string, () => void> = {
       iraControlInd: () => window.open('https://registroinduccionesitsqmet.netlify.app/admin/admin', '_blank'),
       irDocumentosWeb: () => this.router.navigate(['/Documentos-Web']),
-      irAAgendar: () => this.router.navigate(['/Agenda']),
       irACronogramas: () => this.router.navigate(['/Cronogramas']),
       irAInformesUGPA: () => this.router.navigate(['/Informes-UGPA']),
       irADocentes: () => this.router.navigate(['Docente-Registro']),
       irATitulos: () => window.open('https://titulos-administrador.pages.dev/'),
-      irAFacturación: () => window.open("")
+      irGestionCoordinador: () => window.open("https://docentenuevo.pages.dev/"),
+      irASeguimientoCoordinador: () => window.open("https://titulos-coordinadores.pages.dev/"),
+      irAHistorialSesion: () => this.router.navigate(["/Historial-Sesión"]),
+      irAUSEGBE: () => window.open("https://tangerine-strudel-35d0e7.netlify.app/area-usegbe/usegbe")
     };
     routes[action]?.();
   }

@@ -33,10 +33,6 @@ export const MODULOS_SISTEMA = [
     { clave: 'irAInformesUGPA', nombre: 'Informes del Proceso de Capacitación Docente' },
     { clave: 'irADocentes', nombre: 'Docentes registrados' },
     { clave: 'irATitulos', nombre: 'Administración de Títulos' },
-    // Estos dos existen en las rutas de home.ts pero aún no tienen
-    // tarjeta en HOME_CARDS — los dejo listos por si las agregas:
-    { clave: 'irAAgendar', nombre: 'Agenda' },
-    { clave: 'irAFacturación', nombre: 'Facturación' },
 ];
 
 export type NivelPermiso = 'sin_acceso' | 'lectura' | 'edicion';
@@ -192,6 +188,18 @@ export class SolicitudesService {
             .map(clave => ({ clave, usuario: datos[clave] }));
     }
 
+    /**
+     * Trae TODOS los usuarios registrados sin filtrar por estado
+     * (pendientes, aprobados y rechazados). Se usa en HistorialSesion.
+     */
+    async obtenerTodos(): Promise<Array<{ clave: string, usuario: UsuarioLogin }>> {
+        const snapshot = await get(ref(db, this.NODO));
+        if (!snapshot.exists()) return [];
+
+        const datos = snapshot.val() as Record<string, UsuarioLogin>;
+        return Object.keys(datos).map(clave => ({ clave, usuario: datos[clave] }));
+    }
+
     async aprobar(clave: string, permisos: Permisos): Promise<void> {
         await set(ref(db, `${this.NODO}/${clave}/estado`), 'aprobado');
         await set(ref(db, `${this.NODO}/${clave}/permisos`), permisos);
@@ -200,5 +208,14 @@ export class SolicitudesService {
 
     async rechazar(clave: string): Promise<void> {
         await set(ref(db, `${this.NODO}/${clave}/estado`), 'rechazado');
+    }
+
+    /**
+     * Actualiza únicamente los permisos de un usuario ya existente
+     * (aprobado, pendiente o rechazado), sin tocar su estado.
+     * Se usa desde HistorialSesion para editar permisos.
+     */
+    async actualizarPermisos(clave: string, permisos: Permisos): Promise<void> {
+        await set(ref(db, `${this.NODO}/${clave}/permisos`), permisos);
     }
 }

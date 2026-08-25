@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, Chang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MODULOS_SISTEMA, NivelPermiso, Permisos, SolicitudesService, UsuarioLogin } from '../../firebase/login';
+import { HOME_CARDS } from '../../pages/Components/cardDescrip'; // 👈 ajusta la ruta real según donde esté este componente
 
 interface SolicitudUI {
   clave: string;
@@ -22,7 +23,9 @@ export class ModalSolicitudes implements OnChanges {
   @Input() visible = false;
   @Output() cerrarEvento = new EventEmitter<void>();
 
-  modulos = MODULOS_SISTEMA;
+  // 👇 nuevo: combina MODULOS_SISTEMA con los módulos de HOME_CARDS que no estén ya incluidos
+  modulos = this.combinarModulos();
+
   solicitudes: SolicitudUI[] = [];
   cargando = false;
 
@@ -30,6 +33,20 @@ export class ModalSolicitudes implements OnChanges {
     private solicitudesService: SolicitudesService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  // 👇 nuevo
+  private combinarModulos() {
+    const clavesExistentes = new Set(MODULOS_SISTEMA.map(m => m.clave));
+
+    const modulosFaltantes = HOME_CARDS
+      .filter(card => !clavesExistentes.has(card.action))
+      .map(card => ({
+        clave: card.action,
+        nombre: card.footer || card.title
+      }));
+
+    return [...MODULOS_SISTEMA, ...modulosFaltantes];
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['visible']?.currentValue === true) {
@@ -39,7 +56,7 @@ export class ModalSolicitudes implements OnChanges {
 
   private async cargarPendientes(): Promise<void> {
     this.cargando = true;
-    this.cdr.detectChanges(); // 👈 nuevo — muestra el spinner de inmediato
+    this.cdr.detectChanges();
 
     try {
       const pendientes = await this.solicitudesService.obtenerPendientes();
@@ -57,7 +74,7 @@ export class ModalSolicitudes implements OnChanges {
       this.solicitudes = [];
     } finally {
       this.cargando = false;
-      this.cdr.detectChanges(); // 👈 nuevo
+      this.cdr.detectChanges();
     }
   }
 
@@ -67,7 +84,7 @@ export class ModalSolicitudes implements OnChanges {
 
   async aprobar(sol: SolicitudUI): Promise<void> {
     sol.procesando = true;
-    this.cdr.detectChanges(); // 👈 nuevo
+    this.cdr.detectChanges();
 
     try {
       await this.solicitudesService.aprobar(sol.clave, sol.permisosElegidos);
@@ -77,14 +94,14 @@ export class ModalSolicitudes implements OnChanges {
       alert('Error al aprobar la solicitud.');
     } finally {
       sol.procesando = false;
-      this.cdr.detectChanges(); // 👈 nuevo
+      this.cdr.detectChanges();
     }
   }
 
   async rechazar(sol: SolicitudUI): Promise<void> {
     if (!confirm(`¿Rechazar el acceso de ${sol.usuario.correo}?`)) return;
     sol.procesando = true;
-    this.cdr.detectChanges(); // 👈 nuevo
+    this.cdr.detectChanges();
 
     try {
       await this.solicitudesService.rechazar(sol.clave);
@@ -94,7 +111,7 @@ export class ModalSolicitudes implements OnChanges {
       alert('Error al rechazar la solicitud.');
     } finally {
       sol.procesando = false;
-      this.cdr.detectChanges(); // 👈 nuevo
+      this.cdr.detectChanges();
     }
   }
 

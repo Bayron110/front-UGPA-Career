@@ -1,0 +1,54 @@
+<div class="historial-container">
+
+  <div class="historial-header">
+    <h2>Historial de sesión</h2>
+    <input
+      type="text"
+      class="input-busqueda"
+      placeholder="Buscar por correo..."
+      [(ngModel)]="filtro"
+    />
+  </div>
+
+  <div class="estado-carga" *ngIf="cargando">
+    <div class="spinner"></div>
+    <p>Cargando usuarios...</p>
+  </div>
+
+  <div class="estado-vacio" *ngIf="!cargando && usuariosFiltrados.length === 0">
+    <p>No hay usuarios registrados que coincidan.</p>
+  </div>
+
+  <div class="usuario-item" *ngFor="let u of usuariosFiltrados">
+    <div class="usuario-header">
+      <span class="usuario-correo">{{ u.usuario.correo }}</span>
+      <span class="usuario-estado" [ngClass]="'estado-' + u.usuario.estado">{{ u.usuario.estado }}</span>
+      <span class="usuario-rol" [class.rol-admin]="u.usuario.rol === 'admin'">{{ u.usuario.rol }}</span>
+      <span class="usuario-fecha">Registrado: {{ u.usuario.fechaRegistro | date:'d MMM y, HH:mm' }}</span>
+    </div>
+
+    <div class="permisos-grid">
+      <div class="permiso-modulo" *ngFor="let mod of modulos">
+        <label>{{ mod.nombre }}</label>
+        <select
+          [ngModel]="u.permisosElegidos[mod.clave]"
+          (ngModelChange)="setPermiso(u, mod.clave, $event)"
+        >
+          <option value="sin_acceso">Sin acceso</option>
+          <option value="lectura">Solo lectura</option>
+          <option value="edicion">Lectura y edición</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="usuario-acciones" *ngIf="u.modificado">
+      <button class="btn-descartar" [disabled]="u.guardando" (click)="descartarCambios(u)">
+        Descartar
+      </button>
+      <button class="btn-guardar" [disabled]="u.guardando" (click)="guardarCambios(u)">
+        {{ u.guardando ? 'Guardando...' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+
+</div>

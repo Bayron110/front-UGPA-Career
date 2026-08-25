@@ -8,6 +8,7 @@ import { DocentesRegistrados } from './components/docentes-registrados/docentes-
 import { Login } from './components/login/login';
 import { loginProteccionGuard } from './guards/login-proteccion-guard';
 import { permisosGuard } from './guards/permisos-guard';
+import { HistorialSesion } from './components/modal-solicitudes/components/historial-sesion/historial-sesion';
 
 export const routes: Routes = [
     { path: "Home", component: Home, canActivate: [loginProteccionGuard] },
@@ -31,6 +32,11 @@ export const routes: Routes = [
         path: "Docente-Registro", component: DocentesRegistrados,
         canActivate: [loginProteccionGuard, permisosGuard],
         data: { modulo: 'irADocentes', nivelMinimo: 'lectura' }
+    },
+      {
+        path: "Historial-Sesión", component: HistorialSesion,
+        canActivate: [loginProteccionGuard, permisosGuard],
+        data: { modulo: 'irAHistorialSesion', nivelMinimo: 'lectura' }
     },
 
     { path: "Login", component: Login },

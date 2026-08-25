@@ -29,7 +29,7 @@ export const HOME_CARDS: HomeCard[] = [
                 action: 'irACronogramas'
         },
 
-                {
+        {
                 badge: 'UGPA',
                 title: 'informes del Proceso de Capacitación Docente',
                 description: 'Generar informes del proceso de capacitación docente.',
@@ -47,13 +47,47 @@ export const HOME_CARDS: HomeCard[] = [
                 action: 'irADocentes'
         },
 
-                {
+        {
                 badge: 'UTET',
                 title: 'Administración de Titulos',
                 description: 'Modulo para la gestión eficiente de los titulos de los PVC o trabajo de titulación ',
                 footer: 'Titulos',
                 image: 'https://i.postimg.cc/XNHxpvPh/Gemini-Generated-Image-ybn8q6ybn8q6ybn8.jpg',
                 action: 'irATitulos'
+        },
+        {
+                badge: 'UTET',
+                title: 'Seguimiento de Revisión de Titulos',
+                description: 'Modulo para el control de la revisión de Titulos por parte de los Coordinadores',
+                footer: 'Revisión',
+                image: 'https://i.postimg.cc/VvSYmpxv/Seguimiento.png',
+                action: 'irASeguimientoCoordinador'
+        },
+
+        {
+                badge: 'UGPA',
+                title: 'Gestión Coordinador / Administrador',
+                description: 'Modulo Para la gestión Docente por parte de los Coordinadores y revisiones periodicas por parte del Administrador',
+                footer: 'Gestión',
+                image: 'https://i.postimg.cc/XJk59Gqd/Gestion-Docente.png',
+                action: 'irGestionCoordinador'
+        },
+        {
+                badge: 'USEGBE',
+                title: 'Envio de Mensajes Masivos',
+                description: 'Modulo para el envio de información por parte del area de USEGBE para estudiantes de los diferentes periodos',
+                footer: 'Enviar Mensaje USEGBE',
+                image: 'https://i.postimg.cc/s2Q6ZWWJ/Gemini-Generated-Image-wzh12cwzh12cwzh1.jpg',
+                action: 'irAUSEGBE'
+        },
+
+        {
+                badge: 'Control',
+                title: 'Control Administrador',
+                description: 'Modulo para el control de sesiones y permisos que tienen los usuarios',
+                footer: 'Control',
+                image: 'https://i.postimg.cc/v8gnFzsx/Gemini-Generated-Image-3pp9cb3pp9cb3pp9.jpg',
+                action: 'irAHistorialSesion'
         },
 
 ];
