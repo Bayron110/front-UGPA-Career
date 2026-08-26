@@ -23,7 +23,7 @@ export interface CamposGenerados {
 })
 export class IaService {
 
-  private readonly apiKey = 'API_KEY';
+  private readonly apiKey = 'AQ.Ab8RN6Ict0YBlIdYkvIOzWWKKX2PBRoBauv_2ZqnQ8lNQ3eoLA';
   private readonly modelo = 'gemini-3.6-flash';
   private readonly endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelo}:generateContent`;
 
