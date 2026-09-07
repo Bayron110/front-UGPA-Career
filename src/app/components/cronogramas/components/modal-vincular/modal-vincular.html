@@ -50,14 +50,14 @@
 
             <!-- ══ NUEVO: filtro carrera + transferir, solo en vista vinculados ══ -->
             <div class="modal-header-filtros" *ngIf="vista === 'vinculados'">
-                            <div>
-                <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
-                    (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
-                    <div class="spinner-sm" *ngIf="exportando"></div>
-                    <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
-                    {{ exportando ? 'Generando...' : 'Descargar Excel' }}
-                </button>
-            </div>
+                <div>
+                    <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
+                        (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
+                        <div class="spinner-sm" *ngIf="exportando"></div>
+                        <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
+                        {{ exportando ? 'Generando...' : 'Descargar Excel' }}
+                    </button>
+                </div>
 
                 <div class="filtros-vinculados-panel">
 
@@ -157,24 +157,27 @@
                 <span class="nav-grupo-nombre">{{ grupoSeleccionado?.nombres }}</span>
             </div>
 
+            <!-- DESPUÉS -->
             <div class="modal-toolbar">
-                <div class="buscador">
-                    <i class="ti ti-search"></i>
-                    <input type="text" placeholder="Buscar por cédula, nombre o carrera..." [(ngModel)]="busqueda"
-                        (input)="filtrar()">
-                </div>
-                <button class="btn-sort" [class.active]="ordenarPorCarrera" (click)="toggleOrdenCarrera()"
-                    title="Ordenar por carrera">
-                    <i class="ti ti-arrows-sort"></i>
-                    <span>Carrera</span>
-                </button>
-                <div class="toolbar-stats">
-                    <span class="stat">
-                        <i class="ti ti-users"></i> {{ estudiantesFiltrados.length }} estudiantes
-                    </span>
-                    <span class="stat" [class.vinculados]="seleccionados.size > 0">
-                        <i class="ti ti-check"></i> {{ seleccionados.size }} seleccionados
-                    </span>
+                <div class="modal-toolbar-fila">
+                    <div class="buscador">
+                        <i class="ti ti-search"></i>
+                        <input type="text" placeholder="Buscar por cédula, nombre o carrera..." [(ngModel)]="busqueda"
+                            (input)="filtrar()">
+                    </div>
+                    <button class="btn-sort" [class.active]="ordenarPorCarrera" (click)="toggleOrdenCarrera()"
+                        title="Ordenar por carrera">
+                        <i class="ti ti-arrows-sort"></i>
+                        <span>Carrera</span>
+                    </button>
+                    <div class="toolbar-stats">
+                        <span class="stat">
+                            <i class="ti ti-users"></i> {{ estudiantesFiltrados.length }} estudiantes
+                        </span>
+                        <span class="stat" [class.vinculados]="seleccionados.size > 0">
+                            <i class="ti ti-check"></i> {{ seleccionados.size }} seleccionados
+                        </span>
+                    </div>
                 </div>
             </div>
 

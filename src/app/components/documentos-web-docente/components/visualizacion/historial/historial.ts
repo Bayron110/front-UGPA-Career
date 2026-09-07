@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { dbDocente } from '../../../../../firebase/firebase-docente';
 
-type TipoDocumento = 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
+export type TipoDocumento = 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
 
 interface HistorialRegistro {
   id: string;
