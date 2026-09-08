@@ -10,7 +10,7 @@
                     {{ cronograma.nombre }} — {{ cronograma.periodo }}
                 </p>
 
-                <div class="filtro-grupo">
+                <div class="filtro-grupo" *ngIf="vista === 'vinculados'">
                     <span class="filtro-grupo-label">Notificaciones</span>
                     <div class="filtro-grupo-chips">
                         <button class="filtro-btn" [class.active]="filtroNotifVinculados === 'TODOS'"
@@ -38,56 +38,26 @@
                     </div>
                 </div>
             </div>
-            <div class="select-wrapper header-filtro-carrera" *ngIf="carrerasVinculadosDisponibles.length > 1">
-                <i class="ti ti-building-community"></i>
-                <select [ngModel]="filtroCarreraVinculadosSeleccionada"
-                    (ngModelChange)="setFiltroCarreraVinculados($event)">
-                    <option value="">Todas las carreras / cargos</option>
-                    <option *ngFor="let c of carrerasVinculadosDisponibles" [value]="c">{{ c }}</option>
-                </select>
-                <i class="ti ti-chevron-down select-caret"></i>
-            </div>
 
-            <!-- ══ NUEVO: filtro carrera + transferir, solo en vista vinculados ══ -->
-            <div class="modal-header-filtros" *ngIf="vista === 'vinculados'">
-                <div>
-                    <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
-                        (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
-                        <div class="spinner-sm" *ngIf="exportando"></div>
-                        <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
-                        {{ exportando ? 'Generando...' : 'Descargar Excel' }}
-                    </button>
+            <!-- ══ Toolbar del header: carrera + excel + transferir, solo en vinculados ══ -->
+            <div class="modal-header-toolbar" *ngIf="vista === 'vinculados'">
+                <div class="select-wrapper" *ngIf="carrerasVinculadosDisponibles.length > 1">
+                    <i class="ti ti-building-community"></i>
+                    <select [ngModel]="filtroCarreraVinculadosSeleccionada"
+                        (ngModelChange)="setFiltroCarreraVinculados($event)">
+                        <option value="">Todas las carreras / cargos</option>
+                        <option *ngFor="let c of carrerasVinculadosDisponibles" [value]="c">{{ c }}</option>
+                    </select>
+                    <i class="ti ti-chevron-down select-caret"></i>
                 </div>
 
-                <div class="filtros-vinculados-panel">
+                <button class="btn-exportar" [disabled]="exportando || contarVinculados('estudiante') === 0"
+                    (click)="exportarExcel()" title="Descargar Excel con los estudiantes vinculados (incluye sede)">
+                    <div class="spinner-sm" *ngIf="exportando"></div>
+                    <i class="ti ti-file-spreadsheet" *ngIf="!exportando"></i>
+                    {{ exportando ? 'Generando...' : 'Descargar Excel' }}
+                </button>
 
-                    <div class="filtro-grupo">
-                        <span class="filtro-grupo-label">Tipo</span>
-                        <div class="filtro-grupo-chips">
-                            <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'TODOS'"
-                                (click)="setFiltroTipoVinculado('TODOS')">
-                                Todos
-                                <span class="filtro-mini-count">{{ personasVinculadas.length }}</span>
-                            </button>
-                            <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'ESTUDIANTES'"
-                                (click)="setFiltroTipoVinculado('ESTUDIANTES')">
-                                <i class="ti ti-user-graduate"></i> Estudiantes
-                                <span class="filtro-mini-count">{{ contarVinculados('estudiante') }}</span>
-                            </button>
-                            <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'DOCENTES'"
-                                (click)="setFiltroTipoVinculado('DOCENTES')">
-                                <i class="ti ti-user-shield"></i> Docentes
-                                <span class="filtro-mini-count">{{ contarVinculados('docente') }}</span>
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <button class="btn-limpiar-todo" *ngIf="hayFiltrosVinculadosActivos"
-                        (click)="limpiarFiltrosVinculados()">
-                        <i class="ti ti-filter-x"></i> Limpiar filtros
-                    </button>
-                </div>
                 <button class="btn-vincular btn-transferir-header" *ngIf="puedeEditar"
                     [disabled]="seleccionadosVinculados.size === 0" (click)="abrirTransferirLote()">
                     <i class="ti ti-transfer"></i>
@@ -96,17 +66,7 @@
             </div>
 
             <div class="modal-header-acciones">
-                <button class="btn-expandir" (click)="toggleExpandido()"
-                    [title]="modalExpandido ? 'Contraer modal' : 'Expandir modal'">
-                    <svg *ngIf="!modalExpandido" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
-                    </svg>
-                    <svg *ngIf="modalExpandido" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8 4v4H4M16 4v4h4M8 20v-4H4M16 20v-4h4" />
-                    </svg>
-                </button>
+
                 <button class="btn-cerrar" (click)="cerrar()">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -162,22 +122,46 @@
                 <div class="modal-toolbar-fila">
                     <div class="buscador">
                         <i class="ti ti-search"></i>
-                        <input type="text" placeholder="Buscar por cédula, nombre o carrera..." [(ngModel)]="busqueda"
-                            (input)="filtrar()">
+                        <input type="text" placeholder="Buscar por cédula o nombre..." [(ngModel)]="busquedaVinculados"
+                            (ngModelChange)="onBusquedaVinculadosChange()">
                     </div>
-                    <button class="btn-sort" [class.active]="ordenarPorCarrera" (click)="toggleOrdenCarrera()"
-                        title="Ordenar por carrera">
-                        <i class="ti ti-arrows-sort"></i>
-                        <span>Carrera</span>
+
+                    <div class="filtro-grupo-chips">
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'TODOS'"
+                            (click)="setFiltroTipoVinculado('TODOS')">
+                            Todos
+                            <span class="filtro-mini-count">{{ personasVinculadas.length }}</span>
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'ESTUDIANTES'"
+                            (click)="setFiltroTipoVinculado('ESTUDIANTES')">
+                            <i class="ti ti-user-graduate"></i> Estudiantes
+                            <span class="filtro-mini-count">{{ contarVinculados('estudiante') }}</span>
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipoVinculado === 'DOCENTES'"
+                            (click)="setFiltroTipoVinculado('DOCENTES')">
+                            <i class="ti ti-user-shield"></i> Docentes
+                            <span class="filtro-mini-count">{{ contarVinculados('docente') }}</span>
+                        </button>
+                    </div>
+
+                    <button class="btn-limpiar-todo" *ngIf="hayFiltrosVinculadosActivos"
+                        (click)="limpiarFiltrosVinculados()">
+                        <i class="ti ti-filter-x"></i> Limpiar filtros
                     </button>
-                    <div class="toolbar-stats">
-                        <span class="stat">
-                            <i class="ti ti-users"></i> {{ estudiantesFiltrados.length }} estudiantes
-                        </span>
-                        <span class="stat" [class.vinculados]="seleccionados.size > 0">
-                            <i class="ti ti-check"></i> {{ seleccionados.size }} seleccionados
-                        </span>
-                    </div>
+
+                    <button class="btn-migrar-telegram" [disabled]="migrandoTelegram" (click)="migrarTelegramChatIds()"
+                        title="Copiar telegramChatId desde Realtime Database hacia Firestore (colección Estudiantes)">
+                        <div class="spinner-sm" *ngIf="migrandoTelegram"></div>
+                        <i class="ti ti-brand-telegram" *ngIf="!migrandoTelegram"></i>
+                        {{ migrandoTelegram ? 'Migrando...' : 'Migrar Telegram a Firestore' }}
+                    </button>
+                    <button class="btn-migrar-telegram" [disabled]="actualizandoSede || totalSinSede === 0"
+                        (click)="actualizarSedeVinculados()"
+                        title="Busca la sede de los estudiantes vinculados sin sede en los grupos de inducción y la actualiza">
+                        <div class="spinner-sm" *ngIf="actualizandoSede"></div>
+                        <i class="ti ti-map-pin" *ngIf="!actualizandoSede"></i>
+                        {{ actualizandoSede ? 'Actualizando...' : 'Actualizar sede' }}
+                    </button>
                 </div>
             </div>
 
@@ -667,20 +651,7 @@
                     </tbody>
                 </table>
 
-                <!-- ══ PAGINACIÓN (100 en 100) ══ -->
-                <div class="paginacion-vinculados" *ngIf="totalPaginasVinculados > 1">
-                    <button class="btn-paginacion" (click)="paginaAnteriorVinculados()"
-                        [disabled]="paginaActualVinculados === 1">
-                        <i class="ti ti-chevron-left"></i> Anterior
-                    </button>
-                    <span class="paginacion-info">
-                        {{ rangoVinculadosTexto }} · Página {{ paginaActualVinculados }} de {{ totalPaginasVinculados }}
-                    </span>
-                    <button class="btn-paginacion" (click)="paginaSiguienteVinculados()"
-                        [disabled]="paginaActualVinculados === totalPaginasVinculados">
-                        Siguiente <i class="ti ti-chevron-right"></i>
-                    </button>
-                </div>
+
             </div>
         </div>
 
@@ -875,6 +846,20 @@
             </div>
 
             <button class="btn-cancelar" (click)="cerrar()">Cancelar</button>
+                            <!-- ══ PAGINACIÓN (100 en 100) ══ -->
+                <div class="paginacion-vinculados" *ngIf="totalPaginasVinculados > 1">
+                    <button class="btn-paginacion" (click)="paginaAnteriorVinculados()"
+                        [disabled]="paginaActualVinculados === 1">
+                        <i class="ti ti-chevron-left"></i> Anterior
+                    </button>
+<span class="paginacion-info">
+    {{ paginaActualVinculados }} de {{ totalPaginasVinculados }}
+</span>
+                    <button class="btn-paginacion" (click)="paginaSiguienteVinculados()"
+                        [disabled]="paginaActualVinculados === totalPaginasVinculados">
+                        Siguiente <i class="ti ti-chevron-right"></i>
+                    </button>
+                </div>
 
             <button class="btn-vincular" *ngIf="vista === 'estudiantes'"
                 [disabled]="seleccionados.size === 0 || guardando" (click)="vincular()">

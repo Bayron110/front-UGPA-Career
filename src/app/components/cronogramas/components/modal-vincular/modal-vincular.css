@@ -4,16 +4,14 @@
     inset: 0;
     background: rgba(15, 31, 61, 0.45);
     backdrop-filter: blur(4px);
-    z-index: 200;
+    z-index: 9999;              /* 👈 sube esto, el navbar probablemente tiene un z-index alto */
     display: flex;
-    align-items: flex-start;   /* 👈 antes: center */
+    align-items: stretch;       /* 👈 antes: flex-start */
     justify-content: center;
-    padding: 20px;
-    padding-top: 90px;         /* 👈 nuevo: deja espacio para el navbar (≈70px) + margen */
+    padding: 0;                 /* 👈 quita el padding-top: 90px */
     animation: fadeIn 0.2s ease;
     box-sizing: border-box;
 }
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -28,10 +26,10 @@
 .modal {
     background: #ffffff;
     border: 1px solid #e4e8f0;
-    border-radius: 18px;
+    border-radius: 0;
     width: 100%;
     max-width: 100%;
-    height: calc(100vh - 70px);  /* 👈 antes: 92vh */
+    height: 100vh;  /* 👈 antes: 92vh */
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(15, 31, 61, 0.20);
@@ -58,12 +56,13 @@
 /* ── Header ── */
 .modal-header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding: 24px 28px 20px;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 28px;
     border-bottom: 1px solid #e4e8f0;
     position: relative;
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .modal-header::after {
@@ -606,18 +605,23 @@
 
 table {
     width: 100%;
-    min-width: 700px;
+    min-width: 900px;
     border-collapse: collapse;
     table-layout: auto;
 }
 
-thead tr {
+thead th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #64738c;
+    white-space: nowrap;
     background: #f8f9fb;
-    border-bottom: 1px solid #e4e8f0;
-    position: sticky;
-    top: 0;
-    z-index: 2;
 }
+
 
 thead th {
     padding: 9px 12px;
@@ -670,8 +674,8 @@ tbody tr.ya-vinculado {
 }
 
 tbody td {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 14px 16px;
+    font-size: 14px;
     color: #425068;
     vertical-align: middle;
 }
@@ -1020,6 +1024,7 @@ tbody td {
     flex-wrap: wrap;
     min-width: 0;
     background: #ffffff;
+    position: relative;
 }
 
 .footer-spacer {
@@ -2326,8 +2331,8 @@ tbody td {
 
 /* ── Modal expandido ── */
 .modal.expandido {
-    max-width: 1400px;
-    height: calc(96vh - 70px);
+    max-width: 96vw;
+    height: calc(100vh - 10px);
 }
 
 @media (max-width: 640px) {
@@ -2342,6 +2347,24 @@ tbody td {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+}
+
+.modal-header-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+.modal-header-toolbar .select-wrapper {
+    min-width: 200px;
+    max-width: 260px;
+}
+
+.modal-header-toolbar .btn-exportar,
+.modal-header-toolbar .btn-vincular {
     flex-shrink: 0;
 }
 
@@ -2364,4 +2387,59 @@ tbody td {
     background: #f8f9fb;
     color: #a9822f;
     border-color: #c9a94c;
+}
+
+.btn-paginacion {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border: 1px solid #e4e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #425068;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.btn-paginacion:hover:not(:disabled) {
+    background: #f8f9fb;
+    border-color: #c9a94c;
+    color: #a9822f;
+}
+
+.btn-paginacion:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.paginacion-info {
+    font-size: 12px;
+    color: #64738c;
+    white-space: nowrap;
+}
+
+.paginacion-vinculados {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+@media (max-width: 640px) {
+    .paginacion-vinculados {
+        position: static;
+        transform: none;
+        order: 10;
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
 }
