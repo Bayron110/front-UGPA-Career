@@ -14,35 +14,21 @@ import {
     RequisitosHelper, RequisitosModal, RequisitosNoEncontradoError, requisitosModalVacio
 } from './components/requisitos';
 import {
-    TransferirHelper, TransferirModal, transferirModalVacio
+    TransferirHelper, transferirModalVacio
 } from './components/transferir';
 import { ExportarExcelHelper } from './components/exportar-excel';
 import {
     EstadisticasHelper, calcularStatsGenerales, agruparEstudiantesPor
 } from './components/estadisticas';
 import { MantenimientoHelper } from './components/mantenimiento';
+import { ManualDatos } from './Interface/ManualDatos';
+import { DocenteForm } from './Interface/DocenteForm';
+import { TransferirModal } from './Interface/TransferirModal';
 
 type Vista = 'grupos' | 'estudiantes' | 'manual' | 'vinculados' | 'estadisticas';
 type TipoPersona = 'estudiante' | 'docente';
 type VistaDocente = 'lista' | 'nuevo';
 type EstadoNotif = 'activa' | 'pendiente' | 'sin-telegram';
-
-interface ManualDatos {
-    cedula: string;
-    nombres: string;
-    carrera: string;
-    sede: string;
-    telegramUser: string;
-    grupo: string;
-    asistencia: boolean;
-}
-
-interface DocenteForm {
-    cedula: string;
-    nombres: string;
-    cargo: string;
-    departamento: string;
-}
 
 @Component({
     selector: 'app-modal-vincular',
@@ -66,7 +52,6 @@ export class ModalVincular implements OnChanges, OnDestroy {
     @ViewChild('canvasCarreraStack') canvasCarreraStackRef?: ElementRef<HTMLCanvasElement>;
     @ViewChild('canvasCarreraSinActivar') canvasCarreraSinActivarRef?: ElementRef<HTMLCanvasElement>;
 
-    // ── Helpers (lógica pesada extraída) ────────────────────────────────────
     private requisitosHelper = new RequisitosHelper();
     private transferirHelper: TransferirHelper;
     private exportarExcelHelper = new ExportarExcelHelper();
@@ -130,13 +115,6 @@ export class ModalVincular implements OnChanges, OnDestroy {
     requisitosModal: RequisitosModal = requisitosModalVacio();
     transferirModal: TransferirModal = transferirModalVacio();
 
-    // ── Computed: personas vinculadas ───────────────────────────────────────
-    // Cacheado: con 1000+ estudiantes, reconstruir este arreglo en CADA
-    // change detection (getters se re-ejecutan constantemente en Angular)
-    // es lo que causaba la demora al abrir "vinculados". Solo se recalcula
-    // si estudiantesVinculados/docentesVinculados cambiaron de referencia,
-    // cosa que ya ocurre porque el resto del código siempre reasigna un
-    // objeto nuevo en vez de mutar in-place.
     private _cachePersonas: any[] = [];
     private _cacheEstRef: any = undefined;
     private _cacheDocRef: any = undefined;

@@ -8,39 +8,11 @@ import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { dbDocente } from '../../../../../firebase/firebase-docente';
+import { HistorialRegistro } from './interface/HistorialRegistro';
+import { GenStep } from './interface/GenStep';
+import { RETRY_CONFIG } from './interface/RetruConfig';
 
 export type TipoDocumento = 'patrocinio' | 'plan' | 'seguimiento' | 'sinFormación';
-
-interface HistorialRegistro {
-  id: string;
-  tipo: TipoDocumento;
-  tipoLabel: string;
-  cedula: string;
-  docente: string;
-  carrera: string;
-  codigo: string;
-  capacitacion: string;
-  fechaGuardado: string;
-  timestamp: number;
-  datosDocumento: any | null;
-  entregado: boolean;
-  rutaDb: string;
-  actualizandoEstado?: boolean;
-}
-
-interface GenStep {
-  id: string;
-  txt: string;
-  pct: number;
-}
-
-// Configuración de reintentos automáticos
-const RETRY_CONFIG = {
-  maxIntentos: 3,
-  delayBase: 4000,
-  delayMax: 15000,
-  multiplicador: 2
-};
 
 @Component({
   selector: 'app-historial',

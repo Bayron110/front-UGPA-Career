@@ -3,44 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { onValue, ref, remove, set, update, off } from 'firebase/database';
 import { dbDocente } from '../../../../../firebase/firebase-docente';
+import { CapacitacionData, CapCombinada, TemaData } from './interface/capacitacionData';
+import { CarreraItem } from './interface/CarreraItem';
+import { CapacitacionGenericaItem } from './interface/CapacitacionGenerica';
 
-interface TemaData {
-  titulo: string;
-}
 
-interface CapacitacionData {
-  capacitacion: string;
-  tipo: string;
-  horas: number;
-  fechaInicio: string;
-  fechaFin: string;
-  estado: string;
-  habilitada: boolean;
-  teoriaTemas: TemaData[];
-  practicaTemas: TemaData[];
-}
 
-interface CarreraItem {
-  id: string;
-  nombre: string;
-  capacitaciones: { [key: string]: CapacitacionData };
-  guardando?: boolean;
-  eliminando?: boolean;
-  limpiando?: boolean;
-}
 
-interface CapacitacionGenericaItem {
-  key: string;
-  data: CapacitacionData;
-  eliminando?: boolean;
-}
 
-interface CapCombinada {
-  key: string;
-  data: CapacitacionData;
-  esGenerica: boolean;
-  eliminandoGenerica?: boolean;
-}
 
 function temasVacios(n: number): TemaData[] {
   return Array.from({ length: n }, () => ({ titulo: '' }));
