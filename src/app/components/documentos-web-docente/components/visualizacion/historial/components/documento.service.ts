@@ -3,8 +3,21 @@ import { get, ref } from 'firebase/database';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
+
+
+import { ImagenService } from './imagen.service';
+import {
+  formatoFecha,
+  limpiarNombreArchivo,
+  normalizarTexto,
+  esperar,
+  construirRangoFechaTexto,
+  imagenPlaceholder1x1
+} from './historial.utils';
 import { TipoDocumento } from '../historial';
 import { HistorialRegistro } from '../interface/HistorialRegistro';
+import { dbDocente } from '../../../../../../firebase/firebase-docente';
+import { RETRY_CONFIG } from '../interface/RetruConfig';
 
 export interface DescargaCallbacks {
   onReintento?: (intento: number, maxIntentos: number) => void;

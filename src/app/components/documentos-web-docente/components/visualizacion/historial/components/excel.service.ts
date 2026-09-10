@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
-import { HistorialRegistro } from './interface/HistorialRegistro';
+import { HistorialRegistro } from '../interface/HistorialRegistro';
 
 @Injectable({ providedIn: 'root' })
 export class ExcelService {

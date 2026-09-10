@@ -2,9 +2,10 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { get, off, onValue, ref, update } from 'firebase/database';
 
-import { dbDocente } from '../../../../../firebase/firebase-docente';
-import { HistorialRegistro } from './interface/HistorialRegistro';
+
 import { formatoFecha } from './historial.utils';
+import { dbDocente } from '../../../../../../firebase/firebase-docente';
+import { HistorialRegistro } from '../interface/HistorialRegistro';
 
 @Injectable({ providedIn: 'root' })
 export class HistorialFirebaseService implements OnDestroy {
