@@ -97,6 +97,7 @@ export class HistorialFirebaseService implements OnDestroy {
               capacitacion: data.capacitacion || data.NombreCA || '',
               fechaGuardado: data.fechaGuardado || data.fecha || '',
               timestamp: Number(data.timestamp || 0),
+              sede: data.sede || 'Quito',
               datosDocumento: {
                 NombresC: nombreDocente,
                 Carrera1: carrera,
@@ -135,6 +136,7 @@ export class HistorialFirebaseService implements OnDestroy {
               capacitacion: data.nombreFormacionEspecifica || data.nombreFormacionGenerica || '',
               fechaGuardado: data.fechaGuardado || data.fecha || '',
               timestamp: Number(data.timestamp || 0),
+              sede: data.sede || 'Quito',
               datosDocumento: {
                 Codigo: codigo,
                 NombresC: nombreDocente,
@@ -197,6 +199,7 @@ export class HistorialFirebaseService implements OnDestroy {
             capacitacion: '',
             fechaGuardado: data.fechaGuardado || data.fecha || datosDoc.fechaActual || '',
             timestamp: Number(data.timestamp || 0),
+            sede: data.sede || datosDoc.sede || 'Quito',
             datosDocumento: {
               ...datosDoc,
               Codigo: codigo,
@@ -273,8 +276,10 @@ export class HistorialFirebaseService implements OnDestroy {
   // ─────────────────────────────────────────────
   // CAPACITACIONES DISPONIBLES (para el filtro)
   // ─────────────────────────────────────────────
-  async cargarCapacitacionesDisponibles(): Promise<string[]> {
-    const set = new Set<string>();
+  async cargarCatalogoCapacitaciones(): Promise<{ nombres: string[]; sedes: string[]; mapaSedes: Record<string, string> }> {
+    const nombresSet = new Set<string>();
+    const sedesSet = new Set<string>();
+    const mapaSedes: Record<string, string> = {};
 
     try {
       const [snapGenericas, snapCarreras] = await Promise.all([
@@ -285,8 +290,16 @@ export class HistorialFirebaseService implements OnDestroy {
       // capacitacionesGenericas (nodo plano)
       if (snapGenericas.exists()) {
         snapGenericas.forEach((snapCap) => {
-          const nombre = String(snapCap.val()?.capacitacion || '').trim();
-          if (nombre) set.add(nombre);
+          const data = snapCap.val() || {};
+          const nombre = String(data.capacitacion || '').trim();
+          const sede = String(data.sede || '').trim();
+          if (nombre) {
+            nombresSet.add(nombre);
+            if (sede) {
+              sedesSet.add(sede);
+              mapaSedes[nombre] = sede;
+            }
+          }
         });
       }
 
@@ -297,16 +310,31 @@ export class HistorialFirebaseService implements OnDestroy {
           if (caps) {
             Object.values(caps as Record<string, any>).forEach((cap: any) => {
               const nombre = String(cap?.capacitacion || '').trim();
-              if (nombre) set.add(nombre);
+              const sede = String(cap?.sede || '').trim();
+              if (nombre) {
+                nombresSet.add(nombre);
+                if (sede) {
+                  sedesSet.add(sede);
+                  mapaSedes[nombre] = sede;
+                }
+              }
             });
           }
         });
       }
+
+      // Sede por defecto para registros antiguos sin el atributo `sede`
+      sedesSet.add('Quito');
+
     } catch (error) {
-      console.error('Error cargando capacitaciones disponibles:', error);
+      console.error('Error cargando catálogo de capacitaciones:', error);
     }
 
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+    return {
+      nombres: Array.from(nombresSet).sort((a, b) => a.localeCompare(b, 'es')),
+      sedes: Array.from(sedesSet).sort((a, b) => a.localeCompare(b, 'es')),
+      mapaSedes
+    };
   }
 
   // ─────────────────────────────────────────────

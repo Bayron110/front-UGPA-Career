@@ -63,6 +63,12 @@
           <option *ngFor="let cap of listaCapacitaciones" [value]="cap">{{ cap }}</option>
         </select>
       </div>
+      <div class="sede-wrap" *ngIf="listaSedes.length > 0">
+        <select class="select-sede" [ngModel]="filtroSede" (ngModelChange)="cambiarFiltroSede($event)">
+          <option value="">Todas las sedes</option>
+          <option *ngFor="let s of listaSedes" [value]="s">{{ s }}</option>
+        </select>
+      </div>
 
       <div class="filtros">
         <button type="button" class="chip" [class.activo]="filtroTipo === 'todos'" (click)="cambiarFiltro('todos')">

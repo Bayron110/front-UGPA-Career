@@ -27,8 +27,10 @@ export class Historial implements OnInit, OnDestroy {
   filtroTexto = '';
   filtroTipo: 'todos' | TipoDocumento = 'todos';
   filtroCapacitacion = '';
+  filtroSede = '';
   registros: HistorialRegistro[] = [];
   listaCapacitaciones: string[] = [];
+  listaSedes: string[] = [];
 
   // Animación generación
   mostrandoAnimacion = false;
@@ -85,7 +87,7 @@ export class Historial implements OnInit, OnDestroy {
     );
 
     this.firebaseService.iniciarEscucha();
-    this.cargarCapacitacionesDisponibles();
+    this.cargarCatalogoCapacitaciones();
   }
 
   ngOnDestroy(): void {
@@ -208,10 +210,12 @@ export class Historial implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────
-  // CAPACITACIONES DISPONIBLES (para el filtro)
+  // CATÁLOGO DE CAPACITACIONES Y SEDES (para los filtros)
   // ─────────────────────────────────────────────
-  private async cargarCapacitacionesDisponibles(): Promise<void> {
-    this.listaCapacitaciones = await this.firebaseService.cargarCapacitacionesDisponibles();
+  private async cargarCatalogoCapacitaciones(): Promise<void> {
+    const { nombres, sedes } = await this.firebaseService.cargarCatalogoCapacitaciones();
+    this.listaCapacitaciones = nombres;
+    this.listaSedes = sedes;
     this.cdr.detectChanges();
   }
 
@@ -237,28 +241,27 @@ export class Historial implements OnInit, OnDestroy {
         !this.filtroCapacitacion ||
         ((r.tipo === 'patrocinio' || r.tipo === 'plan') && r.capacitacion === this.filtroCapacitacion);
 
-      return cumpleTipo && cumpleTexto && cumpleCapacitacion;
-    });
-  }
+      // Sede propia del registro (los registros antiguos sin este atributo se asumen de Quito)
+      const sedeDelRegistro = r.sede || 'Quito';
+      const cumpleSede = !this.filtroSede || sedeDelRegistro === this.filtroSede;
 
-  get capacitacionesDisponibles(): string[] {
-    const set = new Set<string>();
-    this.registros.forEach((r) => {
-      if ((r.tipo === 'patrocinio' || r.tipo === 'plan') && r.capacitacion) {
-        set.add(r.capacitacion);
-      }
+      return cumpleTipo && cumpleTexto && cumpleCapacitacion && cumpleSede;
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
   }
 
   cambiarFiltroCapacitacion(valor: string): void {
     this.filtroCapacitacion = valor;
   }
 
+  cambiarFiltroSede(valor: string): void {
+    this.filtroSede = valor;
+  }
+
   cambiarFiltro(tipo: 'todos' | TipoDocumento): void {
     this.filtroTipo = tipo;
     if (tipo === 'seguimiento' || tipo === 'sinFormación') {
       this.filtroCapacitacion = '';
+      this.filtroSede = '';
     }
   }
 

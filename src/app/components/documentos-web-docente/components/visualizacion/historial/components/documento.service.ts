@@ -29,7 +29,7 @@ export class DocumentoService {
   private readonly API_BASE = 'https://backen-pdf-trabajo.onrender.com';
 
   private readonly PLANTILLAS: Record<TipoDocumento, string> = {
-    patrocinio: 'assets/docs/patrocinio.docx',
+    patrocinio: 'assets/docs/Patrocinio.docx',
     plan: 'assets/docs/individual.docx',
     seguimiento: 'assets/docs/seguimiento.docx',
     sinFormación: ''

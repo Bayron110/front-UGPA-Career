@@ -15,4 +15,5 @@ export interface HistorialRegistro {
   entregado: boolean;
   rutaDb: string;
   actualizandoEstado?: boolean;
+  sede?: string;
 }
