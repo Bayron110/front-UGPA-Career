@@ -1,457 +1,173 @@
-<div class="contenedor-documentos">
+<div>
   <br>
-  <div class="panel-principal">
+  <br>
+  
+<div class="dr-root">
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button
-        class="tab-btn"
-        [class.activa]="tabActiva() === 'registrados'"
-        (click)="cambiarTab('registrados')"
-        type="button"
-      >
-        <span class="tab-dot"></span>
-        Docentes Registrados
-      </button>
-
-      @if (puedeEditar) {
-        <button
-          class="tab-btn"
-          [class.activa]="tabActiva() === 'cargar'"
-          (click)="cambiarTab('cargar')"
-          type="button"
-        >
-          <span class="tab-dot"></span>
-          Cargar Excel
-        </button>
-      }
-    </div>
-
-    <!-- Contenido -->
-    <div class="panel-contenido">
-
-      @if (tabActiva() === 'registrados') {
-
-        @if (cargandoRegistrados()) {
-          <div class="vista-vacia">
-            <h3>Cargando docentes...</h3>
-            <p>Esperando datos de Firebase.</p>
-          </div>
-        } @else {
-
-          <!-- Filtro por carrera + Solo coordinadores + Agregar docente -->
-          <div class="filtro-barra">
-            <div class="filtro-barra-izquierda">
-              <label for="filtroCarrera" class="filtro-label">Filtrar por carrera</label>
-              <select
-                id="filtroCarrera"
-                class="filtro-selector"
-                [ngModel]="carreraSeleccionada()"
-                (ngModelChange)="cambiarFiltroCarrera($event)"
-              >
-                <option value="todas">Todas las carreras</option>
-                @for (carrera of carrerasDisponibles(); track carrera) {
-                  <option [value]="carrera">{{ carrera }}</option>
-                }
-              </select>
-
-              <label class="toggle-coordinadores">
-                <input
-                  type="checkbox"
-                  [checked]="soloCoordinadores()"
-                  (change)="toggleSoloCoordinadores()"
-                />
-                Solo coordinadores
-              </label>
-            </div>
-
-            @if (puedeEditar) {
-              <button type="button" class="btn btn-primario" (click)="abrirModalAgregar()">
-                + Agregar Docente
-              </button>
-            }
-          </div>
-
-          @if (docentesRegistrados().length === 0) {
-            <div class="vista-vacia">
-              <h3>Sin docentes registrados</h3>
-              <p>Subí un Excel desde la pestaña "Cargar Excel" o agregá un docente manualmente.</p>
-            </div>
-          } @else {
-
-            <!-- Barra de cambios pendientes -->
-            @if (puedeEditar && hayCambiosPendientes()) {
-              <div class="barra-pendientes">
-                <span class="barra-pendientes-texto">
-                  {{ cantidadCambiosPendientes() }} cambio(s) sin guardar
-                </span>
-                <div class="barra-pendientes-acciones">
-                  <button
-                    class="btn btn-secundario"
-                    (click)="descartarCambios()"
-                    [disabled]="guardandoCambios()"
-                    type="button"
-                  >
-                    Descartar
-                  </button>
-                  <button
-                    class="btn btn-primario"
-                    (click)="guardarCambios()"
-                    [disabled]="guardandoCambios()"
-                    type="button"
-                  >
-                    {{ guardandoCambios() ? 'Guardando...' : 'Guardar cambios' }}
-                  </button>
-                </div>
-              </div>
-            }
-
-            @if (mensaje()) {
-              <div class="mensaje" [class.ok]="mensaje()!.tipo === 'ok'" [class.error]="mensaje()!.tipo === 'error'">
-                {{ mensaje()!.texto }}
-              </div>
-            }
-
-            @if (docentesPorCarrera().length === 0) {
-              <div class="vista-vacia">
-                <h3>Sin resultados</h3>
-                <p>No hay docentes que coincidan con el filtro seleccionado.</p>
-              </div>
-            } @else {
-
-              <div class="lista-carreras">
-                @for (grupo of docentesPorCarrera(); track grupo.carrera) {
-                  <div class="grupo-carrera">
-                    <div class="grupo-header">
-                      <h3 class="grupo-titulo">{{ grupo.carrera }}</h3>
-                      <span class="grupo-contador">{{ grupo.docentes.length }} docente(s)</span>
-                    </div>
-
-                    <div class="tabla-wrapper">
-                      <table class="tabla-docentes">
-                        <thead>
-                          <tr>
-                            <th>Cédula</th>
-                            <th>Nombres Completos</th>
-                            <th>Rol</th>
-                            <th>Carreras</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (docente of grupo.docentes; track docente.cedula) {
-                            <tr [class.fila-pendiente]="tieneCambioPendiente(docente)">
-                              <td>{{ docente.cedula }}</td>
-                              <td>{{ docente.nombresCompletos }}</td>
-                              <td>
-                                @if (puedeEditar) {
-                                  <div class="rol-selector-wrapper">
-                                    <select
-                                      class="rol-selector"
-                                      [class.es-coordinador]="rolMostrado(docente) === 'coordinador'"
-                                      [ngModel]="rolMostrado(docente)"
-                                      (ngModelChange)="cambiarRolLocal(docente, $event)"
-                                      [disabled]="guardandoCambios()"
-                                    >
-                                      <option value="docente">Docente</option>
-                                      <option value="coordinador">Coordinador</option>
-                                    </select>
-                                    @if (tieneCambioPendiente(docente)) {
-                                      <span class="punto-pendiente" title="Cambio sin guardar"></span>
-                                    }
-                                  </div>
-                                } @else {
-                                  <span class="rol-solo-lectura" [class.es-coordinador]="rolMostrado(docente) === 'coordinador'">
-                                    {{ rolMostrado(docente) === 'coordinador' ? 'Coordinador' : 'Docente' }}
-                                  </span>
-                                }
-                              </td>
-                              <td>
-                                @if (puedeEditar) {
-                                  <div class="carreras-cargo-wrapper">
-                                    <button
-                                      type="button"
-                                      class="carreras-cargo-btn"
-                                      [disabled]="guardandoCambios()"
-                                      (click)="abrirCerrarMenuCarreras(docente.cedula, $event)"
-                                    >
-                                      {{ carrerasMostradas(docente).length }} carrera(s)
-                                      <span class="carreras-cargo-flecha">▾</span>
-                                    </button>
-
-                                    @if (carrerasMostradas(docente).length > 0) {
-                                      <div class="carreras-chips">
-                                        @for (c of carrerasMostradas(docente); track c) {
-                                          <span class="chip">{{ c }}</span>
-                                        }
-                                      </div>
-                                    } @else {
-                                      <span class="sin-cargo">Sin carreras asignadas</span>
-                                    }
-                                  </div>
-                                } @else {
-                                  @if (carrerasMostradas(docente).length > 0) {
-                                    <div class="carreras-chips">
-                                      @for (c of carrerasMostradas(docente); track c) {
-                                        <span class="chip">{{ c }}</span>
-                                      }
-                                    </div>
-                                  } @else {
-                                    <span class="sin-cargo">Sin carreras asignadas</span>
-                                  }
-                                }
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                }
-              </div>
-
-            }
-
-            <!-- Modal: Carreras del docente/coordinador -->
-            @if (puedeEditar && menuCarrerasAbierto() && docenteSeleccionado()) {
-              <div class="modal-backdrop" (click)="cerrarMenuCarreras()"></div>
-              <div class="modal-carreras" (click)="$event.stopPropagation()">
-                <div class="modal-carreras-header">
-                  <div>
-                    <p class="modal-carreras-titulo">Carreras asignadas</p>
-                    <p class="modal-carreras-subtitulo">{{ docenteSeleccionado()!.nombresCompletos }}</p>
-                  </div>
-                  <button type="button" class="modal-carreras-cerrar" (click)="cerrarMenuCarreras()">✕</button>
-                </div>
-
-                <div class="modal-carreras-lista">
-                  @if (rolMostrado(docenteSeleccionado()!) === 'coordinador') {
-                    <p class="modal-carreras-nota">
-                      No se muestran carreras que ya estén a cargo de otro coordinador.
-                    </p>
-                  }
-                  @for (carrera of carrerasParaChecklist(docenteSeleccionado()!); track carrera) {
-                    <label class="carreras-menu-item">
-                      <input
-                        type="checkbox"
-                        [checked]="estaCarreraAsignada(docenteSeleccionado()!, carrera)"
-                        (change)="toggleCarreraACargo(docenteSeleccionado()!, carrera, $event)"
-                      />
-                      {{ carrera }}
-                    </label>
-                  }
-                </div>
-
-                <div class="modal-carreras-footer">
-                  <button type="button" class="btn btn-primario" (click)="cerrarMenuCarreras()">Listo</button>
-                </div>
-              </div>
-            }
-
-            <!-- Modal: Agregar Docente -->
-            @if (puedeEditar && mostrarModalAgregar()) {
-              <div class="modal-backdrop" (click)="cerrarModalAgregar()"></div>
-              <div class="modal-carreras modal-agregar" (click)="$event.stopPropagation()">
-                <div class="modal-carreras-header">
-                  <div>
-                    <p class="modal-carreras-titulo">Agregar Docente</p>
-                    <p class="modal-carreras-subtitulo">Se guarda directo en la base de datos</p>
-                  </div>
-                  <button type="button" class="modal-carreras-cerrar" (click)="cerrarModalAgregar()">✕</button>
-                </div>
-
-                <div class="modal-carreras-lista modal-agregar-body">
-
-                  <div class="campo-form">
-                    <label class="campo-label" for="nuevaCedula">Cédula</label>
-                    <input
-                      id="nuevaCedula"
-                      type="text"
-                      class="campo-input"
-                      [ngModel]="nuevoDocente().cedula"
-                      (ngModelChange)="actualizarCampoNuevoDocente('cedula', $event)"
-                      [disabled]="guardandoNuevoDocente()"
-                    />
-                  </div>
-
-                  <div class="campo-form">
-                    <label class="campo-label" for="nuevoNombre">Nombres Completos</label>
-                    <input
-                      id="nuevoNombre"
-                      type="text"
-                      class="campo-input"
-                      [ngModel]="nuevoDocente().nombresCompletos"
-                      (ngModelChange)="actualizarCampoNuevoDocente('nombresCompletos', $event)"
-                      [disabled]="guardandoNuevoDocente()"
-                    />
-                  </div>
-
-                  <div class="campo-form">
-                    <label class="campo-label" for="nuevoRol">Rol</label>
-                    <select
-                      id="nuevoRol"
-                      class="rol-selector"
-                      [class.es-coordinador]="nuevoDocente().rol === 'coordinador'"
-                      [ngModel]="nuevoDocente().rol"
-                      (ngModelChange)="cambiarRolNuevoDocente($event)"
-                      [disabled]="guardandoNuevoDocente()"
-                    >
-                      <option value="docente">Docente</option>
-                      <option value="coordinador">Coordinador</option>
-                    </select>
-                  </div>
-
-                  <div class="campo-form">
-                    <label class="campo-label">Carreras</label>
-
-                    @if (nuevoDocente().rol === 'coordinador') {
-                      <p class="modal-carreras-nota">
-                        No se muestran carreras que ya estén a cargo de otro coordinador.
-                      </p>
-                    }
-
-                    @if (carrerasDisponiblesParaNuevoDocente().length > 0) {
-                      <div class="carreras-existentes-lista">
-                        @for (carrera of carrerasDisponiblesParaNuevoDocente(); track carrera) {
-                          <label class="carreras-menu-item">
-                            <input
-                              type="checkbox"
-                              [checked]="nuevoDocente().carreras.includes(carrera)"
-                              (change)="toggleCarreraExistenteNuevoDocente(carrera)"
-                              [disabled]="guardandoNuevoDocente()"
-                            />
-                            {{ carrera }}
-                          </label>
-                        }
-                      </div>
-                    }
-
-                    <div class="carrera-nueva-input">
-                      <input
-                        type="text"
-                        class="campo-input"
-                        placeholder="Escribí una carrera nueva..."
-                        [ngModel]="nuevoDocente().carreraNueva"
-                        (ngModelChange)="actualizarCampoNuevoDocente('carreraNueva', $event)"
-                        (keydown.enter)="agregarCarreraNuevaAlFormulario()"
-                        [disabled]="guardandoNuevoDocente()"
-                      />
-                      <button
-                        type="button"
-                        class="btn btn-secundario"
-                        (click)="agregarCarreraNuevaAlFormulario()"
-                        [disabled]="guardandoNuevoDocente()"
-                      >
-                        Agregar
-                      </button>
-                    </div>
-
-                    @if (nuevoDocente().carreras.length > 0) {
-                      <div class="carreras-chips carreras-chips-formulario">
-                        @for (carrera of nuevoDocente().carreras; track carrera) {
-                          <span class="chip chip-removible">
-                            {{ carrera }}
-                            <button
-                              type="button"
-                              class="chip-quitar"
-                              (click)="quitarCarreraDelFormulario(carrera)"
-                              [disabled]="guardandoNuevoDocente()"
-                            >✕</button>
-                          </span>
-                        }
-                      </div>
-                    }
-                  </div>
-
-                </div>
-
-                <div class="modal-carreras-footer">
-                  <button type="button" class="btn btn-secundario" (click)="cerrarModalAgregar()" [disabled]="guardandoNuevoDocente()">
-                    Cancelar
-                  </button>
-                  <button type="button" class="btn btn-primario" (click)="guardarNuevoDocente()" [disabled]="guardandoNuevoDocente()">
-                    {{ guardandoNuevoDocente() ? 'Guardando...' : 'Guardar Docente' }}
-                  </button>
-                </div>
-              </div>
-            }
-
-          }
-        }
-
-      } @else if (puedeEditar) {
-
-        <!-- Tab: Cargar Excel -->
-        <div class="dropzone">
-          <label for="excelInput" class="dropzone-label">
-            <div class="dropzone-icono">📄</div>
-            <p class="dropzone-titulo">
-              @if (nombreArchivo()) {
-                {{ nombreArchivo() }}
-              } @else {
-                Seleccioná un archivo Excel
-              }
-            </p>
-            <p class="dropzone-subtitulo">Formato: cédula · nombres completos · carrera</p>
-          </label>
-          <input
-            id="excelInput"
-            type="file"
-            accept=".xlsx, .xls"
-            (change)="onFileSelected($event)"
-            class="input-oculto"
-          />
-        </div>
-
-        @if (mensaje()) {
-          <div class="mensaje" [class.ok]="mensaje()!.tipo === 'ok'" [class.error]="mensaje()!.tipo === 'error'">
-            {{ mensaje()!.texto }}
-          </div>
-        }
-
-        @if (docentes().length > 0) {
-          <div class="preview">
-            <div class="preview-header">
-              <p class="preview-contador">{{ docentes().length }} docente(s) detectados</p>
-              <div class="acciones">
-                <button class="btn btn-secundario" (click)="limpiar()" [disabled]="cargando()" type="button">
-                  Cancelar
-                </button>
-                <button class="btn btn-primario" (click)="guardarEnFirebase()" [disabled]="cargando()" type="button">
-                  {{ cargando() ? 'Guardando...' : 'Guardar en Firebase' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="tabla-wrapper">
-              <table class="tabla-docentes">
-                <thead>
-                  <tr>
-                    <th>Cédula</th>
-                    <th>Nombres Completos</th>
-                    <th>Carrera</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (docente of docentes(); track docente.cedula) {
-                    <tr>
-                      <td>{{ docente.cedula }}</td>
-                      <td>{{ docente.nombresCompletos }}</td>
-                      <td>{{ docente.carreras.join(', ') }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        } @else {
-          <div class="vista-vacia">
-            <h3>Sin datos cargados</h3>
-            <p>Subí un archivo Excel para ver la vista previa antes de guardar.</p>
-          </div>
-        }
-
-      }
-
+  <div class="dr-header">
+    <h1>Docentes Registrados</h1>
+    <div class="dr-header-controles">
+      <input class="dr-buscador" type="text" placeholder="Buscar por cédula, docente, carrera o capacitación…"
+        [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+      <label class="dr-toggle-conflicto">
+        <input type="checkbox" [ngModel]="soloConflictosSede()" (ngModelChange)="soloConflictosSede.set($event)" />
+        ⚠️ Solo conflictos de sede ({{ totalConflictosSede() }})
+      </label>
+      <label class="dr-toggle-conflicto dr-toggle-un-tipo">
+        <input type="checkbox" [ngModel]="soloIncompletos()" (ngModelChange)="soloIncompletos.set($event)" />
+        📄 Solo incompletos ({{ totalIncompletos() }})
+      </label>
     </div>
   </div>
+
+  <p class="dr-resumen" *ngIf="!cargando()">
+    {{ docentesFiltrados().length }} docente(s) — {{ totalRegistros() }} registro(s) en total
+  </p>
+
+  <p *ngIf="cargando()">Cargando registros…</p>
+
+  <div class="dr-lista" *ngIf="!cargando()">
+    <div class="dr-docente" *ngFor="let d of docentesFiltrados()"
+      [class.dr-docente-conflicto]="d.tieneConflictoSede || d.incompleto">
+      <div class="dr-docente-head">
+        <strong>{{ d.docente || '(sin nombre)' }}</strong>
+        <span class="dr-cedula">CI: {{ d.cedula }}</span>
+        <span class="dr-badge-conflicto" *ngIf="d.tieneConflictoSede">
+          ⚠️ Sedes mezcladas: {{ d.sedes.join(' y ') }}
+        </span>
+        <span class="dr-badge-un-tipo" *ngIf="d.patrociniosFaltantes > 0">
+          📄 Faltan {{ d.patrociniosFaltantes }} Acuerdo(s) de Patrocinio ({{ d.patrocinios.length }}/2)
+        </span>
+        <span class="dr-badge-un-tipo" *ngIf="d.planesFaltantes > 0">
+          📄 Falta Plan Individual ({{ d.planes.length }}/1)
+        </span>
+      </div>
+
+      <table class="dr-tabla" *ngIf="d.patrocinios.length">
+        <caption>Acuerdos de Patrocinio</caption>
+        <thead>
+          <tr>
+            <th>Capacitación</th>
+            <th>Carrera</th>
+            <th>Sede</th>
+            <th>Código</th>
+            <th>Entregado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of d.patrocinios">
+            <td>{{ p.capacitacion }}</td>
+            <td>{{ p.carrera }}</td>
+            <td>{{ p.sede || '—' }}</td>
+            <td>{{ p.codigo }}</td>
+            <td>
+              <input type="checkbox" [checked]="p.entregado" (change)="toggleEntregado(p)" />
+            </td>
+            <td class="dr-acciones">
+              <button (click)="editar(p)">Editar</button>
+              <button (click)="duplicar(p)">Duplicar</button>
+              <button class="dr-btn-danger" (click)="eliminar(p)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="dr-tabla" *ngIf="d.planes.length">
+        <caption>Planes Individuales</caption>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Carrera</th>
+            <th>Sede</th>
+            <th>Nivel Genérico</th>
+            <th>Nivel Específico</th>
+            <th>Entregado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of d.planes">
+            <td>{{ p.codigo }}</td>
+            <td>{{ p.carrera }}</td>
+            <td>{{ p.sede || '—' }}</td>
+            <td>{{ p.nivelFormacionGenerica }}</td>
+            <td>{{ p.nivelFormacionEspecifica }}</td>
+            <td>
+              <input type="checkbox" [checked]="p.entregado" (change)="toggleEntregado(p)" />
+            </td>
+            <td class="dr-acciones">
+              <button (click)="editar(p)">Editar</button>
+              <button (click)="duplicar(p)">Duplicar</button>
+              <button class="dr-btn-danger" (click)="eliminar(p)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── MODAL EDITAR / DUPLICAR ── -->
+  <div class="dr-modal-overlay" *ngIf="modalAbierto()">
+    <div class="dr-modal-box" *ngIf="edicion() as reg">
+      <h3>{{ esNuevoDuplicado() ? 'Duplicar registro' : 'Editar registro' }}</h3>
+
+      <label>Cédula</label>
+      <input type="text" [(ngModel)]="reg.cedula" maxlength="10" />
+
+      <label>Nombre del docente</label>
+      <input type="text" [(ngModel)]="reg.docente" />
+
+      <label>Carrera</label>
+      <input type="text" [(ngModel)]="reg.carrera" />
+      <label>Sede</label>
+      <select [(ngModel)]="reg.sede">
+        <option value="">-- Seleccione sede --</option>
+        <option value="Quito">Quito</option>
+        <option value="Manta">Manta</option>
+      </select>
+      <ng-container *ngIf="reg.tipo === 'patrocinio'">
+        <label>Capacitación</label>
+        <input type="text" [(ngModel)]="reg.capacitacion" />
+      </ng-container>
+
+      <label>Código</label>
+      <input type="text" [(ngModel)]="reg.codigo" />
+
+      <ng-container *ngIf="reg.tipo === 'plan'">
+        <label>Nivel Formación Genérica</label>
+        <input type="text" [(ngModel)]="reg.nivelFormacionGenerica" />
+
+        <label>Fecha inicio genérica</label>
+        <input type="date" [(ngModel)]="reg.fechaInicioG" />
+
+        <label>Fecha fin genérica</label>
+        <input type="date" [(ngModel)]="reg.fechaFinG" />
+
+        <label>Nivel Formación Específica</label>
+        <input type="text" [(ngModel)]="reg.nivelFormacionEspecifica" />
+
+        <label>Fecha inicio específica</label>
+        <input type="date" [(ngModel)]="reg.fechaInicioE" />
+
+        <label>Fecha fin específica</label>
+        <input type="date" [(ngModel)]="reg.fechaFinE" />
+      </ng-container>
+
+      <label class="dr-check-label">
+        <input type="checkbox" [(ngModel)]="reg.entregado" />
+        Entregado
+      </label>
+
+      <div class="dr-modal-actions">
+        <button (click)="cerrarModal()" [disabled]="guardando()">Cancelar</button>
+        <button (click)="guardarModal()" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 </div>
