@@ -1,7 +1,7 @@
 <div>
   <br>
   <br>
-  
+
 <div class="dr-root">
 
   <div class="dr-header">
@@ -17,6 +17,9 @@
         <input type="checkbox" [ngModel]="soloIncompletos()" (ngModelChange)="soloIncompletos.set($event)" />
         📄 Solo incompletos ({{ totalIncompletos() }})
       </label>
+      <button class="dr-btn-export" (click)="descargarExcelPlanes()" [disabled]="exportandoExcel()">
+        {{ exportandoExcel() ? 'Generando…' : '📊 Descargar datos del Plan Individual en Excel' }}
+      </button>
     </div>
   </div>
 

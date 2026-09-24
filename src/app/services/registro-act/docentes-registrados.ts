@@ -5,6 +5,7 @@ import {
   update,
   set,
   remove,
+  get,
   DatabaseReference
 } from 'firebase/database';
 import { dbDocente } from '../../firebase/firebase-docente'; // ajusta el path a tu firebase-docente.ts
@@ -18,7 +19,7 @@ export interface RegistroPatrocinio {
   capacitacion: string;
   codigo: string;
   entregado?: boolean;
-  sede?: string;          // ← nuevo
+  sede?: string;
 }
 
 export interface RegistroPlan {
@@ -29,7 +30,7 @@ export interface RegistroPlan {
   carrera: string;
   codigo: string;
   entregado?: boolean;
-  sede?: string;          // ← nuevo
+  sede?: string;
   fechaInicioG?: string;
   fechaFinG?: string;
   fechaInicioE?: string;
@@ -73,7 +74,6 @@ export class DocentesRegistradosService {
         const cedula = cedulaSnap.key as string;
         cedulaSnap.forEach((capSnap) => {
           const d = capSnap.val();
-          // dentro de escucharPatrocinios, al armar cada objeto:
           resultado.push({
             tipo: 'patrocinio',
             cedula,
@@ -83,7 +83,7 @@ export class DocentesRegistradosService {
             capacitacion: d?.capacitacion || '',
             codigo: d?.codigo || '',
             entregado: !!d?.entregado,
-            sede: d?.sede || ''          // ← nuevo
+            sede: d?.sede || ''
           });
         });
       });
@@ -99,7 +99,6 @@ export class DocentesRegistradosService {
         const cedula = cedulaSnap.key as string;
         cedulaSnap.forEach((planSnap) => {
           const d = planSnap.val();
-          // dentro de escucharPlanes, al armar cada objeto:
           resultado.push({
             tipo: 'plan',
             cedula,
@@ -108,7 +107,7 @@ export class DocentesRegistradosService {
             carrera: d?.carrera || '',
             codigo: d?.codigo || '',
             entregado: !!d?.entregado,
-            sede: d?.sede || '',          // ← nuevo
+            sede: d?.sede || '',
             fechaInicioG: d?.fechaInicioG || '',
             fechaFinG: d?.fechaFinG || '',
             fechaInicioE: d?.fechaInicioE || '',
@@ -141,7 +140,7 @@ export class DocentesRegistradosService {
       capacitacion: nuevo.capacitacion,
       codigo: nuevo.codigo,
       entregado: !!nuevo.entregado,
-      sede: nuevo.sede || ''        // ← nuevo
+      sede: nuevo.sede || ''
     };
 
     if (esNuevo) {
@@ -161,14 +160,13 @@ export class DocentesRegistradosService {
 
   async guardarPlan(original: RegistroPlan, nuevo: RegistroPlan, esNuevo: boolean) {
     const nuevaClave = this.claveDesdeCodigo(nuevo.codigo);
-    // en guardarPlan, dentro del payload:
     const payload = {
       docente: nuevo.docente,
       cedula: nuevo.cedula,
       carrera: nuevo.carrera,
       codigo: nuevo.codigo,
       entregado: !!nuevo.entregado,
-      sede: nuevo.sede || '',       // ← nuevo
+      sede: nuevo.sede || '',
       fechaInicioG: nuevo.fechaInicioG || '',
       fechaFinG: nuevo.fechaFinG || '',
       fechaInicioE: nuevo.fechaInicioE || '',
@@ -208,5 +206,26 @@ export class DocentesRegistradosService {
 
   async marcarEntregadoPlan(cedula: string, clave: string, valor: boolean) {
     await update(this.refPlan(cedula, clave), { entregado: valor });
+  }
+
+  // ── EXPORTAR: trae TODOS los campos crudos de cada plan, sin filtrar por interfaz ──
+  async obtenerTodosLosPlanesRaw(): Promise<Array<Record<string, any>>> {
+    const nodo = ref(dbDocente, 'planesGenerados');
+    const snapshot = await get(nodo);
+    const resultado: Array<Record<string, any>> = [];
+
+    snapshot.forEach((cedulaSnap) => {
+      const cedula = cedulaSnap.key as string;
+      cedulaSnap.forEach((planSnap) => {
+        const val = planSnap.val() || {};
+        resultado.push({
+          cedula,
+          clave: planSnap.key,
+          ...val
+        });
+      });
+    });
+
+    return resultado;
   }
 }

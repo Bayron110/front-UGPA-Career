@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import * as XLSX from 'xlsx';
 import {
   DocentesRegistradosService,
   RegistroPatrocinio,
@@ -38,6 +39,8 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
 
   soloConflictosSede = signal(false);
   soloIncompletos = signal(false);
+
+  exportandoExcel = signal(false);
 
   // Cantidad de documentos esperada por docente. Ajusta aquí si cambia la regla.
   private readonly PATROCINIOS_ESPERADOS = 2;
@@ -233,6 +236,43 @@ export class DocentesRegistrados implements OnInit, OnDestroy {
       alert('Ocurrió un error al guardar');
     } finally {
       this.guardando.set(false);
+    }
+  }
+
+  // ── Exportar Planes Individuales a Excel ──
+  async descargarExcelPlanes() {
+    this.exportandoExcel.set(true);
+    try {
+      const datos = await this.svc.obtenerTodosLosPlanesRaw();
+
+      if (!datos.length) {
+        alert('No hay planes individuales registrados para exportar.');
+        return;
+      }
+
+      const setColumnas = new Set<string>();
+      for (const d of datos) {
+        Object.keys(d).forEach(k => setColumnas.add(k));
+      }
+      const columnas = Array.from(setColumnas);
+
+      const filas = datos.map(d => {
+        const fila: Record<string, any> = {};
+        columnas.forEach(col => fila[col] = d[col] ?? '');
+        return fila;
+      });
+
+      const hoja = XLSX.utils.json_to_sheet(filas, { header: columnas });
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, 'Planes Individuales');
+
+      const fecha = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(libro, `planes_individuales_${fecha}.xlsx`);
+    } catch (error) {
+      console.error(error);
+      alert('Ocurrió un error al generar el archivo Excel.');
+    } finally {
+      this.exportandoExcel.set(false);
     }
   }
 }

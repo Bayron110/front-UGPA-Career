@@ -83,7 +83,8 @@ export class Home implements OnInit {
       irGestionCoordinador: () => window.open("https://docentenuevo.pages.dev/"),
       irASeguimientoCoordinador: () => window.open("https://titulos-coordinadores.pages.dev/"),
       irAHistorialSesion: () => this.router.navigate(["/Historial-Sesión"]),
-      irAUSEGBE: () => window.open("https://tangerine-strudel-35d0e7.netlify.app/area-usegbe/usegbe")
+      irAUSEGBE: () => window.open("https://tangerine-strudel-35d0e7.netlify.app/area-usegbe/usegbe"),
+      irAMensajes: ()=> window.open("https://tangerine-strudel-35d0e7.netlify.app/anuncios/anuncio.html")
     };
     routes[action]?.();
   }

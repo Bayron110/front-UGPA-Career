@@ -12,6 +12,15 @@ export const HOME_CARDS: HomeCard[] = [
         },
 
         {
+                badge: 'UTET',
+                title: 'Mensajes Rapidos',
+                description: 'Sistema para enviar mensajes rapidos a los estudiantes y grupos de telegram',
+                footer: 'Inducciones',
+                image: 'https://i.postimg.cc/ZRKk6Zz1/Gemini-Generated-Image-ewdl29ewdl29ewdl.jpg',
+                action: 'irAMensajes'
+        },
+
+        {
                 badge: 'UGPA',
                 title: 'Documentos Web Docentes',
                 description: 'Control de los Documentos de la Capacitación Docente.',
